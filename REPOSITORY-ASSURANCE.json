@@ -1,8 +1,12 @@
 {
   "schema_version": "ISRAS-REPOSITORY-V1",
   "standard": {
+    "name": "Iron Signal Repository Assurance Standard",
+    "acronym": "ISRAS",
+    "version": "1.0.0",
     "repository": "Iron-Signal-Systems/engineering-standards",
-    "commit": "SELF"
+    "commit": "SELF",
+    "definition": "The organization-wide repository reproducibility, validation, historical verification, evidence, acceptance, release, deployment verification, recovery, and maintenance standard for Iron Signal Systems."
   },
   "repository": "Iron-Signal-Systems/engineering-standards",
   "canonical_origin": "git@github.com:Iron-Signal-Systems/engineering-standards.git",
@@ -26,9 +30,13 @@
   },
   "checkpoint_registry": "tools/validation/checkpoints.json",
   "evidence_directory": "docs/acceptance/evidence",
+  "source_manifest": "SOURCE-SHA256SUMS.txt",
+  "tool_requirements": "tools/requirements.txt",
+  "support_policy": "SUPPORT-AND-COMPATIBILITY.md",
   "documentation_sync_required": true,
   "historical_gates_immutable": true,
   "native_first": true,
   "containers_required": false,
-  "direct_push_to_development_branch": false
+  "direct_push_to_development_branch": false,
+  "adoption_level": "REPRODUCIBLE"
 }

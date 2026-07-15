@@ -113,7 +113,11 @@ def main() -> int:
 
     if not args.dry_run:
         print("\nBaseline applied. Review and customize every generated file before committing.")
-        print("The standard commit remains UNPINNED-BOOTSTRAP until this repository is published.")
+        if values["standard_commit"] == "UNPINNED-BOOTSTRAP":
+            print("The standard commit is UNPINNED-BOOTSTRAP because the standards source is not a committed Git tree.")
+        else:
+            print(f"The adopted standard is pinned to {values['standard_commit']}.")
+        print("RECORDED adoption does not require a source manifest until the repository advances to REPRODUCIBLE.")
     return 0
 
 

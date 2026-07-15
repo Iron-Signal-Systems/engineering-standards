@@ -10,3 +10,5 @@ venv/
 Thumbs.db
 *.tmp
 *.log
+
+.isras-tools-venv/

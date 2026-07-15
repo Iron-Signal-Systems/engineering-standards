@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
+import sys
 import stat
 import subprocess
 import tempfile
@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 STANDARDS_ROOT = Path(__file__).resolve().parents[1]
-PYTHON = shutil.which("python3") or shutil.which("python")
+PYTHON = sys.executable
 
 
 def run(args, cwd=None, check=True):
@@ -112,6 +112,10 @@ class ISRToolsTests(unittest.TestCase):
             self.assertEqual(security.read_text(), "# Existing security policy\n")
             self.assertTrue((repo / "REPOSITORY-ASSURANCE.json").exists())
 
+    @unittest.skipUnless(
+        os.environ.get("ISRAS_RUN_INTEGRATION_TESTS") == "1",
+        "integration test",
+    )
     def test_fresh_clone_and_historical_checkpoint(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
@@ -165,6 +169,110 @@ class ISRToolsTests(unittest.TestCase):
                 "--checkpoint", "test-checkpoint",
             ], cwd=repo)
             self.assertIn("Historical checkpoint validation PASSED", historical.stdout)
+
+    def test_source_manifest_uses_only_tracked_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(repo, str(base / "remote.git"))
+            manifest_path = repo / "REPOSITORY-ASSURANCE.json"
+            manifest = json.loads(manifest_path.read_text())
+            manifest["adoption_level"] = "REPRODUCIBLE"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+            (repo / "SOURCE-SHA256SUMS.txt").write_text("", encoding="utf-8")
+            cache = repo / ".pytest_cache/v/cache"
+            cache.mkdir(parents=True)
+            (cache / "nodeids").write_text("transient\n", encoding="utf-8")
+            run(["git", "add", "."], cwd=repo)
+            run([
+                PYTHON,
+                repo / "tools/isras/generate_source_manifest.py",
+                "--repo-root", repo,
+            ], cwd=repo)
+            content = (repo / "SOURCE-SHA256SUMS.txt").read_text()
+            self.assertNotIn(".pytest_cache", content)
+            result = run([
+                PYTHON,
+                repo / "tools/isras/verify_source_manifest.py",
+                "--repo-root", repo,
+            ], cwd=repo)
+            self.assertIn("Source manifest verifies", result.stdout)
+
+    def test_policy_rejects_caller_selected_portable_runner(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(repo, str(base / "remote.git"))
+            workflow = repo / ".github/workflows/portable-validation.yml"
+            workflow.write_text(
+                workflow.read_text().replace(
+                    "runs-on: ubuntu-latest",
+                    "runs-on: ${{ inputs.runner }}",
+                )
+            )
+            result = run([
+                PYTHON,
+                repo / "tools/isras/validate_policy.py",
+                "--repo-root", repo,
+            ], cwd=repo, check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("caller-selected portable/policy runners", result.stderr)
+
+    @unittest.skipUnless(
+        os.environ.get("ISRAS_RUN_INTEGRATION_TESTS") == "1",
+        "integration test",
+    )
+    def test_acceptance_evidence_resolves_self_and_records_runner(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            remote = base / "remote.git"
+            run(["git", "init", "--bare", remote])
+            repo = self.make_repo(base)
+            self.adopt(repo, str(remote))
+            run(["git", "remote", "add", "origin", remote], cwd=repo)
+            manifest_path = repo / "REPOSITORY-ASSURANCE.json"
+            manifest = json.loads(manifest_path.read_text())
+            manifest["standard"]["commit"] = "SELF"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+            run(["git", "add", "."], cwd=repo)
+            run(["git", "commit", "-m", "adopt assurance"], cwd=repo)
+            run(["git", "push", "-u", "origin", "dev"], cwd=repo)
+            source_commit = run(["git", "rev-parse", "HEAD"], cwd=repo).stdout.strip()
+            output = "docs/acceptance/evidence/test.json"
+            run([
+                PYTHON,
+                repo / "tools/isras/create_acceptance_evidence.py",
+                "--repo-root", repo,
+                "--validator", "test-validator",
+                "--environment-profile", "portable",
+                "--runner-identity", "test-runner",
+                "--correctness-result", "PASS",
+                "--output", output,
+            ], cwd=repo)
+            evidence = json.loads((repo / output).read_text())
+            self.assertEqual(evidence["source_commit"], source_commit)
+            self.assertEqual(evidence["standard_commit"], source_commit)
+            self.assertEqual(evidence["runner_identity"], "test-runner")
+            self.assertNotEqual(evidence["started_at"], evidence["finished_at"])
+
+    def test_doctor_rejects_version_mismatch(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(repo, str(base / "remote.git"))
+            profile_path = repo / "tools/environment/profiles/portable.json"
+            profile = json.loads(profile_path.read_text())
+            profile["required_commands"][0]["version_pattern"] = "NEVER_MATCH_THIS_VERSION"
+            profile_path.write_text(json.dumps(profile, indent=2) + "\n")
+            run(["git", "remote", "add", "origin", str(base / "remote.git")], cwd=repo)
+            result = run([
+                PYTHON,
+                repo / "tools/isras/doctor.py",
+                "--repo-root", repo,
+                "--profile", "portable",
+            ], cwd=repo, check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Required command and version: git", result.stderr)
 
 
 if __name__ == "__main__":

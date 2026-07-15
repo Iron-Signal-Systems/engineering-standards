@@ -2,18 +2,15 @@
   "schema_version": "ISRAS-ENVIRONMENT-V1",
   "profile": "specialized",
   "classification": "specialized",
-  "operating_systems": [
-    "PROJECT_DEFINED"
-  ],
+  "operating_systems": ["PROJECT_DEFINED"],
+  "architectures": ["PROJECT_DEFINED"],
   "required_commands": [
-    "git"
+    {"command": "git", "version_args": ["--version"], "version_pattern": "^git version "}
   ],
   "optional_commands": [],
-  "capabilities": [
-    "project-specialized-validation"
-  ],
+  "required_python_modules": [],
+  "required_environment_variables": ["ISRAS_RUNNER_IDENTITY"],
+  "capabilities": ["project-specialized-validation"],
   "containers_required": false,
-  "notes": [
-    "Specialized environments are not available to public pull-request jobs."
-  ]
+  "notes": ["Specialized labs must define exact topology, reset, identity, and evidence requirements."]
 }

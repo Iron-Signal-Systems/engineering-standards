@@ -37,6 +37,10 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           unset auth ISRAS_GITHUB_TOKEN
 
+      - name: Install pinned ISRAS validation tools
+        shell: bash
+        run: python3 -m pip install --disable-pip-version-check --requirement tools/requirements.txt
+
       - name: Run repository-owned portable validation
         shell: bash
         run: |

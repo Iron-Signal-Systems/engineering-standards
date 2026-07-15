@@ -5,14 +5,32 @@
 This document is the normative repository assurance standard for Iron Signal
 Systems projects adopting ISRAS v1.
 
-## 2. Governing rule
+## 2. Definition and purpose
+
+**ISRAS** means **Iron Signal Repository Assurance Standard**. ISRAS is the
+organization-wide standard governing the reproducibility, validation, change
+control, historical verification, evidence, acceptance, release, deployment
+verification, recovery, and long-term maintainability of Iron Signal Systems
+repositories.
+
+ISRAS is not an “Information System Risk Assessment,” risk-scoring method,
+compliance certification, or substitute for project threat models and risk
+registers. Those may be required project artifacts, while ISRAS governs the
+engineering and evidence process through which they are maintained and used.
+
+The purpose of ISRAS is to prevent undeclared developer-machine dependencies,
+make accepted source reconstructable from the canonical repository, retain
+historical verification, and associate engineering claims with exact source,
+environment, validator, and evidence boundaries.
+
+## 3. Governing rule
 
 A change is not complete merely because it works on the developer's current
 system. It is complete only when its exact pushed commit can be reconstructed,
 validated, and evidenced from the canonical repository using declared
 environments and committed project-owned assets.
 
-## 3. Scope
+## 4. Scope
 
 ISRAS applies to:
 
@@ -27,9 +45,9 @@ ISRAS applies to:
 - deployment, rollback, recovery, and operational evidence;
 - specialized labs, including Windows Active Directory trust environments.
 
-## 4. Mandatory principles
+## 5. Mandatory principles
 
-### 4.1 Canonical repository completeness
+### 5.1 Canonical repository completeness
 
 The canonical repository must contain every project-owned input required to
 build, test, validate, document, release, deploy, or reconstruct an accepted
@@ -39,18 +57,18 @@ No accepted result may depend on an untracked local file, ignored project input,
 personal path, prior database state, retained credential, compiler cache, or
 developer memory.
 
-### 4.2 Exact pushed commit
+### 5.2 Exact pushed commit
 
 Acceptance evidence must identify the exact commit. The commit must exist in the
 canonical remote before acceptance is claimed.
 
-### 4.3 Documentation synchronization
+### 5.3 Documentation synchronization
 
 Documentation changes are part of the same change set as the architecture,
 implementation, validation, sequencing, environment, or acceptance change they
 describe.
 
-### 4.4 Historical checkpoint immutability
+### 5.4 Historical checkpoint immutability
 
 An accepted historical gate is run from its accepted historical tree. Later
 gates must not weaken earlier gates merely to permit later artifacts.
@@ -58,7 +76,7 @@ gates must not weaken earlier gates merely to permit later artifacts.
 A discovered validator defect requires an explicit erratum and revalidation
 record rather than silent historical rewriting.
 
-### 4.5 Separation of correctness and observation
+### 5.5 Separation of correctness and observation
 
 Correctness, resource observation, performance-budget evaluation, security
 findings, and operational readiness are separate outcomes.
@@ -66,7 +84,7 @@ findings, and operational readiness are separate outcomes.
 A resource report cannot conceal a correctness failure. An unevaluated
 performance budget cannot be described as a performance pass.
 
-### 4.6 Native-first validation
+### 5.6 Native-first validation
 
 The standard does not mandate Docker or Podman for every project.
 
@@ -75,7 +93,7 @@ each validation profile. Containers are optional unless the accepted product
 deployment is container-native. Container convenience must not hide undeclared
 host or runtime dependencies.
 
-### 4.7 Least authority
+### 5.7 Least authority
 
 Validation, CI, release, deployment, and specialized-lab identities receive only
 the authority required for their exact operation.
@@ -83,7 +101,7 @@ the authority required for their exact operation.
 Public pull-request jobs must not run on sensitive self-hosted infrastructure or
 receive production, lab-administration, signing, or deployment secrets.
 
-### 4.8 Machine enforcement before human independence
+### 5.8 Machine enforcement before human independence
 
 Automated required checks may be established while a project has one
 maintainer. Genuine separation of duties is claimed only after a second
@@ -92,7 +110,7 @@ qualified and independent reviewer exists.
 A second account controlled by the same person does not constitute independent
 review.
 
-## 5. Validation layers
+## 6. Validation layers
 
 Every adopting repository defines applicable layers:
 
@@ -105,7 +123,7 @@ Every adopting repository defines applicable layers:
 7. Release assurance.
 8. Deployment, rollback, restore, and operational readiness validation.
 
-## 6. Definition of complete
+## 7. Definition of complete
 
 A change is complete only when all applicable conditions are satisfied:
 
@@ -124,9 +142,11 @@ A change is complete only when all applicable conditions are satisfied:
 - acceptance evidence identifies exact source and result boundaries;
 - warnings, limitations, exceptions, and non-claims are recorded.
 
-## 7. Prohibited claims
+## 8. Outside scope and prohibited claims
 
-ISRAS adoption alone does not establish:
+ISRAS does not define a project’s business requirements, product architecture,
+organizational risk appetite, or information-system risk methodology. ISRAS
+adoption alone also does not establish:
 
 - absence of vulnerabilities;
 - production readiness;

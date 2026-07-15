@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironsignalsystems.com/schemas/isras/checkpoint-registry-v1.schema.json",
+  "title": "ISRAS Checkpoint Registry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "checkpoints"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ISRAS-CHECKPOINTS-V1"
+    },
+    "checkpoints": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "commit",
+          "gate",
+          "environment_profile",
+          "required_branch_name"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "accepted",
+              "candidate",
+              "superseded",
+              "withdrawn"
+            ]
+          },
+          "commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "tag": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gate": {
+            "type": "string"
+          },
+          "environment_profile": {
+            "type": "string"
+          },
+          "required_branch_name": {
+            "type": "string"
+          },
+          "expected_result": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,22 +1,21 @@
 # Validation Environment Model
 
-## Portable
+Repositories define portable, canonical, specialized, release, and recovery
+environment profiles as applicable.
 
-Runs on ordinary approved development systems and clean hosted runners.
+Profiles declare:
 
-## Canonical
+- permitted operating systems and architectures;
+- required commands and command-version patterns;
+- pinned Python validation modules;
+- required environment-variable names without secret values;
+- capabilities and explicit non-capabilities;
+- whether containers are required by an accepted product boundary.
 
-Runs exact production-like native host controls, toolchains, databases, service
-management, and resource observations.
+The environment doctor emits a human-readable result and can write a
+machine-readable fingerprint. Command presence without version verification is
+not sufficient for canonical or formal acceptance.
 
-## Specialized
-
-Runs identity labs, failover, recovery, performance, destructive, or
-multi-system campaigns.
-
-## Historical
-
-Runs accepted gates from exact historical trees.
-
-Unavailable specialized capability is reported as unavailable, not as a false
-correctness failure.
+Containers remain optional unless the accepted product deployment is itself
+container-native. Native hosts and disposable virtual machines are first-class
+validation environments.

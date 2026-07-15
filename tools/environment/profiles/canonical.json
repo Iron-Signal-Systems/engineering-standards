@@ -2,18 +2,15 @@
   "schema_version": "ISRAS-ENVIRONMENT-V1",
   "profile": "canonical",
   "classification": "canonical",
-  "operating_systems": [
-    "PROJECT_DEFINED"
-  ],
+  "operating_systems": ["PROJECT_DEFINED"],
+  "architectures": ["PROJECT_DEFINED"],
   "required_commands": [
-    "git"
+    {"command": "git", "version_args": ["--version"], "version_pattern": "^git version "}
   ],
   "optional_commands": [],
-  "capabilities": [
-    "project-canonical-validation"
-  ],
+  "required_python_modules": [],
+  "required_environment_variables": ["ISRAS_RUNNER_IDENTITY"],
+  "capabilities": ["project-canonical-validation"],
   "containers_required": false,
-  "notes": [
-    "Replace PROJECT_DEFINED and command inventory before canonical acceptance."
-  ]
+  "notes": ["Replace PROJECT_DEFINED and the tool inventory before canonical acceptance."]
 }

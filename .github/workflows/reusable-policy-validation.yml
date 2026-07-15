@@ -2,18 +2,13 @@ name: Reusable ISRAS policy validation
 
 on:
   workflow_call:
-    inputs:
-      runner:
-        required: false
-        type: string
-        default: ubuntu-latest
 
 permissions:
   contents: read
 
 jobs:
   policy:
-    runs-on: ${{ inputs.runner }}
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Check out exact event commit without an external action
@@ -30,6 +25,11 @@ jobs:
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           unset auth ISRAS_GITHUB_TOKEN
+
+      - name: Install pinned ISRAS validation tools
+        shell: bash
+        run: python3 -m pip install --disable-pip-version-check --requirement tools/requirements.txt
+
       - name: Validate repository assurance policy
         shell: bash
         run: python3 tools/isras/validate_policy.py --repo-root .
