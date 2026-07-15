@@ -2,6 +2,9 @@
 
 ## Unreleased — v1 pre-acceptance hardening
 
+- Makes the repository adopter safely encode generated JSON and Python
+  string values so Windows paths and other backslash-containing values
+  cannot create invalid assurance manifests or validation source files.
 - Makes hosted workflow checkouts fetch the exact immutable GitHub event
   commit instead of fetching a mutable pull-request or branch ref and then
   comparing it with the event SHA.

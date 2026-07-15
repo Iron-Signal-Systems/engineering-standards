@@ -70,6 +70,30 @@ class ISRToolsTests(unittest.TestCase):
             ], cwd=repo)
             self.assertIn("ISRAS policy validation PASSED", result.stdout)
 
+
+    def test_adopter_escapes_windows_style_template_values(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            origin = r"C:\Users\example\engineering-standards.git"
+
+            self.adopt(repo, origin)
+
+            manifest_path = repo / "REPOSITORY-ASSURANCE.json"
+            manifest = json.loads(
+                manifest_path.read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["canonical_origin"], origin)
+
+            result = run([
+                PYTHON,
+                "-m",
+                "py_compile",
+                repo / "tools/isras/validate_policy.py",
+            ], cwd=repo)
+
+            self.assertEqual(result.returncode, 0)
+
     def test_adopter_refuses_overwrite(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)

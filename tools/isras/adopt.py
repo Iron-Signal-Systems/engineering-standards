@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 import stat
@@ -19,10 +20,29 @@ TOKENS = {
 }
 
 
-def transform(text: str, values: dict[str, str]) -> str:
+def transform(
+    text: str,
+    values: dict[str, str],
+    suffix: str,
+) -> str:
+    escaped_string_suffixes = {".json", ".py"}
+
     for token, key in TOKENS.items():
-        text = text.replace(token, values[key])
-    text = text.replace("UNPINNED-BOOTSTRAP", values["standard_commit"])
+        value = values[key]
+
+        if suffix.lower() in escaped_string_suffixes:
+            # Tokens in JSON and Python templates appear inside
+            # double-quoted string literals. Encode their contents so
+            # Windows backslashes, quotes, and control characters cannot
+            # produce invalid generated files.
+            value = json.dumps(value, ensure_ascii=False)[1:-1]
+
+        text = text.replace(token, value)
+
+    text = text.replace(
+        "UNPINNED-BOOTSTRAP",
+        values["standard_commit"],
+    )
     return text
 
 
@@ -107,7 +127,11 @@ def main() -> int:
         print(f"WRITE: {destination.relative_to(target)}")
         destination.parent.mkdir(parents=True, exist_ok=True)
         text = source.read_text(encoding="utf-8")
-        destination.write_text(transform(text, values), encoding="utf-8", newline="\n")
+        destination.write_text(
+            transform(text, values, source.suffix),
+            encoding="utf-8",
+            newline="\n",
+        )
         if source.stat().st_mode & stat.S_IXUSR:
             destination.chmod(destination.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
