@@ -22,6 +22,10 @@
 - Makes the ISRAS tool tests reuse the exact active Python interpreter so
   temporary adopted repositories receive the same pinned validation
   dependencies as the parent validation campaign.
+- Makes portable origin validation compare canonical repository identity
+  across SSH and HTTPS transports while preserving exact-origin checks for
+  canonical validation; hosted workflows now use isolated pinned Python
+  environments on Linux, macOS, and Windows.
 - Adds candidate acceptance structure and checkpoint-recording tooling.
 
 ## 1.0.0 — Initial candidate standard

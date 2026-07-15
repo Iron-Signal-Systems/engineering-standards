@@ -255,6 +255,65 @@ class ISRToolsTests(unittest.TestCase):
             self.assertEqual(evidence["runner_identity"], "test-runner")
             self.assertNotEqual(evidence["started_at"], evidence["finished_at"])
 
+
+    def test_portable_doctor_accepts_equivalent_git_transport(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(
+                repo,
+                "git@github.com:Iron-Signal-Systems/sample.git",
+            )
+            run([
+                "git",
+                "remote",
+                "add",
+                "origin",
+                "https://github.com/Iron-Signal-Systems/sample.git",
+            ], cwd=repo)
+
+            result = run([
+                PYTHON,
+                repo / "tools/isras/doctor.py",
+                "--repo-root",
+                repo,
+                "--profile",
+                "portable",
+            ], cwd=repo)
+
+            self.assertIn("PASS: Canonical repository identity:", result.stdout)
+
+    def test_portable_doctor_rejects_different_repository(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(
+                repo,
+                "git@github.com:Iron-Signal-Systems/sample.git",
+            )
+            run([
+                "git",
+                "remote",
+                "add",
+                "origin",
+                "https://github.com/Other-Organization/different.git",
+            ], cwd=repo)
+
+            result = run([
+                PYTHON,
+                repo / "tools/isras/doctor.py",
+                "--repo-root",
+                repo,
+                "--profile",
+                "portable",
+            ], cwd=repo, check=False)
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(
+                "FAIL: Canonical repository identity:",
+                result.stdout + result.stderr,
+            )
+
     def test_doctor_rejects_version_mismatch(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)

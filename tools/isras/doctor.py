@@ -12,6 +12,7 @@ import shutil
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from common import ISRASError, git, load_json, print_result, repository_root, run
 
@@ -45,6 +46,25 @@ def _command_version(spec: dict[str, Any]) -> tuple[bool, str]:
         return False, version
     return True, version
 
+
+
+def _repository_identity(value: str) -> str:
+    candidate = value.strip()
+
+    # Git SCP-style SSH syntax:
+    # git@github.com:Owner/repository.git
+    if "://" not in candidate and not re.match(r"^[A-Za-z]:[\\/]", candidate):
+        match = re.fullmatch(r"(?:[^@]+@)?([^:]+):(.+)", candidate)
+        if match:
+            host, path = match.groups()
+            return f"{host.lower()}/{path.removesuffix('.git').strip('/')}"
+
+    parsed = urlparse(candidate)
+    if parsed.scheme in {"http", "https", "ssh", "git"} and parsed.hostname:
+        path = parsed.path.removesuffix(".git").strip("/")
+        return f"{parsed.hostname.lower()}/{path}"
+
+    return candidate.rstrip("/")
 
 def build_fingerprint(repo_root: Path, profile: dict[str, Any]) -> dict[str, Any]:
     commands: dict[str, dict[str, Any]] = {}
@@ -119,8 +139,15 @@ def main() -> int:
 
     origin = git(repo_root, "remote", "get-url", "origin")
     expected_origin = manifest.get("canonical_origin")
-    origin_ok = origin == expected_origin
-    print_result("Canonical origin", origin_ok, origin)
+
+    if profile.get("classification") == "portable":
+        origin_ok = _repository_identity(origin) == _repository_identity(expected_origin)
+        origin_label = "Canonical repository identity"
+    else:
+        origin_ok = origin == expected_origin
+        origin_label = "Canonical origin"
+
+    print_result(origin_label, origin_ok, origin)
     failures += int(not origin_ok)
 
     status = git(repo_root, "status", "--porcelain")

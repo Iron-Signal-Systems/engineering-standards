@@ -18,6 +18,7 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
+
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
 
@@ -30,12 +31,14 @@ jobs:
         run: |
           set -Eeuo pipefail
           git init .
+          git config core.autocrlf false
           git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
           auth="$(printf 'x-access-token:%s' "$ISRAS_GITHUB_TOKEN" | base64 | tr -d '\n')"
           git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
             fetch --no-tags --depth=1 origin "${GITHUB_REF}"
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          unset auth ISRAS_GITHUB_TOKEN
 
       - name: Check out exact event commit on Windows
         if: runner.os == 'Windows'
@@ -44,33 +47,35 @@ jobs:
           ISRAS_GITHUB_TOKEN: ${{ github.token }}
         run: |
           git init .
+          git config core.autocrlf false
+          git config core.eol lf
           git remote add origin "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY.git"
           $pair = "x-access-token:$env:ISRAS_GITHUB_TOKEN"
           $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
           git -c "http.extraheader=AUTHORIZATION: basic $auth" `
             fetch --no-tags --depth=1 origin "$env:GITHUB_REF"
           git checkout --detach FETCH_HEAD
-          if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) { throw "Commit mismatch." }
+          if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) {
+              throw "Commit mismatch."
+          }
+          Remove-Item Env:ISRAS_GITHUB_TOKEN -ErrorAction SilentlyContinue
 
-      - name: Install pinned ISRAS validation tools on Linux or macOS
+      - name: Create pinned tool environment on Linux or macOS
         if: runner.os != 'Windows'
         shell: bash
-        run: python3 -m pip install --disable-pip-version-check --requirement tools/requirements.txt
+        run: |
+          chmod +x tools/environment/bootstrap_tools.sh
+          ./tools/environment/bootstrap_tools.sh
+          echo "ISRAS_PYTHON=$PWD/.isras-tools-venv/bin/python" >> "$GITHUB_ENV"
 
-      - name: Install pinned ISRAS validation tools on Windows
+      - name: Create pinned tool environment on Windows
         if: runner.os == 'Windows'
         shell: pwsh
-        run: python -m pip install --disable-pip-version-check --requirement tools/requirements.txt
-
-      - name: Install pinned ISRAS validation tools on Linux or macOS
-        if: runner.os != 'Windows'
-        shell: bash
-        run: python3 -m pip install --disable-pip-version-check --requirement tools/requirements.txt
-
-      - name: Install pinned ISRAS validation tools on Windows
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: python -m pip install --disable-pip-version-check --requirement tools/requirements.txt
+        run: |
+          .\tools\environment\Bootstrap-Tools.ps1
+          $python = Join-Path $PWD ".isras-tools-venv\Scripts\python.exe"
+          "ISRAS_PYTHON=$python" |
+              Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Run portable validation on Linux or macOS
         if: runner.os != 'Windows'

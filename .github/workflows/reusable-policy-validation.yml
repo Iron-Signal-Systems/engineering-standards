@@ -10,6 +10,7 @@ jobs:
   policy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - name: Check out exact event commit without an external action
         shell: bash
@@ -18,6 +19,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           git init .
+          git config core.autocrlf false
           git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
           auth="$(printf 'x-access-token:%s' "$ISRAS_GITHUB_TOKEN" | base64 | tr -d '\n')"
           git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
@@ -26,10 +28,13 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           unset auth ISRAS_GITHUB_TOKEN
 
-      - name: Install pinned ISRAS validation tools
+      - name: Create pinned ISRAS tool environment
         shell: bash
-        run: python3 -m pip install --disable-pip-version-check --requirement tools/requirements.txt
+        run: |
+          chmod +x tools/environment/bootstrap_tools.sh
+          ./tools/environment/bootstrap_tools.sh
+          echo "ISRAS_PYTHON=$PWD/.isras-tools-venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Validate repository assurance policy
         shell: bash
-        run: python3 tools/isras/validate_policy.py --repo-root .
+        run: '"$ISRAS_PYTHON" tools/isras/validate_policy.py --repo-root .'
