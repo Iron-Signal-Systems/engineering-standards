@@ -2,16 +2,21 @@
 
 ## Supported versions
 
-This repository is under active development. Supported release and maintenance
-boundaries are documented in [SUPPORT-AND-COMPATIBILITY.md](SUPPORT-AND-COMPATIBILITY.md) and the normative release-governance standard.
+Accepted ISRAS v1.0.x releases are supported according to
+[SUPPORT-AND-COMPATIBILITY.md](SUPPORT-AND-COMPATIBILITY.md) and the
+normative release-governance standard.
+
+Acceptance is established by exact commit identity, a verified signed
+annotated release tag, and the corresponding `main` boundary. A version
+string alone is not a security-support claim.
 
 ## Reporting a vulnerability
 
-Do not open a public issue containing exploit details, credentials, protected
-data, or instructions that would materially increase risk.
+Do not open a public issue containing exploit details, credentials,
+protected data, or instructions that would materially increase risk.
 
-Use the organization's configured private vulnerability-reporting channel. If
-private reporting is not yet enabled, contact the repository owner through a
+Use the organization's configured private vulnerability-reporting channel.
+If private reporting is not enabled, contact the repository owner through a
 previously verified private channel.
 
 Include:
@@ -21,12 +26,14 @@ Include:
 - reproduction conditions;
 - potential impact;
 - whether credentials or protected data may be involved;
-- suggested mitigation, if known.
+- suggested mitigation, when known.
 
 ## Response handling
 
 Reports are acknowledged, triaged, contained, remediated, revalidated, and
-disclosed according to the project's vulnerability-response and release policy.
+disclosed according to release risk and the applicable vulnerability-response
+policy.
 
-No response-time promise is made until the repository publishes an accepted
-support policy.
+Response and remediation timing is risk-based and is not a contractual
+service-level commitment unless a separate published agreement states
+otherwise.

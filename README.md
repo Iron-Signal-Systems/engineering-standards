@@ -26,10 +26,21 @@ versioned, validated, accepted, and maintained.
 
 ## Current status
 
-ISRAS v1.0.0 remains an acceptance candidate until the exact merged `dev`
-commit passes the candidate gate, native operating-system matrix, fresh-clone
-campaign, evidence validation, and formal acceptance decision. Do not infer
-formal acceptance from the target version number alone.
+The repository's declared source version is recorded in `VERSION`. A version
+number alone is not acceptance evidence.
+
+The latest accepted release is the exact source commit jointly identified by:
+
+- a verified SSH-signed annotated `isras-v*` tag;
+- the remote `main` branch;
+- the applicable evidence digest and acceptance-decision metadata.
+
+`dev` may advance with candidate work after a release. At release
+finalization, however, `dev`, `main`, and the signed release tag must all
+identify the same exact source commit.
+
+The signed annotated tag is the authoritative acceptance-decision object.
+No post-acceptance source commit is required merely to record the decision.
 
 ## Validation tool bootstrap
 
@@ -76,6 +87,7 @@ product's accepted deployment model is itself container-native.
 - `integration-guides/` — project-specific adoption sequences
 - `GLOSSARY.md` — authoritative terminology, including the ISRAS definition
 - `SUPPORT-AND-COMPATIBILITY.md` — support, compatibility, and lifecycle policy
+- `docs/engineering/adopter-quick-start.md` — exact-commit adoption and signature-verification sequence
 
 ## Adoption sequence
 
