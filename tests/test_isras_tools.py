@@ -257,6 +257,31 @@ class ISRToolsTests(unittest.TestCase):
 
 
 
+
+    def test_windows_workflows_avoid_brittle_sha_string_comparison(self):
+        workflow_paths = [
+            *STANDARDS_ROOT.joinpath(".github/workflows").glob("*.yml"),
+            *STANDARDS_ROOT.joinpath(".github/workflows").glob("*.yaml"),
+            *STANDARDS_ROOT.joinpath("templates").rglob("*.yml"),
+            *STANDARDS_ROOT.joinpath("templates").rglob("*.yaml"),
+        ]
+
+        for workflow in workflow_paths:
+            content = workflow.read_text(encoding="utf-8")
+
+            self.assertNotIn(
+                "(git rev-parse HEAD) -ne $env:GITHUB_SHA",
+                content,
+                f"{workflow} uses a brittle PowerShell SHA comparison",
+            )
+
+            if 'fetch --no-tags --depth=1 origin "$env:GITHUB_SHA"' in content:
+                self.assertIn(
+                    'git checkout --detach "$env:GITHUB_SHA"',
+                    content,
+                    f"{workflow} does not check out the exact fetched SHA",
+                )
+
     def test_hosted_workflows_fetch_exact_event_sha(self):
         workflow_paths = [
             *STANDARDS_ROOT.joinpath(".github/workflows").glob("*.yml"),
