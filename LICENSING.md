@@ -1,13 +1,23 @@
 # Licensing Decision
 
-This package does not impose a software or documentation license on Iron Signal
-Systems.
+## Current decision
 
-Before making `engineering-standards` public for third-party reuse, select and
-record an appropriate license for:
+**All rights reserved.**
+
+Public visibility of this repository does not grant permission to copy,
+modify, redistribute, sublicense, or commercially reuse its documentation,
+schemas, templates, workflows, or tooling.
+
+Iron Signal Systems may use and maintain these materials internally under
+the repository owner's authority.
+
+Before authorizing third-party reuse, select and record appropriate licenses
+for:
 
 - normative documentation;
 - templates and schemas;
 - Python and workflow tooling.
 
-Until a license is selected, normal copyright rights remain reserved.
+Any future licensing change must identify its effective commit, affected
+files, compatibility impact, and whether previously published revisions are
+included.

@@ -14,6 +14,8 @@ if (-not $pythonPath) {
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & $pythonPath "$repoRoot/tools/isras/validate_policy.py" --repo-root "$repoRoot"
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+& $pythonPath "$repoRoot/tools/isras/validate_release_state.py" --repo-root "$repoRoot"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & $pythonPath "$repoRoot/tools/isras/portable_project_checks.py" --repo-root "$repoRoot"
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 Write-Host ""

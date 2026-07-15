@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.1 — Release hardening
+
+- Records completion of the corrected signed v1.0.0 tag and exact `main`
+  promotion.
+- Corrects stale candidate, support, and security wording.
+- Defines the signed annotated tag as the authoritative acceptance-decision
+  object.
+- Requires `dev`, `main`, and the signed tag to converge on the exact accepted
+  commit at release finalization.
+- Adds protected `isras-*` tag-namespace requirements.
+- Adds exact-commit adopter quick-start instructions.
+- Adds automated release-state drift validation.
+- Clarifies the current all-rights-reserved licensing decision.
+
 ## 1.0.0 — Accepted 2026-07-15
 
 - Authorizes controlled replacement of the pre-acceptance unsigned `isras-v1.0.0` tag with an SSH-signed annotated tag targeting the exact formally accepted source commit.

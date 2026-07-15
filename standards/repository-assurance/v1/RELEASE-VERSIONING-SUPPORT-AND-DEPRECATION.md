@@ -2,8 +2,8 @@
 
 ## Purpose
 
-This document defines the minimum release-governance requirements for ISRAS and
-for repositories adopting it.
+This document defines the minimum release-governance requirements for ISRAS
+and for repositories adopting it.
 
 ## Version identity
 
@@ -13,28 +13,29 @@ A release must identify:
 - an immutable release or acceptance tag;
 - the applicable ISRAS commit;
 - the release version;
-- the acceptance evidence record;
+- the acceptance evidence identity and SHA-256 digest;
 - artifact and manifest SHA-256 values;
 - compatibility and support statements.
 
-Human-readable tags do not replace exact commit identity.
+Human-readable tags and version strings do not replace exact commit identity.
 
 ## Versioning
 
-Repositories must publish a documented versioning model. Semantic Versioning is
-the default for reusable standards, libraries, services, and externally
-consumed interfaces unless a project records a better-suited accepted model.
+Repositories must publish a documented versioning model. Semantic Versioning
+is the default for reusable standards, libraries, services, and externally
+consumed interfaces unless an accepted project record defines a better model.
 
 A breaking change includes an incompatible change to a public interface,
-schema, migration contract, deployment contract, validation contract, evidence
-schema, or supported operational workflow.
+schema, migration contract, deployment contract, validation contract,
+evidence schema, or supported operational workflow.
 
 ## Acceptance and release tags
 
-Acceptance and release tags must be annotated. They must be cryptographically
-signed when an approved signing identity and verification path exist.
+Acceptance and release tags must be annotated. They must be
+cryptographically signed when an approved signing identity and verification
+path exist.
 
-A repository that cannot yet sign tags must record a time-bounded signing
+A repository that cannot sign tags must record a time-bounded signing
 exception containing:
 
 - reason;
@@ -46,6 +47,43 @@ exception containing:
 
 Protected acceptance and release tags must not be moved or deleted through
 ordinary maintenance.
+
+ISRAS release tags use the protected namespace `isras-*`.
+
+## Signed tag as acceptance decision
+
+When approved signing is available, the signed annotated release tag is the
+authoritative acceptance-decision object.
+
+The tag target is the exact accepted source commit. The signed annotation
+must contain:
+
+- decision status and date;
+- version and predecessor;
+- validation gate and environment;
+- runner identity;
+- evidence digest and durable location;
+- assurance outcomes;
+- warnings, exceptions, and non-claims.
+
+The acceptance plan must be committed before candidate freeze. Final evidence
+generated after the freeze is retained outside the source tree and bound to
+the decision through its digest in the signed tag annotation.
+
+A separate post-acceptance source commit is not required merely to record the
+decision.
+
+## Release-branch convergence
+
+At release finalization:
+
+- the signed tag must peel to the validated candidate commit;
+- `main` must identify that same exact commit;
+- `dev` must identify that same exact commit;
+- all three identities must be independently verified from the canonical
+  remote.
+
+New development may advance `dev` only after finalization is complete.
 
 ## Compatibility statement
 
