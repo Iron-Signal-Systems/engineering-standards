@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — v1 pre-acceptance hardening
+## 1.0.0 — Accepted 2026-07-15
 
 - Makes the repository adopter safely encode generated JSON and Python
   string values so Windows paths and other backslash-containing values
@@ -34,6 +34,6 @@
   environments on Linux, macOS, and Windows.
 - Adds candidate acceptance structure and checkpoint-recording tooling.
 
-## 1.0.0 — Initial candidate standard
+## 1.0.0-rc0 — Initial candidate standard
 
 - Establishes the initial ISRAS v1 candidate architecture and baseline tooling.
