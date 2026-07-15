@@ -1,0 +1,19 @@
+{
+  "schema_version": "ISRAS-ENVIRONMENT-V1",
+  "profile": "specialized",
+  "classification": "specialized",
+  "operating_systems": [
+    "PROJECT_DEFINED"
+  ],
+  "required_commands": [
+    "git"
+  ],
+  "optional_commands": [],
+  "capabilities": [
+    "project-specialized-validation"
+  ],
+  "containers_required": false,
+  "notes": [
+    "Specialized environments are not available to public pull-request jobs."
+  ]
+}

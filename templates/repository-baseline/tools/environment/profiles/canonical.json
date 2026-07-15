@@ -1,0 +1,19 @@
+{
+  "schema_version": "ISRAS-ENVIRONMENT-V1",
+  "profile": "canonical",
+  "classification": "canonical",
+  "operating_systems": [
+    "PROJECT_DEFINED"
+  ],
+  "required_commands": [
+    "git"
+  ],
+  "optional_commands": [],
+  "capabilities": [
+    "project-canonical-validation"
+  ],
+  "containers_required": false,
+  "notes": [
+    "Replace PROJECT_DEFINED and command inventory before canonical acceptance."
+  ]
+}

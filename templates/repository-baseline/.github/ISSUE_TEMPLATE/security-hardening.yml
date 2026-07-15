@@ -1,0 +1,22 @@
+name: Security hardening
+description: Propose a non-secret security control or assurance improvement.
+title: "[Security] "
+body:
+  - type: textarea
+    attributes:
+      label: Risk or weakness
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed control
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Hostile tests and evidence
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: Do not include exploit details or secrets that require private reporting.

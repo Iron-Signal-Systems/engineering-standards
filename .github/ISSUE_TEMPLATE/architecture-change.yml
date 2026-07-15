@@ -1,0 +1,22 @@
+name: Architecture change
+description: Propose a material boundary, authority, dependency, or sequencing change.
+title: "[Architecture] "
+body:
+  - type: textarea
+    attributes:
+      label: Problem and context
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed boundary
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Security, resilience, operational, and compatibility effects
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Validation and acceptance impact

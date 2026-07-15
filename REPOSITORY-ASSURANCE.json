@@ -1,0 +1,34 @@
+{
+  "schema_version": "ISRAS-REPOSITORY-V1",
+  "standard": {
+    "repository": "Iron-Signal-Systems/engineering-standards",
+    "commit": "SELF"
+  },
+  "repository": "Iron-Signal-Systems/engineering-standards",
+  "canonical_origin": "git@github.com:Iron-Signal-Systems/engineering-standards.git",
+  "branches": {
+    "development": "dev",
+    "release": "main"
+  },
+  "profiles": [
+    "documentation",
+    "python"
+  ],
+  "validation": {
+    "portable_shell": "./tools/validation/validate_portable.sh",
+    "portable_powershell": "./tools/validation/Validate-Portable.ps1",
+    "fresh_clone_shell": "./tools/validation/validate_fresh_clone.sh",
+    "fresh_clone_powershell": "./tools/validation/Validate-FreshClone.ps1",
+    "checkpoint_shell": "./tools/validation/validate_checkpoint.sh",
+    "checkpoint_powershell": "./tools/validation/Validate-Checkpoint.ps1",
+    "canonical_shell": "./tools/validation/validate_canonical.sh",
+    "canonical_powershell": "./tools/validation/Validate-Canonical.ps1"
+  },
+  "checkpoint_registry": "tools/validation/checkpoints.json",
+  "evidence_directory": "docs/acceptance/evidence",
+  "documentation_sync_required": true,
+  "historical_gates_immutable": true,
+  "native_first": true,
+  "containers_required": false,
+  "direct_push_to_development_branch": false
+}

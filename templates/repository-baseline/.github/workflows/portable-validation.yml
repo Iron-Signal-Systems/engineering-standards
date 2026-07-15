@@ -1,0 +1,52 @@
+name: Portable validation
+
+on:
+  pull_request:
+    branches:
+      - __DEVELOPMENT_BRANCH__
+  push:
+    branches:
+      - __DEVELOPMENT_BRANCH__
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portable-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  portable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out exact GitHub event commit without an external action
+        shell: bash
+        env:
+          ISRAS_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          git init .
+          git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          auth="$(printf 'x-access-token:%s' "$ISRAS_GITHUB_TOKEN" | base64 | tr -d '\n')"
+          git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
+            fetch --no-tags --depth=1 origin "${GITHUB_REF}"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          unset auth ISRAS_GITHUB_TOKEN
+
+      - name: Run repository-owned portable validation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          chmod +x \
+            tools/environment/doctor.sh \
+            tools/validation/validate_current.sh \
+            tools/validation/validate_portable.sh \
+            tools/validation/validate_fresh_clone.sh \
+            tools/validation/validate_checkpoint.sh \
+            tools/validation/validate_canonical.sh
+          ./tools/environment/doctor.sh portable
+          ./tools/validation/validate_portable.sh

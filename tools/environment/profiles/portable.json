@@ -1,0 +1,28 @@
+{
+  "schema_version": "ISRAS-ENVIRONMENT-V1",
+  "profile": "portable",
+  "classification": "portable",
+  "operating_systems": [
+    "Linux",
+    "macOS",
+    "Windows"
+  ],
+  "required_commands": [
+    "git",
+    "python3",
+    "bash"
+  ],
+  "optional_commands": [
+    "pwsh"
+  ],
+  "capabilities": [
+    "policy-validation",
+    "python-syntax",
+    "bash-syntax",
+    "fresh-clone"
+  ],
+  "containers_required": false,
+  "notes": [
+    "Project-specific commands must be declared and committed."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironsignalsystems.com/schemas/isras/environment-profile-v1.schema.json",
+  "title": "ISRAS Environment Profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile",
+    "classification",
+    "required_commands",
+    "capabilities"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ISRAS-ENVIRONMENT-V1"
+    },
+    "profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "classification": {
+      "enum": [
+        "portable",
+        "canonical",
+        "specialized",
+        "release",
+        "recovery"
+      ]
+    },
+    "operating_systems": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_commands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "optional_commands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "containers_required": {
+      "type": "boolean"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

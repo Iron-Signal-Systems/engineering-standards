@@ -1,0 +1,43 @@
+name: Canonical validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-commit:
+        description: Exact merged dev commit to validate
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  canonical:
+    if: github.ref == 'refs/heads/dev'
+    runs-on:
+      - self-hosted
+      - isras-canonical
+      - disposable
+    timeout-minutes: 180
+    environment: canonical-acceptance
+
+    steps:
+      - name: Refuse pull-request or unprotected execution
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "${{ inputs.source-commit }}" = "$GITHUB_SHA"
+
+      - name: Use pre-provisioned clean checkout
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain)"
+
+      - name: Run canonical validation
+        shell: bash
+        run: |
+          chmod +x tools/validation/validate_canonical.sh
+          ./tools/validation/validate_canonical.sh

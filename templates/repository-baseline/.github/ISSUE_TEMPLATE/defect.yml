@@ -1,0 +1,22 @@
+name: Defect
+description: Record a reproducible product, test, documentation, or validation defect.
+title: "[Defect] "
+body:
+  - type: textarea
+    attributes:
+      label: Observed behavior
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Commit or release
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction and evidence

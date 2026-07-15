@@ -1,0 +1,22 @@
+name: Acceptance candidate
+description: Track a formal phase, step, release, or assurance acceptance.
+title: "[Acceptance] "
+body:
+  - type: input
+    attributes:
+      label: Candidate commit
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Accepted predecessor
+  - type: textarea
+    attributes:
+      label: Required gates and environments
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Evidence, warnings, and non-claims
+    validations:
+      required: true

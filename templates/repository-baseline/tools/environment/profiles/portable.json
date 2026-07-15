@@ -1,0 +1,28 @@
+{
+  "schema_version": "ISRAS-ENVIRONMENT-V1",
+  "profile": "portable",
+  "classification": "portable",
+  "operating_systems": [
+    "Linux",
+    "macOS",
+    "Windows"
+  ],
+  "required_commands": [
+    "git"
+  ],
+  "optional_commands": [
+    "python3",
+    "go",
+    "dotnet",
+    "pwsh"
+  ],
+  "capabilities": [
+    "clean-checkout",
+    "policy-validation",
+    "project-portable-validation"
+  ],
+  "containers_required": false,
+  "notes": [
+    "Project-specific commands must be declared and committed."
+  ]
+}
