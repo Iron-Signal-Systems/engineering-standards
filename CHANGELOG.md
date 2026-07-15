@@ -2,6 +2,7 @@
 
 ## 1.0.0 — Accepted 2026-07-15
 
+- Authorizes controlled replacement of the pre-acceptance unsigned `isras-v1.0.0` tag with an SSH-signed annotated tag targeting the exact formally accepted source commit.
 - Makes the repository adopter safely encode generated JSON and Python
   string values so Windows paths and other backslash-containing values
   cannot create invalid assurance manifests or validation source files.
