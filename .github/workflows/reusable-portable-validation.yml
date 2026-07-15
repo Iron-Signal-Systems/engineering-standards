@@ -8,19 +8,15 @@ on:
         required: false
         type: string
         default: ./tools/validation/validate_portable.sh
-      runner:
-        description: GitHub-hosted runner label
-        required: false
-        type: string
-        default: ubuntu-latest
 
 permissions:
   contents: read
 
 jobs:
   portable:
-    runs-on: ${{ inputs.runner }}
+    runs-on: ubuntu-latest
     timeout-minutes: 45
+
     steps:
       - name: Check out exact event commit without an external action
         shell: bash
@@ -29,13 +25,22 @@ jobs:
         run: |
           set -Eeuo pipefail
           git init .
+          git config core.autocrlf false
           git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
           auth="$(printf 'x-access-token:%s' "$ISRAS_GITHUB_TOKEN" | base64 | tr -d '\n')"
           git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
-            fetch --no-tags --depth=1 origin "${GITHUB_REF}"
+            fetch --no-tags --depth=1 origin "${GITHUB_SHA}"
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           unset auth ISRAS_GITHUB_TOKEN
+
+      - name: Create pinned ISRAS tool environment
+        shell: bash
+        run: |
+          chmod +x tools/environment/bootstrap_tools.sh
+          ./tools/environment/bootstrap_tools.sh
+          echo "ISRAS_PYTHON=$PWD/.isras-tools-venv/bin/python" >> "$GITHUB_ENV"
+
       - name: Run repository-owned validation
         shell: bash
         env:
@@ -44,7 +49,11 @@ jobs:
           set -Eeuo pipefail
           case "$ISRAS_VALIDATION_COMMAND" in
             ./*) ;;
-            *) printf 'Validation command must be a repository-relative path.\n' >&2; exit 2 ;;
+            *)
+              printf 'Validation command must be a repository-relative path.\n' >&2
+              exit 2
+              ;;
           esac
+          test -f "$ISRAS_VALIDATION_COMMAND"
           chmod +x "$ISRAS_VALIDATION_COMMAND"
           "$ISRAS_VALIDATION_COMMAND"

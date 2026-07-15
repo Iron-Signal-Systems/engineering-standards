@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
+import sys
 import stat
 import subprocess
 import tempfile
@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 STANDARDS_ROOT = Path(__file__).resolve().parents[1]
-PYTHON = shutil.which("python3") or shutil.which("python")
+PYTHON = sys.executable
 
 
 def run(args, cwd=None, check=True):
@@ -70,6 +70,30 @@ class ISRToolsTests(unittest.TestCase):
             ], cwd=repo)
             self.assertIn("ISRAS policy validation PASSED", result.stdout)
 
+
+    def test_adopter_escapes_windows_style_template_values(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            origin = r"C:\Users\example\engineering-standards.git"
+
+            self.adopt(repo, origin)
+
+            manifest_path = repo / "REPOSITORY-ASSURANCE.json"
+            manifest = json.loads(
+                manifest_path.read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["canonical_origin"], origin)
+
+            result = run([
+                PYTHON,
+                "-m",
+                "py_compile",
+                repo / "tools/isras/validate_policy.py",
+            ], cwd=repo)
+
+            self.assertEqual(result.returncode, 0)
+
     def test_adopter_refuses_overwrite(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
@@ -112,6 +136,10 @@ class ISRToolsTests(unittest.TestCase):
             self.assertEqual(security.read_text(), "# Existing security policy\n")
             self.assertTrue((repo / "REPOSITORY-ASSURANCE.json").exists())
 
+    @unittest.skipUnless(
+        os.environ.get("ISRAS_RUN_INTEGRATION_TESTS") == "1",
+        "integration test",
+    )
     def test_fresh_clone_and_historical_checkpoint(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
@@ -165,6 +193,219 @@ class ISRToolsTests(unittest.TestCase):
                 "--checkpoint", "test-checkpoint",
             ], cwd=repo)
             self.assertIn("Historical checkpoint validation PASSED", historical.stdout)
+
+    def test_source_manifest_uses_only_tracked_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(repo, str(base / "remote.git"))
+            manifest_path = repo / "REPOSITORY-ASSURANCE.json"
+            manifest = json.loads(manifest_path.read_text())
+            manifest["adoption_level"] = "REPRODUCIBLE"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+            (repo / "SOURCE-SHA256SUMS.txt").write_text("", encoding="utf-8")
+            cache = repo / ".pytest_cache/v/cache"
+            cache.mkdir(parents=True)
+            (cache / "nodeids").write_text("transient\n", encoding="utf-8")
+            run(["git", "add", "."], cwd=repo)
+            run([
+                PYTHON,
+                repo / "tools/isras/generate_source_manifest.py",
+                "--repo-root", repo,
+            ], cwd=repo)
+            content = (repo / "SOURCE-SHA256SUMS.txt").read_text()
+            self.assertNotIn(".pytest_cache", content)
+            result = run([
+                PYTHON,
+                repo / "tools/isras/verify_source_manifest.py",
+                "--repo-root", repo,
+            ], cwd=repo)
+            self.assertIn("Source manifest verifies", result.stdout)
+
+    def test_policy_rejects_caller_selected_portable_runner(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(repo, str(base / "remote.git"))
+            workflow = repo / ".github/workflows/portable-validation.yml"
+            workflow.write_text(
+                workflow.read_text().replace(
+                    "runs-on: ubuntu-latest",
+                    "runs-on: ${{ inputs.runner }}",
+                )
+            )
+            result = run([
+                PYTHON,
+                repo / "tools/isras/validate_policy.py",
+                "--repo-root", repo,
+            ], cwd=repo, check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("caller-selected portable/policy runners", result.stderr)
+
+    @unittest.skipUnless(
+        os.environ.get("ISRAS_RUN_INTEGRATION_TESTS") == "1",
+        "integration test",
+    )
+    def test_acceptance_evidence_resolves_self_and_records_runner(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            remote = base / "remote.git"
+            run(["git", "init", "--bare", remote])
+            repo = self.make_repo(base)
+            self.adopt(repo, str(remote))
+            run(["git", "remote", "add", "origin", remote], cwd=repo)
+            manifest_path = repo / "REPOSITORY-ASSURANCE.json"
+            manifest = json.loads(manifest_path.read_text())
+            manifest["standard"]["commit"] = "SELF"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+            run(["git", "add", "."], cwd=repo)
+            run(["git", "commit", "-m", "adopt assurance"], cwd=repo)
+            run(["git", "push", "-u", "origin", "dev"], cwd=repo)
+            source_commit = run(["git", "rev-parse", "HEAD"], cwd=repo).stdout.strip()
+            output = "docs/acceptance/evidence/test.json"
+            run([
+                PYTHON,
+                repo / "tools/isras/create_acceptance_evidence.py",
+                "--repo-root", repo,
+                "--validator", "test-validator",
+                "--environment-profile", "portable",
+                "--runner-identity", "test-runner",
+                "--correctness-result", "PASS",
+                "--output", output,
+            ], cwd=repo)
+            evidence = json.loads((repo / output).read_text())
+            self.assertEqual(evidence["source_commit"], source_commit)
+            self.assertEqual(evidence["standard_commit"], source_commit)
+            self.assertEqual(evidence["runner_identity"], "test-runner")
+            self.assertNotEqual(evidence["started_at"], evidence["finished_at"])
+
+
+
+
+    def test_windows_workflows_avoid_brittle_sha_string_comparison(self):
+        workflow_paths = [
+            *STANDARDS_ROOT.joinpath(".github/workflows").glob("*.yml"),
+            *STANDARDS_ROOT.joinpath(".github/workflows").glob("*.yaml"),
+            *STANDARDS_ROOT.joinpath("templates").rglob("*.yml"),
+            *STANDARDS_ROOT.joinpath("templates").rglob("*.yaml"),
+        ]
+
+        for workflow in workflow_paths:
+            content = workflow.read_text(encoding="utf-8")
+
+            self.assertNotIn(
+                "(git rev-parse HEAD) -ne $env:GITHUB_SHA",
+                content,
+                f"{workflow} uses a brittle PowerShell SHA comparison",
+            )
+
+            if 'fetch --no-tags --depth=1 origin "$env:GITHUB_SHA"' in content:
+                self.assertIn(
+                    'git checkout --detach "$env:GITHUB_SHA"',
+                    content,
+                    f"{workflow} does not check out the exact fetched SHA",
+                )
+
+    def test_hosted_workflows_fetch_exact_event_sha(self):
+        workflow_paths = [
+            *STANDARDS_ROOT.joinpath(".github/workflows").glob("*.yml"),
+            *STANDARDS_ROOT.joinpath(".github/workflows").glob("*.yaml"),
+            *STANDARDS_ROOT.joinpath("templates").rglob("*.yml"),
+            *STANDARDS_ROOT.joinpath("templates").rglob("*.yaml"),
+        ]
+
+        self.assertTrue(workflow_paths)
+
+        forbidden = (
+            'fetch --no-tags --depth=1 origin "${GITHUB_REF}"',
+            'fetch --no-tags --depth=1 origin "$env:GITHUB_REF"',
+        )
+
+        for workflow in workflow_paths:
+            content = workflow.read_text(encoding="utf-8")
+            for value in forbidden:
+                self.assertNotIn(
+                    value,
+                    content,
+                    f"{workflow} fetches a mutable GitHub ref instead of GITHUB_SHA",
+                )
+
+    def test_portable_doctor_accepts_equivalent_git_transport(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(
+                repo,
+                "git@github.com:Iron-Signal-Systems/sample.git",
+            )
+            run([
+                "git",
+                "remote",
+                "add",
+                "origin",
+                "https://github.com/Iron-Signal-Systems/sample.git",
+            ], cwd=repo)
+
+            result = run([
+                PYTHON,
+                repo / "tools/isras/doctor.py",
+                "--repo-root",
+                repo,
+                "--profile",
+                "portable",
+            ], cwd=repo)
+
+            self.assertIn("PASS: Canonical repository identity:", result.stdout)
+
+    def test_portable_doctor_rejects_different_repository(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(
+                repo,
+                "git@github.com:Iron-Signal-Systems/sample.git",
+            )
+            run([
+                "git",
+                "remote",
+                "add",
+                "origin",
+                "https://github.com/Other-Organization/different.git",
+            ], cwd=repo)
+
+            result = run([
+                PYTHON,
+                repo / "tools/isras/doctor.py",
+                "--repo-root",
+                repo,
+                "--profile",
+                "portable",
+            ], cwd=repo, check=False)
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(
+                "FAIL: Canonical repository identity:",
+                result.stdout + result.stderr,
+            )
+
+    def test_doctor_rejects_version_mismatch(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = self.make_repo(base)
+            self.adopt(repo, str(base / "remote.git"))
+            profile_path = repo / "tools/environment/profiles/portable.json"
+            profile = json.loads(profile_path.read_text())
+            profile["required_commands"][0]["version_pattern"] = "NEVER_MATCH_THIS_VERSION"
+            profile_path.write_text(json.dumps(profile, indent=2) + "\n")
+            run(["git", "remote", "add", "origin", str(base / "remote.git")], cwd=repo)
+            result = run([
+                PYTHON,
+                repo / "tools/isras/doctor.py",
+                "--repo-root", repo,
+                "--profile", "portable",
+            ], cwd=repo, check=False)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Required command and version: git", result.stderr)
 
 
 if __name__ == "__main__":

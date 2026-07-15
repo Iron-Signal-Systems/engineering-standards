@@ -4,25 +4,103 @@
   "classification": "portable",
   "operating_systems": [
     "Linux",
-    "macOS",
+    "Darwin",
     "Windows"
   ],
+  "architectures": [
+    "x86_64",
+    "AMD64",
+    "aarch64",
+    "arm64"
+  ],
   "required_commands": [
-    "git"
+    {
+      "command": "git",
+      "version_args": [
+        "--version"
+      ],
+      "version_pattern": "^git version [0-9]+\\.[0-9]+"
+    },
+    {
+      "command": "python3",
+      "version_args": [
+        "--version"
+      ],
+      "version_pattern": "^Python 3\\.(1[1-9]|[2-9][0-9])",
+      "operating_systems": [
+        "Linux",
+        "Darwin"
+      ]
+    },
+    {
+      "command": "python",
+      "version_args": [
+        "--version"
+      ],
+      "version_pattern": "^Python 3\\.(1[1-9]|[2-9][0-9])",
+      "operating_systems": [
+        "Windows"
+      ]
+    },
+    {
+      "command": "bash",
+      "version_args": [
+        "--version"
+      ],
+      "version_pattern": "GNU bash, version (3\\.[2-9]|[4-9]\\.)",
+      "operating_systems": [
+        "Linux",
+        "Darwin"
+      ]
+    },
+    {
+      "command": "pwsh",
+      "version_args": [
+        "--version"
+      ],
+      "version_pattern": "PowerShell 7\\.",
+      "operating_systems": [
+        "Windows"
+      ]
+    }
   ],
   "optional_commands": [
-    "python3",
-    "go",
-    "dotnet",
-    "pwsh"
+    {
+      "command": "pwsh",
+      "version_args": [
+        "--version"
+      ],
+      "version_pattern": "PowerShell 7\\.",
+      "operating_systems": [
+        "Linux",
+        "Darwin"
+      ]
+    }
   ],
+  "required_python_modules": [
+    {
+      "module": "jsonschema",
+      "distribution": "jsonschema",
+      "version": "4.26.0"
+    },
+    {
+      "module": "yaml",
+      "distribution": "PyYAML",
+      "version": "6.0.3"
+    }
+  ],
+  "required_environment_variables": [],
   "capabilities": [
-    "clean-checkout",
     "policy-validation",
-    "project-portable-validation"
+    "schema-validation",
+    "workflow-yaml-validation",
+    "source-manifest-verification",
+    "python-syntax",
+    "bash-syntax",
+    "fresh-clone"
   ],
   "containers_required": false,
   "notes": [
-    "Project-specific commands must be declared and committed."
+    "Project-specific commands and exact toolchains must be declared and committed."
   ]
 }

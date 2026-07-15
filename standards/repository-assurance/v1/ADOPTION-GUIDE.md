@@ -11,8 +11,20 @@ checkpoint registry.
 
 ### Level 2 — Reproducible
 
-Add portable, environment-doctor, fresh-clone, and historical checkpoint
-validation.
+Add portable, version-aware environment-doctor, source-manifest, fresh-clone,
+and historical checkpoint validation. Stage the intended project-owned files,
+generate `SOURCE-SHA256SUMS.txt`, verify it, and change `adoption_level` to
+`REPRODUCIBLE` only after those checks pass:
+
+```bash
+git add -A
+python3 tools/isras/generate_source_manifest.py --repo-root .
+git add SOURCE-SHA256SUMS.txt
+python3 tools/isras/verify_source_manifest.py --repo-root .
+```
+
+The manifest contains tracked files only. Caches, build output, virtual
+environments, and other untracked state must not appear.
 
 ### Level 3 — Observed
 
@@ -54,7 +66,8 @@ deliberately, not replaced blindly.
 
 After copying the baseline:
 
-- set exact environment requirements;
+- install the pinned validation-tool requirements from `tools/requirements.txt`;
+- set exact environment requirements and command-version patterns;
 - replace bootstrap heuristic checks with project-specific checks;
 - populate accepted checkpoints;
 - classify specialized environments;

@@ -3,7 +3,7 @@
 ## Supported versions
 
 This repository is under active development. Supported release and maintenance
-boundaries are documented in the repository's release policy.
+boundaries are documented in [SUPPORT-AND-COMPATIBILITY.md](SUPPORT-AND-COMPATIBILITY.md) and the normative release-governance standard.
 
 ## Reporting a vulnerability
 

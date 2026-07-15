@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironsignalsystems.com/schemas/isras/migration-manifest-v1.schema.json",
+  "title": "ISRAS Migration Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "repository",
+    "source_commit",
+    "migrations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ISRAS-MIGRATIONS-V1"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "source_commit": {
+      "type": "string"
+    },
+    "migrations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "path",
+          "sha256",
+          "order"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "introduced_by": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transactional": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -29,13 +29,21 @@ jobs:
         run: |
           set -Eeuo pipefail
           git init .
+          git config core.autocrlf false
           git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
           auth="$(printf 'x-access-token:%s' "$ISRAS_GITHUB_TOKEN" | base64 | tr -d '\n')"
           git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
-            fetch --no-tags --depth=1 origin "${GITHUB_REF}"
+            fetch --no-tags --depth=1 origin "${GITHUB_SHA}"
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           unset auth ISRAS_GITHUB_TOKEN
+
+      - name: Create pinned ISRAS tool environment
+        shell: bash
+        run: |
+          chmod +x tools/environment/bootstrap_tools.sh
+          ./tools/environment/bootstrap_tools.sh
+          echo "ISRAS_PYTHON=$PWD/.isras-tools-venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Run repository-owned portable validation
         shell: bash
@@ -48,5 +56,4 @@ jobs:
             tools/validation/validate_fresh_clone.sh \
             tools/validation/validate_checkpoint.sh \
             tools/validation/validate_canonical.sh
-          ./tools/environment/doctor.sh portable
           ./tools/validation/validate_portable.sh

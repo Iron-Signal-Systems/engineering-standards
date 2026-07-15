@@ -7,17 +7,22 @@ evidence.
 
 ## Portable validation
 
-Runs on clean, ordinary approved systems and hosted runners without private
-infrastructure access or sensitive secrets.
+Runs on clean, ordinary approved systems and fixed GitHub-hosted runners without
+private infrastructure access or sensitive secrets. A portable or policy
+workflow must not allow the caller to select a self-hosted runner.
+
+The environment doctor validates operating system, architecture, command
+presence, command-version patterns, pinned Python validation modules, and named
+required environment variables. It can emit a machine-readable fingerprint.
 
 Typical checks:
 
-- whitespace and formatting;
+- committed-tree, staged, and working-tree whitespace and formatting;
 - compilation;
 - unit and race testing;
 - dependency integrity;
 - static security analysis;
-- schema and manifest validation;
+- JSON Schema, workflow YAML, source-manifest, migration-manifest, and evidence validation;
 - documentation synchronization;
 - fixture regeneration;
 - integration-test compilation;

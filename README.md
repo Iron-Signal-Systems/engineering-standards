@@ -9,6 +9,43 @@ standards for Iron Signal Systems projects.
 The first normative standard is the **Iron Signal Repository Assurance Standard
 (ISRAS) v1**.
 
+## What is ISRAS?
+
+**ISRAS** stands for the **Iron Signal Repository Assurance Standard**. It is
+the organization-wide Iron Signal Systems standard governing repository
+reproducibility, validation, historical verification, change control, evidence,
+acceptance, release, deployment verification, recovery, and long-term
+maintainability.
+
+ISRAS does **not** stand for “Information System Risk Assessment” and is not
+itself a risk-assessment methodology. Projects may be required to maintain
+information-system risk assessments, threat models, risk registers, findings,
+and remediation evidence, but those remain separate assurance artifacts. ISRAS
+governs how those artifacts and their related implementation and evidence are
+versioned, validated, accepted, and maintained.
+
+## Current status
+
+ISRAS v1.0.0 remains an acceptance candidate until the exact merged `dev`
+commit passes the candidate gate, native operating-system matrix, fresh-clone
+campaign, evidence validation, and formal acceptance decision. Do not infer
+formal acceptance from the target version number alone.
+
+## Validation tool bootstrap
+
+The policy validator uses exactly pinned Python tools declared in
+`tools/requirements.txt`. Install them into a recreatable local virtual
+environment without requiring Docker or Podman:
+
+```bash
+chmod +x tools/environment/bootstrap_tools.sh
+./tools/environment/bootstrap_tools.sh
+export ISRAS_PYTHON="$PWD/.isras-tools-venv/bin/python"
+```
+
+PowerShell users can run `tools/environment/Bootstrap-Tools.ps1` and set
+`ISRAS_PYTHON` to the generated virtual-environment Python executable.
+
 ## Governing rule
 
 A change is not complete merely because it works on the developer's current
@@ -37,6 +74,8 @@ product's accepted deployment model is itself container-native.
 - `tools/isras/` — adoption, policy, fresh-clone, checkpoint, manifest, and
   evidence tooling
 - `integration-guides/` — project-specific adoption sequences
+- `GLOSSARY.md` — authoritative terminology, including the ISRAS definition
+- `SUPPORT-AND-COMPATIBILITY.md` — support, compatibility, and lifecycle policy
 
 ## Adoption sequence
 

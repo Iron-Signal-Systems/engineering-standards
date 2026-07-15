@@ -1,10 +1,15 @@
 # ISRAS v1 Document Index
 
+**ISRAS** means **Iron Signal Repository Assurance Standard**. It is not an
+Information System Risk Assessment. See the root [glossary](../../../GLOSSARY.md)
+for the authoritative definition and relationship to risk-management artifacts.
+
 ## Normative core
 
 - [Standard](STANDARD.md)
 - [Adoption Guide](ADOPTION-GUIDE.md)
 - [Control Catalog](CONTROL-CATALOG.md)
+- [Language and Project Profiles](LANGUAGE-AND-PROJECT-PROFILES.md)
 
 ## Lifecycle and governance
 
@@ -24,6 +29,7 @@
 ## Build, release, deployment, and operations
 
 - [Supply Chain and Release](SUPPLY-CHAIN-AND-RELEASE.md)
+- [Release, Versioning, Support, and Deprecation](RELEASE-VERSIONING-SUPPORT-AND-DEPRECATION.md)
 - [Deployment and Operational Readiness](DEPLOYMENT-AND-OPERATIONAL-READINESS.md)
 - [Deployment Identity and Authentication Gateway](DEPLOYMENT-IDENTITY-AND-AUTHENTICATION-GATEWAY.md)
 - [Replay and Idempotency](REPLAY-AND-IDEMPOTENCY.md)

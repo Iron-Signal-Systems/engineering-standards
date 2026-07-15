@@ -19,5 +19,40 @@ concurrency:
 jobs:
   policy:
     uses: ./.github/workflows/reusable-policy-validation.yml
+
   portable:
     uses: ./.github/workflows/reusable-portable-validation.yml
+
+  integration-tools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out exact event commit without an external action
+        shell: bash
+        env:
+          ISRAS_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          git init .
+          git config core.autocrlf false
+          git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          auth="$(printf 'x-access-token:%s' "$ISRAS_GITHUB_TOKEN" | base64 | tr -d '\n')"
+          git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
+            fetch --no-tags --depth=1 origin "${GITHUB_SHA}"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          unset auth ISRAS_GITHUB_TOKEN
+
+      - name: Create pinned ISRAS tool environment
+        shell: bash
+        run: |
+          chmod +x tools/environment/bootstrap_tools.sh
+          ./tools/environment/bootstrap_tools.sh
+          echo "ISRAS_PYTHON=$PWD/.isras-tools-venv/bin/python" >> "$GITHUB_ENV"
+
+      - name: Run integration-tool tests
+        shell: bash
+        run: |
+          chmod +x tools/validation/validate_integration.sh
+          ./tools/validation/validate_integration.sh

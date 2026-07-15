@@ -44,10 +44,17 @@ Evidence must not contain:
 Every evidence package identifies:
 
 - repository;
-- source commit;
+- exact 40-character source and ISRAS commits;
+- source branch and optional acceptance tag;
 - workflow or validator;
-- runner or environment profile;
-- start and end times;
-- correctness result;
+- explicit runner identity and machine-readable environment fingerprint;
+- actual start and end times with timezone offsets;
+- correctness, resource, performance, security, and operational-readiness results;
 - evidence schema version;
-- file SHA-256 values.
+- file SHA-256 values;
+- warnings and explicit non-claims.
+
+A `PASS` acceptance record requires a clean exact source commit already present
+at the canonical development-branch head. `SELF` is resolved to the exact source
+commit only for the central standards repository. `UNPINNED-BOOTSTRAP` is not
+permitted in formal passing evidence.
