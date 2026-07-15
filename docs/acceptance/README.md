@@ -9,3 +9,4 @@ Committed records identify those artifacts by SHA-256 and source commit.
 ## Accepted records
 
 - [ISRAS v1.0.0 formal acceptance](isras-v1.0.0.md)
+- [ISRAS v1.0.0 tag-correction authorization](isras-v1.0.0-tag-correction.md)
