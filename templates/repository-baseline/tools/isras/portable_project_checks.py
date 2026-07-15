@@ -47,6 +47,12 @@ def check_shell(repo_root: Path) -> None:
     files = paths(repo_root, ".sh")
     if not files:
         return
+    if sys.platform == "win32":
+        print(
+            "INFO: Bash syntax validation is not applicable on native Windows; "
+            "Linux and macOS matrix jobs validate repository Bash scripts."
+        )
+        return
     if not command_available("bash"):
         raise ISRASError("Bash scripts exist but bash is unavailable")
     for path in files:
