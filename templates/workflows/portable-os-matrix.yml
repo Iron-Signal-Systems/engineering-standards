@@ -35,7 +35,7 @@ jobs:
           git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
           auth="$(printf 'x-access-token:%s' "$ISRAS_GITHUB_TOKEN" | base64 | tr -d '\n')"
           git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
-            fetch --no-tags --depth=1 origin "${GITHUB_REF}"
+            fetch --no-tags --depth=1 origin "${GITHUB_SHA}"
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           unset auth ISRAS_GITHUB_TOKEN
@@ -53,7 +53,7 @@ jobs:
           $pair = "x-access-token:$env:ISRAS_GITHUB_TOKEN"
           $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
           git -c "http.extraheader=AUTHORIZATION: basic $auth" `
-            fetch --no-tags --depth=1 origin "$env:GITHUB_REF"
+            fetch --no-tags --depth=1 origin "$env:GITHUB_SHA"
           git checkout --detach FETCH_HEAD
           if ((git rev-parse HEAD) -ne $env:GITHUB_SHA) {
               throw "Commit mismatch."

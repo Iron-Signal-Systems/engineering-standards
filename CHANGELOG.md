@@ -2,6 +2,9 @@
 
 ## Unreleased — v1 pre-acceptance hardening
 
+- Makes hosted workflow checkouts fetch the exact immutable GitHub event
+  commit instead of fetching a mutable pull-request or branch ref and then
+  comparing it with the event SHA.
 - Defines ISRAS as the Iron Signal Repository Assurance Standard and explicitly
   distinguishes it from Information System Risk Assessment.
 - Adds scope, glossary, language/project profiles, release versioning, support,

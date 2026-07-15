@@ -256,6 +256,31 @@ class ISRToolsTests(unittest.TestCase):
             self.assertNotEqual(evidence["started_at"], evidence["finished_at"])
 
 
+
+    def test_hosted_workflows_fetch_exact_event_sha(self):
+        workflow_paths = [
+            *STANDARDS_ROOT.joinpath(".github/workflows").glob("*.yml"),
+            *STANDARDS_ROOT.joinpath(".github/workflows").glob("*.yaml"),
+            *STANDARDS_ROOT.joinpath("templates").rglob("*.yml"),
+            *STANDARDS_ROOT.joinpath("templates").rglob("*.yaml"),
+        ]
+
+        self.assertTrue(workflow_paths)
+
+        forbidden = (
+            'fetch --no-tags --depth=1 origin "${GITHUB_REF}"',
+            'fetch --no-tags --depth=1 origin "$env:GITHUB_REF"',
+        )
+
+        for workflow in workflow_paths:
+            content = workflow.read_text(encoding="utf-8")
+            for value in forbidden:
+                self.assertNotIn(
+                    value,
+                    content,
+                    f"{workflow} fetches a mutable GitHub ref instead of GITHUB_SHA",
+                )
+
     def test_portable_doctor_accepts_equivalent_git_transport(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
