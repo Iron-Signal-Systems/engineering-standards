@@ -54,6 +54,33 @@ class ISRToolsTests(unittest.TestCase):
             "--profile", "general",
         ], cwd=STANDARDS_ROOT)
 
+    def test_accepted_v1_0_1_checkpoint_is_exact(self):
+        registry_path = (
+            STANDARDS_ROOT / "tools/validation/checkpoints.json"
+        )
+        registry = json.loads(
+            registry_path.read_text(encoding="utf-8")
+        )
+
+        self.assertEqual(
+            registry["checkpoints"]["isras-v1.0.1"],
+            {
+                "commit": (
+                    "c379417720faa595fa5cb89a1dfdb2259d6cb95e"
+                ),
+                "environment_profile": "portable",
+                "expected_result": {"fail": 0},
+                "gate": (
+                    "tools/validation/phase-gates/"
+                    "validate_isras_v1_candidate.sh"
+                ),
+                "required_branch_name": "dev",
+                "status": "accepted",
+                "tag": "isras-v1.0.1",
+            },
+        )
+
+
     def test_adopter_and_policy_validation(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)

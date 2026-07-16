@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Registers the formally accepted `isras-v1.0.1` release as an immutable
+  historical checkpoint bound to
+  `c379417720faa595fa5cb89a1dfdb2259d6cb95e`.
+- Adds a focused regression assertion for the exact v1.0.1 checkpoint record.
+- Documents isolated historical checkpoint revalidation.
+
 ## 1.0.1 — Release hardening
 
 - Records completion of the corrected signed v1.0.0 tag and exact `main`
