@@ -1,0 +1,81 @@
+name: ISRAS Validation
+
+on:
+  pull_request:
+    branches:
+      - dev
+  push:
+    branches:
+      - feature/**
+      - fix/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: isras-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install declared Go toolchain
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Run ISRAS validation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          mkdir -p \
+            .local/bin \
+            .local/tools/bin \
+            .local/validation/logs
+
+          exec > >(tee .local/validation/logs/ci-validation.log) 2>&1
+
+          printf '\nIRON SIGNAL · CI VALIDATION BOOTSTRAP\n'
+          printf '%s\n' '────────────────────────────────────────'
+
+          printf '\nInstalling pinned govulncheck\n'
+          GOBIN="$PWD/.local/tools/bin" \
+            go install \
+            golang.org/x/vuln/cmd/govulncheck@v1.6.0
+
+          printf '\nBuilding repository validator\n'
+          go build \
+            -trimpath \
+            -o .local/bin/isras-validate \
+            ./cmd/isras-validate
+
+          chmod 0755 .local/bin/isras-validate
+
+          printf '\nRunning Go validation\n'
+          ./.local/bin/isras-validate go
+
+          printf '\nRunning sensitive-value validation\n'
+          ./.local/bin/isras-validate secrets
+
+          printf '\nCI VALIDATION PASSED\n'
+
+      - name: Retain validation failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isras-validation-logs-${{ github.run_id }}
+          path: .local/validation/logs/*.log
+          if-no-files-found: warn
+          retention-days: 30
