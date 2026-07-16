@@ -1,0 +1,73 @@
+{
+  "schema_version": "ISRAS-PHASE-COMPLIANCE-V1",
+  "review_id": "example-phase-exit",
+  "review_type": "EXIT",
+  "review_status": "DRAFT",
+  "repository": "Iron-Signal-Systems/example-repository",
+  "phase": "Example Phase",
+  "review_date": "2026-01-01",
+  "source_commit": "0000000000000000000000000000000000000000",
+  "source_branch": "dev",
+  "adopted_isras": {
+    "version": "1.0.1",
+    "signed_release_tag": "isras-v1.0.1",
+    "commit": "0000000000000000000000000000000000000000",
+    "source_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "adoption_decision": "docs/engineering/isras-adoption.md",
+    "adoption_date": "2026-01-01"
+  },
+  "newer_release_review": {
+    "newer_accepted_release_exists": false,
+    "impact_assessment_required": false,
+    "impact_assessment_path": null
+  },
+  "controls": [
+    {
+      "control_id": "ISRAS-GOV-004",
+      "applicability": "APPLICABLE",
+      "applicability_justification": "Mandatory governance applies to every adopting repository.",
+      "required_maturity": "ACCEPTED",
+      "actual_maturity": "DOCUMENTED",
+      "evidence_paths": [
+        "standards/repository-assurance/v2/STANDARD.md"
+      ],
+      "compliance_result": "NOT_EVALUATED",
+      "planned_actions": [
+        {
+          "action": "Complete repository-specific implementation and validation.",
+          "owner": "repository-owner",
+          "target": "Before phase exit"
+        }
+      ],
+      "findings": []
+    }
+  ],
+  "synchronization": {
+    "documentation": "NOT_EVALUATED",
+    "requirements": "NOT_EVALUATED",
+    "architecture": "NOT_EVALUATED",
+    "implementation": "NOT_EVALUATED",
+    "validation": "NOT_EVALUATED",
+    "test_campaigns": "NOT_EVALUATED",
+    "acceptance": "NOT_EVALUATED",
+    "roadmap_and_sequencing": "NOT_EVALUATED"
+  },
+  "hostile_validation": {
+    "required": false,
+    "status": "NOT_EVALUATED",
+    "authority_boundary_records": [],
+    "evidence_paths": []
+  },
+  "historical_predecessor_status": "NOT_EVALUATED",
+  "resource_observation_status": "NOT_RECORDED",
+  "deviations": [],
+  "deferred_work": [],
+  "exact_pushed_candidate_evaluated": false,
+  "reviewer": "pending-reviewer",
+  "approval": {
+    "decision": "PENDING",
+    "approver": "pending-approver",
+    "date": null
+  },
+  "decision": "PENDING"
+}

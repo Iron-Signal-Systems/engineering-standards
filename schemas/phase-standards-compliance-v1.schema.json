@@ -1,0 +1,474 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironsignalsystems.com/schemas/isras/phase-standards-compliance-v1.schema.json",
+  "title": "ISRAS Phase Standards Compliance Review v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "review_id",
+    "review_type",
+    "review_status",
+    "repository",
+    "phase",
+    "review_date",
+    "source_commit",
+    "source_branch",
+    "adopted_isras",
+    "newer_release_review",
+    "controls",
+    "synchronization",
+    "hostile_validation",
+    "historical_predecessor_status",
+    "resource_observation_status",
+    "deviations",
+    "deferred_work",
+    "exact_pushed_candidate_evaluated",
+    "reviewer",
+    "approval",
+    "decision"
+  ],
+  "$defs": {
+    "maturity": {
+      "enum": [
+        "DOCUMENTED",
+        "IMPLEMENTED",
+        "VALIDATED",
+        "ACCEPTED"
+      ]
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "signed_release_tag",
+        "commit",
+        "source_manifest_sha256",
+        "adoption_decision",
+        "adoption_date"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "signed_release_tag": {
+          "type": "string",
+          "minLength": 3
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "source_manifest_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "adoption_decision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adoption_date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "const": "ISRAS-PHASE-COMPLIANCE-V1"
+    },
+    "review_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$"
+    },
+    "review_type": {
+      "enum": [
+        "ENTRY",
+        "EXIT"
+      ]
+    },
+    "review_status": {
+      "enum": [
+        "DRAFT",
+        "PASS",
+        "FAIL"
+      ]
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$"
+    },
+    "phase": {
+      "type": "string",
+      "minLength": 1
+    },
+    "review_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "source_branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adopted_isras": {
+      "$ref": "#/$defs/baseline"
+    },
+    "newer_release_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "newer_accepted_release_exists",
+        "impact_assessment_required",
+        "impact_assessment_path"
+      ],
+      "properties": {
+        "newer_accepted_release_exists": {
+          "type": "boolean"
+        },
+        "impact_assessment_required": {
+          "type": "boolean"
+        },
+        "impact_assessment_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "controls": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "control_id",
+          "applicability",
+          "applicability_justification",
+          "required_maturity",
+          "actual_maturity",
+          "evidence_paths",
+          "compliance_result",
+          "planned_actions",
+          "findings"
+        ],
+        "properties": {
+          "control_id": {
+            "type": "string",
+            "pattern": "^ISRAS-[A-Z]{3}-[0-9]{3}$"
+          },
+          "applicability": {
+            "enum": [
+              "APPLICABLE",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "applicability_justification": {
+            "type": "string",
+            "minLength": 10
+          },
+          "required_maturity": {
+            "$ref": "#/$defs/maturity"
+          },
+          "actual_maturity": {
+            "$ref": "#/$defs/maturity"
+          },
+          "evidence_paths": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "compliance_result": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "NOT_EVALUATED"
+            ]
+          },
+          "planned_actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "action",
+                "owner",
+                "target"
+              ],
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "minLength": 3
+                },
+                "owner": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "synchronization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documentation",
+        "requirements",
+        "architecture",
+        "implementation",
+        "validation",
+        "test_campaigns",
+        "acceptance",
+        "roadmap_and_sequencing"
+      ],
+      "properties": {
+        "documentation": {
+          "enum": [
+            "SYNCHRONIZED",
+            "NOT_REQUIRED",
+            "OUT_OF_SYNC",
+            "NOT_EVALUATED"
+          ]
+        },
+        "requirements": {
+          "enum": [
+            "SYNCHRONIZED",
+            "NOT_REQUIRED",
+            "OUT_OF_SYNC",
+            "NOT_EVALUATED"
+          ]
+        },
+        "architecture": {
+          "enum": [
+            "SYNCHRONIZED",
+            "NOT_REQUIRED",
+            "OUT_OF_SYNC",
+            "NOT_EVALUATED"
+          ]
+        },
+        "implementation": {
+          "enum": [
+            "SYNCHRONIZED",
+            "NOT_REQUIRED",
+            "OUT_OF_SYNC",
+            "NOT_EVALUATED"
+          ]
+        },
+        "validation": {
+          "enum": [
+            "SYNCHRONIZED",
+            "NOT_REQUIRED",
+            "OUT_OF_SYNC",
+            "NOT_EVALUATED"
+          ]
+        },
+        "test_campaigns": {
+          "enum": [
+            "SYNCHRONIZED",
+            "NOT_REQUIRED",
+            "OUT_OF_SYNC",
+            "NOT_EVALUATED"
+          ]
+        },
+        "acceptance": {
+          "enum": [
+            "SYNCHRONIZED",
+            "NOT_REQUIRED",
+            "OUT_OF_SYNC",
+            "NOT_EVALUATED"
+          ]
+        },
+        "roadmap_and_sequencing": {
+          "enum": [
+            "SYNCHRONIZED",
+            "NOT_REQUIRED",
+            "OUT_OF_SYNC",
+            "NOT_EVALUATED"
+          ]
+        }
+      }
+    },
+    "hostile_validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "status",
+        "authority_boundary_records",
+        "evidence_paths"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "NOT_REQUIRED",
+            "NOT_EVALUATED"
+          ]
+        },
+        "authority_boundary_records": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "evidence_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "historical_predecessor_status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_REQUIRED",
+        "NOT_EVALUATED"
+      ]
+    },
+    "resource_observation_status": {
+      "enum": [
+        "RECORDED",
+        "NOT_RECORDED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "deviations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record_id",
+          "status",
+          "description"
+        ],
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "OPEN",
+              "APPROVED",
+              "CLOSED",
+              "EXPIRED"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 10
+          }
+        }
+      }
+    },
+    "deferred_work": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item",
+          "owner",
+          "target",
+          "governance_record"
+        ],
+        "properties": {
+          "item": {
+            "type": "string",
+            "minLength": 3
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "governance_record": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "exact_pushed_candidate_evaluated": {
+      "type": "boolean"
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "approver",
+        "date"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "PENDING",
+            "APPROVED",
+            "REJECTED"
+          ]
+        },
+        "approver": {
+          "type": "string",
+          "minLength": 1
+        },
+        "date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      }
+    },
+    "decision": {
+      "enum": [
+        "PHASE_MAY_BEGIN",
+        "PHASE_ACCEPTED",
+        "PHASE_BLOCKED",
+        "PENDING"
+      ]
+    }
+  }
+}
