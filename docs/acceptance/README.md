@@ -32,4 +32,5 @@ release source.
 
 ## Retained candidate evidence
 
+- [`isras-v2.0.1-candidate/`](evidence/isras-v2.0.1-candidate/) — formal acceptance pending
 - [`isras-v2.0.0-candidate/`](evidence/isras-v2.0.0-candidate/)

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Retains the successful exact pushed-candidate campaign for commit
+  `6543a5a93f078f47d87aa3b8ed8ebd2024cec373`.
+- Adds schema-conforming v2.0.1 candidate evidence, environment fingerprint,
+  complete gate output, focused validation logs, and SHA-256 artifact accounting.
+- Records candidate evidence without claiming formal acceptance, changing
+  `VERSION`, moving `main`, creating `isras-v2.0.1`, or registering a checkpoint.
 - Prepares an ISRAS v2.0.1 patch candidate to carry BSD-3-Clause into the
   signed release line without changing normative ISRAS controls.
 - Records `5c07b428b206e4f4e5d7e33d6f5811d7d4e6e739` as the first exact

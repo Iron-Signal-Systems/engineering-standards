@@ -9,6 +9,7 @@ from pathlib import Path
 
 EXPECTED_VERSION = "2.0.0"
 TARGET_VERSION = "2.0.1"
+CANDIDATE_COMMIT = "6543a5a93f078f47d87aa3b8ed8ebd2024cec373"
 ACCEPTED_RELEASE_COMMIT = "781246e69f8a9a382c25040f94b62dfe3b25ba89"
 CHECKPOINT_COMMIT = "a1861291110efccaad9c587a99aaaf2de6f21812"
 BSD_BOUNDARY_COMMIT = "5c07b428b206e4f4e5d7e33d6f5811d7d4e6e739"
@@ -127,14 +128,14 @@ def main() -> int:
     plan_text = read(root, "docs/acceptance/isras-v2.0.1-plan.md")
     plan = normalized(plan_text)
     for marker in (
-        "CANDIDATE PREPARATION — NOT FORMALLY ACCEPTED",
+        "CANDIDATE EVIDENCE RECORDED — FORMAL ACCEPTANCE PENDING",
         TARGET_VERSION,
         "isras-v2.0.1",
         ACCEPTED_RELEASE_COMMIT,
         CHECKPOINT_COMMIT,
         BSD_BOUNDARY_COMMIT,
         "root `VERSION` remains `2.0.0`",
-        "no self-referential placeholder",
+        CANDIDATE_COMMIT,
     ):
         results.check(
             normalized(marker) in plan,

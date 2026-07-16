@@ -157,6 +157,27 @@ class EngineeringStandardsComplianceTests(unittest.TestCase):
             licensing,
         )
 
+    def test_v2_0_1_candidate_evidence_is_exact(self):
+        evidence = load(
+            "docs/acceptance/evidence/isras-v2.0.1-candidate/"
+            "acceptance-evidence.json"
+        )
+        self.assertEqual(
+            evidence["source_commit"],
+            "6543a5a93f078f47d87aa3b8ed8ebd2024cec373",
+        )
+        self.assertEqual(
+            evidence["standard_commit"],
+            "6543a5a93f078f47d87aa3b8ed8ebd2024cec373",
+        )
+        self.assertEqual(evidence["source_branch"], "dev")
+        self.assertEqual(evidence["correctness_result"], "PASS")
+        self.assertIsNone(evidence["acceptance_tag"])
+        self.assertEqual(
+            evidence["operational_readiness"],
+            "NOT_EVALUATED",
+        )
+
     def test_v2_0_1_candidate_validator_passes(self):
         result = subprocess.run(
             [

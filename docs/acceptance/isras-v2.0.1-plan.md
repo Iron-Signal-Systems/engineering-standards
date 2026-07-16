@@ -2,7 +2,7 @@
 
 ## Status
 
-`CANDIDATE PREPARATION — NOT FORMALLY ACCEPTED`
+`CANDIDATE EVIDENCE RECORDED — FORMAL ACCEPTANCE PENDING`
 
 ## Target release
 
@@ -47,10 +47,14 @@ or minor normative-standard release.
 - ISRAS v2.0.0 signing-key fingerprint:
   `SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE`
 
-The exact v2.0.1 candidate source will be the later commit that contains this
-plan, its candidate validator and gate, synchronized documentation, tests, and
-the regenerated source manifest. That identity is recorded after the commit
-exists; this plan intentionally contains no self-referential placeholder.
+The exact pushed v2.0.1 candidate source is:
+
+`6543a5a93f078f47d87aa3b8ed8ebd2024cec373`
+
+Its successful campaign is retained under
+`docs/acceptance/evidence/isras-v2.0.1-candidate/`. Formal candidate acceptance
+remains pending until that evidence is committed, pushed, and reviewed at its
+own exact evidence commit.
 
 ## Candidate scope
 

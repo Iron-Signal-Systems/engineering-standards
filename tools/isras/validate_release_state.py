@@ -17,6 +17,7 @@ TAG_OBJECT = "a7a09a02798e2b2c905f2686820fd30890f62bc6"
 MANIFEST_SHA = "262e275e63f1c7d104bb77c8799633121bad43d2fc58edf54594e5eda61555b7"
 EVIDENCE_SHA = "0e4516f76032008075a844ddc43cb44fdb90ae09ab31b9af113b32923f082cd7"
 SIGNING_FINGERPRINT = "SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE"
+V2_0_1_CANDIDATE_COMMIT = "6543a5a93f078f47d87aa3b8ed8ebd2024cec373"
 
 REQUIRED_FILES = (
     "LICENSE",
@@ -27,6 +28,7 @@ REQUIRED_FILES = (
     "docs/acceptance/isras-v2.0.0-release-finalization.md",
     "docs/acceptance/isras-v2.0.0-release-completion.md",
     "docs/acceptance/isras-v2.0.1-plan.md",
+    "docs/acceptance/evidence/isras-v2.0.1-candidate/acceptance-evidence.json",
     "docs/engineering/adopter-quick-start.md",
     "docs/engineering/github-release-rulesets.md",
     "standards/repository-assurance/v2/RELEASE-VERSIONING-SUPPORT-AND-DEPRECATION.md",
@@ -229,7 +231,7 @@ def main() -> int:
         "docs/acceptance/isras-v2.0.1-plan.md",
     )
     for marker in (
-        "CANDIDATE PREPARATION — NOT FORMALLY ACCEPTED",
+        "CANDIDATE EVIDENCE RECORDED — FORMAL ACCEPTANCE PENDING",
         "2.0.1",
         "isras-v2.0.1",
         RELEASE_COMMIT,
@@ -243,6 +245,45 @@ def main() -> int:
             "v2.0.1 candidate and acceptance plan",
         )
     print("PASS: v2.0.1 candidate preparation is synchronized")
+
+    candidate_evidence = json.loads(
+        read(
+            repo_root,
+            "docs/acceptance/evidence/isras-v2.0.1-candidate/"
+            "acceptance-evidence.json",
+        )
+    )
+    if not (
+        candidate_evidence.get("schema_version")
+        == "ISRAS-ACCEPTANCE-EVIDENCE-V1"
+        and candidate_evidence.get("source_commit")
+        == V2_0_1_CANDIDATE_COMMIT
+        and candidate_evidence.get("standard_commit")
+        == V2_0_1_CANDIDATE_COMMIT
+        and candidate_evidence.get("source_branch") == "dev"
+        and candidate_evidence.get("correctness_result") == "PASS"
+        and candidate_evidence.get("acceptance_tag") is None
+        and candidate_evidence.get("operational_readiness")
+        == "NOT_EVALUATED"
+    ):
+        fail("v2.0.1 candidate evidence is not exact")
+    print("PASS: v2.0.1 exact pushed-candidate evidence is recorded")
+
+    evidence_readme = read(
+        repo_root,
+        "docs/acceptance/evidence/isras-v2.0.1-candidate/README.md",
+    )
+    for marker in (
+        "CANDIDATE EVIDENCE RECORDED — FORMAL ACCEPTANCE PENDING",
+        V2_0_1_CANDIDATE_COMMIT,
+        "formal candidate-acceptance decision",
+    ):
+        require_marker(
+            evidence_readme,
+            marker,
+            "v2.0.1 candidate evidence README",
+        )
+    print("PASS: v2.0.1 evidence non-claims are synchronized")
 
     rulesets = read(repo_root, "docs/engineering/github-release-rulesets.md")
     require_marker(rulesets, "isras-*", "GitHub release-ruleset requirements")
