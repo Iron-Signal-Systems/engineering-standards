@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import importlib.util
+import tempfile
+import tarfile
+import io
 import json
 import subprocess
 import sys
@@ -149,21 +152,54 @@ class EngineeringStandardsComplianceTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
-    def test_release_source_validator_passes(self):
-        result = subprocess.run(
-            [
-                PYTHON,
-                ROOT / "tools/isras/validate_isras_v2_release.py",
-                "--repo-root",
-                ROOT,
-                "--skip-v1-git-diff",
-            ],
-            text=True,
+    def test_release_source_validator_passes_at_accepted_commit(self):
+        release_commit = (
+            "781246e69f8a9a382c25040f94b62dfe3b25ba89"
+        )
+
+        archive = subprocess.run(
+            ["git", "archive", release_commit],
+            cwd=ROOT,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=False,
         )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(
+            archive.returncode,
+            0,
+            archive.stderr.decode("utf-8", errors="replace"),
+        )
+
+        with tempfile.TemporaryDirectory(
+            prefix="isras-v2-release-source-"
+        ) as temporary:
+            checkout = Path(temporary)
+
+            with tarfile.open(
+                fileobj=io.BytesIO(archive.stdout),
+                mode="r:",
+            ) as handle:
+                handle.extractall(checkout)
+
+            result = subprocess.run(
+                [
+                    PYTHON,
+                    checkout / "tools/isras/validate_isras_v2_release.py",
+                    "--repo-root",
+                    checkout,
+                    "--skip-v1-git-diff",
+                ],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+
+        self.assertEqual(
+            result.returncode,
+            0,
+            result.stdout + result.stderr,
+        )
 
     def test_validated_exit_and_authority_pass(self):
         results = validate_records(

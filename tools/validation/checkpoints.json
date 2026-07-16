@@ -21,6 +21,17 @@
       "required_branch_name": "dev",
       "status": "accepted",
       "tag": "isras-v1.0.1"
+    },
+    "isras-v2.0.0": {
+      "commit": "781246e69f8a9a382c25040f94b62dfe3b25ba89",
+      "environment_profile": "portable",
+      "expected_result": {
+        "fail": 0
+      },
+      "gate": "tools/validation/phase-gates/validate_isras_v2_release.sh",
+      "required_branch_name": "dev",
+      "status": "accepted",
+      "tag": "isras-v2.0.0"
     }
   },
   "schema_version": "ISRAS-CHECKPOINTS-V1"

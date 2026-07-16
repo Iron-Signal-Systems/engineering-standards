@@ -2,7 +2,17 @@
 
 ## Unreleased
 
-- No changes are recorded after the ISRAS v2.0.0 release source boundary.
+- Records completion of the SSH-signed ISRAS v2.0.0 release and exact convergence
+  of remote `dev`, remote `main`, and the peeled tag target at
+  `781246e69f8a9a382c25040f94b62dfe3b25ba89`.
+- Records annotated tag object `a7a09a02798e2b2c905f2686820fd30890f62bc6` and signing-key fingerprint
+  `SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE`.
+- Registers `isras-v2.0.0` as an immutable historical checkpoint using the frozen
+  v2 release-source gate.
+- Adds exact checkpoint regression validation and synchronized acceptance and
+  validation indexes.
+- Preserves `main` and `isras-v2.0.0` at the immutable release source while
+  allowing `dev` to advance with the post-release governance record.
 
 ## 2.0.0 — Governance and bounded authority — 2026-07-16
 

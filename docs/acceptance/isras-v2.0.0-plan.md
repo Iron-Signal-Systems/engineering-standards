@@ -2,16 +2,29 @@
 
 ## Status
 
-`RELEASE SOURCE PREPARED FOR EXACT-COMMIT FINALIZATION`
+`RELEASE COMPLETE — IMMUTABLE CHECKPOINT REGISTERED`
 
-The exact candidate source commit `4aff00dfdc88154390252898210abc336fa8b2fc` was formally accepted
-for release finalization on 2026-07-16, with retained evidence committed at
-`b0c982221acde7873307d010aca73ed2e386eb99` and formal authorization committed at
-`24e911b7c4a63735bcef9b4b84ab9b62ace10298`. The release source now declares `VERSION` `2.0.0`.
-Finalization is not complete until the exact pushed source passes the complete
-campaign, the signed `isras-v2.0.0` tag verifies, and remote `dev`, remote
-`main`, and the peeled tag target converge. Checkpoint registration and
-repository adoption remain separate governed changes.
+ISRAS v2.0.0 release finalization completed on 2026-07-16. The SSH-signed
+annotated tag `isras-v2.0.0` has tag object `a7a09a02798e2b2c905f2686820fd30890f62bc6` and peels to exact
+release commit `781246e69f8a9a382c25040f94b62dfe3b25ba89`. At finalization, remote `dev`, remote
+`main`, and the peeled tag target converged on that commit. The retained
+source-manifest digest is `262e275e63f1c7d104bb77c8799633121bad43d2fc58edf54594e5eda61555b7` and the signing-key fingerprint is
+`SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE`. This later governed change registers the immutable
+historical checkpoint. Repository adoption remains deliberate and separate.
+
+## Release lineage
+
+- **Accepted predecessor:** `c379417720faa595fa5cb89a1dfdb2259d6cb95e`
+- **Accepted candidate source:** `4aff00dfdc88154390252898210abc336fa8b2fc`
+- **Candidate evidence commit:** `b0c982221acde7873307d010aca73ed2e386eb99`
+- **Formal candidate-acceptance authorization commit:** `24e911b7c4a63735bcef9b4b84ab9b62ace10298`
+- **Accepted release source:** `781246e69f8a9a382c25040f94b62dfe3b25ba89`
+- **Signed annotated tag:** `isras-v2.0.0`
+- **Annotated tag object:** `a7a09a02798e2b2c905f2686820fd30890f62bc6`
+
+This lineage is retained for historical verification. The later checkpoint
+registration does not move or redefine the accepted release source, signed tag,
+or remote `main` boundary.
 
 ## Objective
 

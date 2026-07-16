@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -10,6 +11,12 @@ EXPECTED_VERSION = "2.0.0"
 CANDIDATE_COMMIT = "4aff00dfdc88154390252898210abc336fa8b2fc"
 EVIDENCE_COMMIT = "b0c982221acde7873307d010aca73ed2e386eb99"
 ACCEPTANCE_COMMIT = "24e911b7c4a63735bcef9b4b84ab9b62ace10298"
+RELEASE_COMMIT = "781246e69f8a9a382c25040f94b62dfe3b25ba89"
+RELEASE_TAG = "isras-v2.0.0"
+TAG_OBJECT = "a7a09a02798e2b2c905f2686820fd30890f62bc6"
+MANIFEST_SHA = "262e275e63f1c7d104bb77c8799633121bad43d2fc58edf54594e5eda61555b7"
+EVIDENCE_SHA = "0e4516f76032008075a844ddc43cb44fdb90ae09ab31b9af113b32923f082cd7"
+SIGNING_FINGERPRINT = "SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE"
 
 REQUIRED_FILES = (
     "docs/acceptance/isras-v1.0.0-release-finalization.md",
@@ -17,6 +24,7 @@ REQUIRED_FILES = (
     "docs/acceptance/isras-v2.0.0-plan.md",
     "docs/acceptance/isras-v2.0.0-candidate-acceptance.md",
     "docs/acceptance/isras-v2.0.0-release-finalization.md",
+    "docs/acceptance/isras-v2.0.0-release-completion.md",
     "docs/engineering/adopter-quick-start.md",
     "docs/engineering/github-release-rulesets.md",
     "standards/repository-assurance/v2/RELEASE-VERSIONING-SUPPORT-AND-DEPRECATION.md",
@@ -163,9 +171,29 @@ def main() -> int:
         require_marker(finalization, marker, "v2.0.0 release-finalization record")
     print("PASS: v2.0.0 release finalization boundary is predeclared")
 
+    completion = read(
+        repo_root,
+        "docs/acceptance/isras-v2.0.0-release-completion.md",
+    )
+    for marker in (
+        "**Status: COMPLETE**",
+        RELEASE_TAG,
+        RELEASE_COMMIT,
+        TAG_OBJECT,
+        MANIFEST_SHA,
+        EVIDENCE_SHA,
+        SIGNING_FINGERPRINT,
+        "45 PASS",
+        "29 tests",
+        "remote `dev`",
+        "remote `main`",
+    ):
+        require_marker(completion, marker, "v2.0.0 release-completion record")
+    print("PASS: v2.0.0 signed release completion is recorded exactly")
+
     plan = read(repo_root, "docs/acceptance/isras-v2.0.0-plan.md")
     for marker in (
-        "RELEASE SOURCE PREPARED FOR EXACT-COMMIT FINALIZATION",
+        "RELEASE COMPLETE — IMMUTABLE CHECKPOINT REGISTERED",
         "isras-v2.0.0",
         CANDIDATE_COMMIT,
         EVIDENCE_COMMIT,
@@ -173,6 +201,26 @@ def main() -> int:
     ):
         require_marker(plan, marker, "v2.0.0 acceptance plan")
     print("PASS: v2.0.0 exact-commit finalization plan is synchronized")
+
+    checkpoint_registry = json.loads(
+        read(repo_root, "tools/validation/checkpoints.json")
+    )
+    checkpoint = checkpoint_registry.get("checkpoints", {}).get(
+        RELEASE_TAG,
+        {},
+    )
+    expected_checkpoint = {
+        "commit": RELEASE_COMMIT,
+        "environment_profile": "portable",
+        "expected_result": {"fail": 0},
+        "gate": "tools/validation/phase-gates/validate_isras_v2_release.sh",
+        "required_branch_name": "dev",
+        "status": "accepted",
+        "tag": RELEASE_TAG,
+    }
+    if checkpoint != expected_checkpoint:
+        fail("isras-v2.0.0 checkpoint registration is not exact")
+    print("PASS: isras-v2.0.0 checkpoint registration is exact")
 
     rulesets = read(repo_root, "docs/engineering/github-release-rulesets.md")
     require_marker(rulesets, "isras-*", "GitHub release-ruleset requirements")
