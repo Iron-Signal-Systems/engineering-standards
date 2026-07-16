@@ -40,7 +40,8 @@ faa84b89d190eda63df7cbb5395665c9e34d72f9b17609040099de85339646ad  docs/acceptanc
 e38ab2c5a522809ab6b86d9144f8eff9ec5fc3b3feea2512874ab066a4324e30  docs/acceptance/isras-v1.0.0-tag-correction.md
 927e300ce7405aa795f3ea2bebe717e20079a6dd5e452d64e996222d956a3b27  docs/acceptance/isras-v1.0.0.md
 bbdf1277f27c99ec596835f7916bd463cdb0aeb4e7f8ce3f60b8be9607978600  docs/acceptance/isras-v1.0.1-plan.md
-a6bbe145c56a4099fa5c5e89389deba47d0227508e436df24c129c085787d2d4  docs/acceptance/isras-v2.0.0-plan.md
+be7bdaccab412cb8a98cf0b641d2c19eca7d32f91516b57feb9c2ad6d6474812  docs/acceptance/isras-v2.0.0-candidate-acceptance.md
+def0586033517e47dc580f3c4f72b48dacfb59e154c6e8a10b9996dc63111966  docs/acceptance/isras-v2.0.0-plan.md
 2c486e5691370377a3ad8404d0060f8f77a6a07d258624ac32fdc6bf5790bf85  docs/engineering/adopter-quick-start.md
 05b9b088387fdb7b49b43e70817d3a25ca3d6b346c99970b6c4e824199572d99  docs/engineering/github-release-rulesets.md
 5cee130a42eb3b186a66aa607342ac25e4a9532378b1b74161ec4a8d4f84fe8a  docs/engineering/release-and-acceptance-model.md

@@ -2,10 +2,14 @@
 
 ## Status
 
-`CANDIDATE DEVELOPMENT`
+`CANDIDATE ACCEPTED FOR RELEASE FINALIZATION`
 
-The accepted repository version remains `1.0.1`. This plan does not authorize a
-version change, release tag, adopter claim, or accepted v2 checkpoint.
+The accepted repository version remains `1.0.1`. The exact candidate source
+commit `4aff00dfdc88154390252898210abc336fa8b2fc` was formally accepted for release finalization on
+2026-07-16, with retained evidence committed at `b0c982221acde7873307d010aca73ed2e386eb99`. This decision
+authorizes a separate release-finalization change; it does not itself change
+`VERSION`, create the release tag, register a v2 checkpoint, or alter adopter
+pins.
 
 ## Objective
 
