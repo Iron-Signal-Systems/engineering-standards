@@ -2,7 +2,7 @@
 
 ## Status
 
-`CANDIDATE EVIDENCE RECORDED — FORMAL ACCEPTANCE PENDING`
+`CANDIDATE FORMALLY ACCEPTED — RELEASE FINALIZATION AUTHORIZED`
 
 ## Target release
 
@@ -52,9 +52,16 @@ The exact pushed v2.0.1 candidate source is:
 `6543a5a93f078f47d87aa3b8ed8ebd2024cec373`
 
 Its successful campaign is retained under
-`docs/acceptance/evidence/isras-v2.0.1-candidate/`. Formal candidate acceptance
-remains pending until that evidence is committed, pushed, and reviewed at its
-own exact evidence commit.
+`docs/acceptance/evidence/isras-v2.0.1-candidate/`.
+
+The candidate evidence was committed and pushed at:
+
+`9dbe4d9696ff4a9838fd83cb0f6f652087710f98`
+
+Formal candidate acceptance is recorded in
+`docs/acceptance/isras-v2.0.1-candidate-acceptance.md`. The accepted candidate
+source remains `6543a5a93f078f47d87aa3b8ed8ebd2024cec373`; the acceptance-record commit is governance
+evidence and does not replace the accepted source.
 
 ## Candidate scope
 

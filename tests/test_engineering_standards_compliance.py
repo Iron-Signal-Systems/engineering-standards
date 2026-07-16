@@ -157,6 +157,23 @@ class EngineeringStandardsComplianceTests(unittest.TestCase):
             licensing,
         )
 
+    def test_v2_0_1_candidate_acceptance_is_exact(self):
+        record = (
+            ROOT / "docs/acceptance/"
+            "isras-v2.0.1-candidate-acceptance.md"
+        ).read_text(encoding="utf-8")
+        for marker in (
+            "Accepted for release finalization",
+            "6543a5a93f078f47d87aa3b8ed8ebd2024cec373",
+            "9dbe4d9696ff4a9838fd83cb0f6f652087710f98",
+            "42d7dce7500929647af001f47bbbdf30ae7bef88c598d0aba8edd2424564d2b9",
+            "e2b6488a7f670b0c81d873478154d03438a9c5f21a8bf05010863fbe1e4fd7e8",
+            "43 PASS and 0 FAIL",
+            "VERSION` from `2.0.0",
+            "isras-v2.0.1",
+        ):
+            self.assertIn(marker, record)
+
     def test_v2_0_1_candidate_evidence_is_exact(self):
         evidence = load(
             "docs/acceptance/evidence/isras-v2.0.1-candidate/"

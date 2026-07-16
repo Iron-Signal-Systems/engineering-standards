@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Formally accepts ISRAS v2.0.1 candidate source
+  `6543a5a93f078f47d87aa3b8ed8ebd2024cec373` for release finalization.
+- Binds the decision to evidence commit `9dbe4d9696ff4a9838fd83cb0f6f652087710f98`, evidence JSON
+  SHA-256 `42d7dce7500929647af001f47bbbdf30ae7bef88c598d0aba8edd2424564d2b9`, and candidate source-manifest SHA-256
+  `e2b6488a7f670b0c81d873478154d03438a9c5f21a8bf05010863fbe1e4fd7e8`.
+- Authorizes a later, separate release-source change while leaving `VERSION`
+  `2.0.0`, `main`, `isras-v2.0.0`, and the v2.0.0 checkpoint unchanged.
 - Retains the successful exact pushed-candidate campaign for commit
   `6543a5a93f078f47d87aa3b8ed8ebd2024cec373`.
 - Adds schema-conforming v2.0.1 candidate evidence, environment fingerprint,

@@ -18,6 +18,8 @@ MANIFEST_SHA = "262e275e63f1c7d104bb77c8799633121bad43d2fc58edf54594e5eda61555b7
 EVIDENCE_SHA = "0e4516f76032008075a844ddc43cb44fdb90ae09ab31b9af113b32923f082cd7"
 SIGNING_FINGERPRINT = "SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE"
 V2_0_1_CANDIDATE_COMMIT = "6543a5a93f078f47d87aa3b8ed8ebd2024cec373"
+V2_0_1_EVIDENCE_COMMIT = "9dbe4d9696ff4a9838fd83cb0f6f652087710f98"
+V2_0_1_EVIDENCE_SHA = "42d7dce7500929647af001f47bbbdf30ae7bef88c598d0aba8edd2424564d2b9"
 
 REQUIRED_FILES = (
     "LICENSE",
@@ -28,6 +30,7 @@ REQUIRED_FILES = (
     "docs/acceptance/isras-v2.0.0-release-finalization.md",
     "docs/acceptance/isras-v2.0.0-release-completion.md",
     "docs/acceptance/isras-v2.0.1-plan.md",
+    "docs/acceptance/isras-v2.0.1-candidate-acceptance.md",
     "docs/acceptance/evidence/isras-v2.0.1-candidate/acceptance-evidence.json",
     "docs/engineering/adopter-quick-start.md",
     "docs/engineering/github-release-rulesets.md",
@@ -231,7 +234,7 @@ def main() -> int:
         "docs/acceptance/isras-v2.0.1-plan.md",
     )
     for marker in (
-        "CANDIDATE EVIDENCE RECORDED — FORMAL ACCEPTANCE PENDING",
+        "CANDIDATE FORMALLY ACCEPTED — RELEASE FINALIZATION AUTHORIZED",
         "2.0.1",
         "isras-v2.0.1",
         RELEASE_COMMIT,
@@ -244,7 +247,28 @@ def main() -> int:
             marker,
             "v2.0.1 candidate and acceptance plan",
         )
-    print("PASS: v2.0.1 candidate preparation is synchronized")
+    print("PASS: v2.0.1 formal candidate acceptance is synchronized")
+
+    patch_acceptance = read(
+        repo_root,
+        "docs/acceptance/isras-v2.0.1-candidate-acceptance.md",
+    )
+    for marker in (
+        "Accepted for release finalization",
+        V2_0_1_CANDIDATE_COMMIT,
+        V2_0_1_EVIDENCE_COMMIT,
+        V2_0_1_EVIDENCE_SHA,
+        "43 PASS and 0 FAIL",
+        "Repository version at decision:** `2.0.0`",
+        "isras-v2.0.1` — not yet created",
+        "does not change `VERSION` from `2.0.0`",
+    ):
+        require_marker(
+            patch_acceptance,
+            marker,
+            "v2.0.1 candidate formal-acceptance record",
+        )
+    print("PASS: v2.0.1 formal candidate-acceptance record is exact")
 
     candidate_evidence = json.loads(
         read(

@@ -18,6 +18,7 @@ release source.
 - [ISRAS v1.0.0 tag correction](isras-v1.0.0-tag-correction.md)
 - [ISRAS v1.0.0 release finalization](isras-v1.0.0-release-finalization.md)
 - [ISRAS v2.0.0 candidate formal acceptance](isras-v2.0.0-candidate-acceptance.md)
+- [ISRAS v2.0.1 candidate formal acceptance](isras-v2.0.1-candidate-acceptance.md)
 - [ISRAS v2.0.0 release-source finalization record](isras-v2.0.0-release-finalization.md)
 - [ISRAS v2.0.0 release completion and checkpoint](isras-v2.0.0-release-completion.md)
 
@@ -32,5 +33,5 @@ release source.
 
 ## Retained candidate evidence
 
-- [`isras-v2.0.1-candidate/`](evidence/isras-v2.0.1-candidate/) — formal acceptance pending
+- [`isras-v2.0.1-candidate/`](evidence/isras-v2.0.1-candidate/) — formally accepted for release finalization
 - [`isras-v2.0.0-candidate/`](evidence/isras-v2.0.0-candidate/)
