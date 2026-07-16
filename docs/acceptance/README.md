@@ -4,7 +4,10 @@ This directory retains sanitized, durable acceptance plans, historical records,
 evidence identities, release-completion records, and correction records.
 
 Large or restricted logs remain in approved evidence storage or CI artifacts.
-Durable records identify those artifacts by SHA-256 and exact source boundary.
+Durable v1 and v2 records identify artifacts by SHA-256 and exact source
+boundary. New v3 candidate evidence uses SHA-512 as its primary artifact-binding
+digest while retaining SHA-256 where accepted history or an external tool
+contract requires it.
 
 For v1.0.1 and later, the verified signed annotated release tag is the
 authoritative acceptance-decision object. In-tree plans and candidate records
@@ -23,6 +26,13 @@ release source.
 - [ISRAS v2.0.1 candidate formal acceptance](isras-v2.0.1-candidate-acceptance.md)
 - [ISRAS v2.0.1 release-source finalization record](isras-v2.0.1-release-finalization.md)
 - [ISRAS v2.0.1 release completion and checkpoint](isras-v2.0.1-release-completion.md)
+
+## Development-only future candidate
+
+- [ISRAS v3.0.0 assurance-hardening plan](isras-v3.0.0-plan.md)
+- [ISRAS v3.0.0 candidate change classification](isras-v3.0.0-change-classification.json)
+
+The v3 plan is not accepted, released, or inherited by adopters.
 
 ## Retained acceptance plans
 

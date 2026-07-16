@@ -2,15 +2,21 @@
 
 ## Unreleased
 
-- Records completion of the SSH-signed ISRAS v2.0.1 release and exact
-  convergence of remote `dev`, remote `main`, and the peeled tag target at
-  `d34fad82781a4e8485f8907fbfd34f236fa79ad2`.
-- Records annotated tag object `f4eacec519c96be225ffd37276cc646d3712ab0f`, source-manifest SHA-256
-  `8f54ed1e9bfee251bf89b4c5f12edf11ac1e25ef0d145ba745301f2d05787ef1`, and signing-key fingerprint `SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE`.
-- Registers `isras-v2.0.1` as an immutable historical checkpoint using the
-  frozen v2.0.1 release-source gate.
-- Synchronizes current release, support, licensing, acceptance, validation, and
-  regression records without modifying the immutable release source.
+- Makes isolated predecessor revalidation execute each accepted tree's own tool bootstrap and bind the resulting interpreter to its frozen historical gate instead of depending on ambient host Python packages.
+- Makes portable diagnostic regressions deterministic across local, Linux, macOS, and Windows execution by isolating GitHub context, comparing native paths structurally, and closing streamed subprocess handles.
+- Makes portable CI acquire and verify accepted checkpoint and change-classification base commits before regression tests, and adds structured stage-level diagnostics so failures identify the exact validator, tested commit, required object, command, observed result, and exit code.
+- Establishes the development-only ISRAS v3 assurance-hardening candidate without modifying accepted ISRAS v1 or v2 normative trees.
+- Requires clean-room release bootstrap from an absent environment, exact Python executable identity, isolated pip operation, retained upstream wheel provenance, exact wheelhouse contents, and exact final installed-distribution accounting.
+- Makes SHA-512 tracked-source accounting operate on the Git index or an exact commit rather than an ambiguous working-tree view.
+- Adds artifact-level evidence validation that independently verifies repository and commit identity, tracked paths, committed validator bytes, environment artifacts, artifact-internal source/campaign/environment markers, declared controls and tests, extracted outcomes, and incompatible reuse.
+- Adds a machine-readable control-level external standards crosswalk, prohibits premature full-coverage claims, and makes unpinned baselines formal phase-entry blockers.
+- Makes this repository's own governing ISRAS v2.0.1 release identity explicit and internally consistent with `RELEASE_ASSURED`.
+- Adds GitHub ruleset evidence collection and offline validation of targets, includes, excludes, exact required checks, tag mutation restrictions, and bypass actors and modes.
+- Adds C0 through C6 change classes with C3 security and C4 schema as parallel impact branches, changed-path escalation, and an actual C5 classification for this candidate.
+- Records completion of the SSH-signed ISRAS v2.0.1 release and exact convergence of remote `dev`, remote `main`, and the peeled tag target at `d34fad82781a4e8485f8907fbfd34f236fa79ad2`.
+- Records annotated tag object `f4eacec519c96be225ffd37276cc646d3712ab0f`, source-manifest SHA-256 `8f54ed1e9bfee251bf89b4c5f12edf11ac1e25ef0d145ba745301f2d05787ef1`, and signing-key fingerprint `SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE`.
+- Registers `isras-v2.0.1` as an immutable historical checkpoint using the frozen v2.0.1 release-source gate and leaves the accepted release source unchanged.
+
 ## 2.0.1 — BSD-licensed patch release — 2026-07-16
 
 - Prepares the formally authorized v2.0.1 release-source boundary with

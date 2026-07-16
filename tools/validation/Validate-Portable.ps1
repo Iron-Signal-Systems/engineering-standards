@@ -2,21 +2,21 @@
 param()
 $ErrorActionPreference = "Stop"
 $repoRoot = (& git rev-parse --show-toplevel 2>$null)
-if (-not $repoRoot) { throw "Not in a Git work tree." }
+if (-not $repoRoot) {
+    Write-Error "FAIL: not in a Git work tree"
+    Write-Error "failure_code=ISRAS-PORTABLE-ENTRYPOINT-001"
+    exit 1
+}
 $pythonPath = $env:ISRAS_PYTHON
 if (-not $pythonPath) {
     $python = Get-Command python3 -ErrorAction SilentlyContinue
     if (-not $python) { $python = Get-Command python -ErrorAction SilentlyContinue }
-    if (-not $python) { throw "Python 3 is required by the baseline portable validator." }
+    if (-not $python) {
+        Write-Error "FAIL: Python 3 is required by the portable validator"
+        Write-Error "failure_code=ISRAS-PORTABLE-ENTRYPOINT-002"
+        exit 1
+    }
     $pythonPath = $python.Source
 }
-& $pythonPath "$repoRoot/tools/isras/doctor.py" --repo-root "$repoRoot" --profile portable
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-& $pythonPath "$repoRoot/tools/isras/validate_policy.py" --repo-root "$repoRoot"
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-& $pythonPath "$repoRoot/tools/isras/validate_release_state.py" --repo-root "$repoRoot"
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-& $pythonPath "$repoRoot/tools/isras/portable_project_checks.py" --repo-root "$repoRoot"
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-Write-Host ""
-Write-Host "Portable validation PASSED."
+& $pythonPath -I "$repoRoot/tools/isras/run_portable_validation.py" --repo-root "$repoRoot"
+exit $LASTEXITCODE

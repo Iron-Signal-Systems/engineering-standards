@@ -1,0 +1,1335 @@
+{
+  "schema_version": "ISRAS-EXTERNAL-CROSSWALK-V1",
+  "status": "DEVELOPMENT_CANDIDATE",
+  "reviewed_on": "2026-07-16",
+  "certification_claim": false,
+  "baselines": [
+    {
+      "baseline_id": "NIST-SSDF-1.1",
+      "name": "NIST Secure Software Development Framework",
+      "version": "1.1 / SP 800-218",
+      "pin_status": "PINNED",
+      "source_identifier": "NIST SP 800-218 final"
+    },
+    {
+      "baseline_id": "NIST-CSF-2.0",
+      "name": "NIST Cybersecurity Framework",
+      "version": "2.0",
+      "pin_status": "PINNED",
+      "source_identifier": "NIST CSF 2.0 final"
+    },
+    {
+      "baseline_id": "NIST-800-53-R5-5.2.0",
+      "name": "NIST SP 800-53 Revision 5",
+      "version": "Release 5.2.0",
+      "pin_status": "PINNED",
+      "source_identifier": "NIST SP 800-53 Rev. 5 Release 5.2.0"
+    },
+    {
+      "baseline_id": "SLSA-1.2",
+      "name": "Supply-chain Levels for Software Artifacts",
+      "version": "1.2",
+      "pin_status": "PINNED",
+      "source_identifier": "SLSA specification v1.2"
+    },
+    {
+      "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+      "name": "OpenSSF Scorecard checks",
+      "version": "UNPINNED-CANDIDATE",
+      "pin_status": "REVIEW_REQUIRED",
+      "source_identifier": "Exact release or source commit required before v3 phase entry"
+    },
+    {
+      "baseline_id": "OWASP-SAMM-2",
+      "name": "OWASP Software Assurance Maturity Model",
+      "version": "2.x candidate baseline",
+      "pin_status": "REVIEW_REQUIRED",
+      "source_identifier": "Exact accepted SAMM revision required before v3 phase entry"
+    },
+    {
+      "baseline_id": "OWASP-ASVS-5.0.0",
+      "name": "OWASP Application Security Verification Standard",
+      "version": "5.0.0",
+      "pin_status": "PINNED",
+      "source_identifier": "OWASP ASVS 5.0.0"
+    },
+    {
+      "baseline_id": "CIS-SSC-GUIDE-1.0",
+      "name": "CIS Software Supply Chain Security Guide",
+      "version": "1.0",
+      "pin_status": "PINNED",
+      "source_identifier": "CIS Software Supply Chain Security Guide v1.0"
+    },
+    {
+      "baseline_id": "FBI-CJIS-6.1",
+      "name": "FBI CJIS Security Policy",
+      "version": "6.1",
+      "pin_status": "PINNED",
+      "source_identifier": "FBI CJIS Security Policy v6.1"
+    }
+  ],
+  "mappings": [
+    {
+      "control_id": "ISRAS-GOV-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PM/PL/SA/SR"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Governance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-GOV-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PM/PL/SA/SR"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Governance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-GOV-003",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PM/PL/SA/SR"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Governance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-REP-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.1"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "source/build integrity"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "Code-Review/CI-Tests"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/CM-3/SA-10"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-REP-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.1"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "source/build integrity"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "Code-Review/CI-Tests"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/CM-3/SA-10"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-REP-003",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.1"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "source/build integrity"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "Code-Review/CI-Tests"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/CM-3/SA-10"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-REP-004",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.1"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "source/build integrity"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "Code-Review/CI-Tests"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/CM-3/SA-10"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-ENV-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.2/PW.6"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "build environment"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/CM-8/SA-15/SR-3"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-ENV-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.2/PW.6"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "build environment"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/CM-8/SA-15/SR-3"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-TST-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PW.7-PW.9"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "SA-11/CA-2/CA-7"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Verification"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "applicable verification requirements"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "CI-Tests/SAST/Fuzzing"
+        }
+      ],
+      "remaining_responsibility": "Project-specific coverage, penetration testing, and domain verification remain required."
+    },
+    {
+      "control_id": "ISRAS-TST-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PW.7-PW.9"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "SA-11/CA-2/CA-7"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Verification"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "applicable verification requirements"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "CI-Tests/SAST/Fuzzing"
+        }
+      ],
+      "remaining_responsibility": "Project-specific coverage, penetration testing, and domain verification remain required."
+    },
+    {
+      "control_id": "ISRAS-DOC-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.1/PO.2/PW.1"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.PO/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PL-2/SA-5/CM-3"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-SUP-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PS.1-PS.3/PW.4/PW.6"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance and dependencies"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "supply-chain checks"
+        },
+        {
+          "baseline_id": "CIS-SSC-GUIDE-1.0",
+          "reference": "supply-chain safeguards"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "SR/SA"
+        }
+      ],
+      "remaining_responsibility": "Supplier due diligence, customer notification, and enterprise build authorization remain separate."
+    },
+    {
+      "control_id": "ISRAS-SUP-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PS.1-PS.3/PW.4/PW.6"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance and dependencies"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "supply-chain checks"
+        },
+        {
+          "baseline_id": "CIS-SSC-GUIDE-1.0",
+          "reference": "supply-chain safeguards"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "SR/SA"
+        }
+      ],
+      "remaining_responsibility": "Supplier due diligence, customer notification, and enterprise build authorization remain separate."
+    },
+    {
+      "control_id": "ISRAS-DAT-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PW.4/PW.7"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-3/SI-10/CP-9/CP-10"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Operations"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-EVD-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.4/PS.3/PW.8"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AU/CA-7/SI-7"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-EVD-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.4/PS.3/PW.8"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AU/CA-7/SI-7"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-OPS-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PS.3/RV.1-RV.3"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "PR.IR/RS/RC"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CP/IR"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Operations"
+        }
+      ],
+      "remaining_responsibility": "Operational service levels, staffing, facilities, and recovery objectives remain project responsibilities."
+    },
+    {
+      "control_id": "ISRAS-PER-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CA-7/SI-4"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Strategy and Metrics"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-ID-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "PR.AA"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AC/IA/AU"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "authentication/access control"
+        },
+        {
+          "baseline_id": "FBI-CJIS-6.1",
+          "reference": "identification and authentication"
+        }
+      ],
+      "remaining_responsibility": "Project deployment must determine authentication, federation, session, and CJIS applicability."
+    },
+    {
+      "control_id": "ISRAS-GOV-004",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PM/PL/SA/SR"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Governance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-GOV-005",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PM/PL/SA/SR"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Governance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-GOV-006",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PM/PL/SA/SR"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Governance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-GOV-007",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PM/PL/SA/SR"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Governance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-PHS-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.2/PO.4"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CA-2/CA-7/CM-3"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Policy and Compliance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-PHS-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.2/PO.4"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CA-2/CA-7/CM-3"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Policy and Compliance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-PHS-003",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.2/PO.4"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CA-2/CA-7/CM-3"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Policy and Compliance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-AUT-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "PR.AA"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AC/IA/AU"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "access control"
+        },
+        {
+          "baseline_id": "FBI-CJIS-6.1",
+          "reference": "access control and accountability"
+        }
+      ],
+      "remaining_responsibility": "Project implementation and deployment must prove concrete authority enforcement."
+    },
+    {
+      "control_id": "ISRAS-AUT-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "PR.AA"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AC/IA/AU"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "access control"
+        },
+        {
+          "baseline_id": "FBI-CJIS-6.1",
+          "reference": "access control and accountability"
+        }
+      ],
+      "remaining_responsibility": "Project implementation and deployment must prove concrete authority enforcement."
+    },
+    {
+      "control_id": "ISRAS-AUT-003",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "PR.AA"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AC/IA/AU"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "access control"
+        },
+        {
+          "baseline_id": "FBI-CJIS-6.1",
+          "reference": "access control and accountability"
+        }
+      ],
+      "remaining_responsibility": "Project implementation and deployment must prove concrete authority enforcement."
+    },
+    {
+      "control_id": "ISRAS-AUT-004",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "PR.AA"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AC/IA/AU"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "access control"
+        },
+        {
+          "baseline_id": "FBI-CJIS-6.1",
+          "reference": "access control and accountability"
+        }
+      ],
+      "remaining_responsibility": "Project implementation and deployment must prove concrete authority enforcement."
+    },
+    {
+      "control_id": "ISRAS-AUT-005",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "PR.AA"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AC/IA/AU"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "access control"
+        },
+        {
+          "baseline_id": "FBI-CJIS-6.1",
+          "reference": "access control and accountability"
+        }
+      ],
+      "remaining_responsibility": "Project implementation and deployment must prove concrete authority enforcement."
+    },
+    {
+      "control_id": "ISRAS-AUT-006",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "PR.AA"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AC/IA/AU"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "access control"
+        },
+        {
+          "baseline_id": "FBI-CJIS-6.1",
+          "reference": "access control and accountability"
+        }
+      ],
+      "remaining_responsibility": "Project implementation and deployment must prove concrete authority enforcement."
+    },
+    {
+      "control_id": "ISRAS-AUT-007",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "PR.AA"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AC/IA/AU"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "access control"
+        },
+        {
+          "baseline_id": "FBI-CJIS-6.1",
+          "reference": "access control and accountability"
+        }
+      ],
+      "remaining_responsibility": "Project implementation and deployment must prove concrete authority enforcement."
+    },
+    {
+      "control_id": "ISRAS-TST-003",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PW.7-PW.9"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "SA-11/CA-2/CA-7"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Verification"
+        },
+        {
+          "baseline_id": "OWASP-ASVS-5.0.0",
+          "reference": "applicable verification requirements"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "CI-Tests/SAST/Fuzzing"
+        }
+      ],
+      "remaining_responsibility": "Project-specific coverage, penetration testing, and domain verification remain required."
+    },
+    {
+      "control_id": "ISRAS-EVD-003",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.4/PS.3/PW.8"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AU/CA-7/SI-7"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-EVD-004",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.4/PS.3/PW.8"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AU/CA-7/SI-7"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-BST-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.2/PW.6"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "build dependencies"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "Pinned-Dependencies"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/SA-15/SR-3"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-BST-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.2/PW.6"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "build dependencies"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "Pinned-Dependencies"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/SA-15/SR-3"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-BST-003",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.2/PW.6"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "build dependencies"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "Pinned-Dependencies"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/SA-15/SR-3"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-BST-004",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.3/PS.2/PW.6"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "build dependencies"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "Pinned-Dependencies"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-2/SA-15/SR-3"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-CHG-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.2/PO.4"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CA-2/CA-7/CM-3"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Policy and Compliance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-CHG-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.2/PO.4"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CA-2/CA-7/CM-3"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Policy and Compliance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-CHG-003",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.2/PO.4"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CA-2/CA-7/CM-3"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Policy and Compliance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-CHG-004",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.2/PO.4"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CA-2/CA-7/CM-3"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Policy and Compliance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-DIG-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PS.2/PS.3"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "artifact integrity"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "SI-7"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-EVD-005",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.4/PS.3/PW.8"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AU/CA-7/SI-7"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-EVD-006",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.4/PS.3/PW.8"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AU/CA-7/SI-7"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-EVD-007",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.4/PS.3/PW.8"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AU/CA-7/SI-7"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-EVD-008",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.4/PS.3/PW.8"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AU/CA-7/SI-7"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-EVD-009",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.4/PS.3/PW.8"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OV/ID.IM"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "AU/CA-7/SI-7"
+        },
+        {
+          "baseline_id": "SLSA-1.2",
+          "reference": "provenance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-GOV-008",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PM/PL/SA/SR"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Governance"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    },
+    {
+      "control_id": "ISRAS-MAP-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.1"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OC/GV.PO"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PL-2/CA-2"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Policy and Compliance"
+        }
+      ],
+      "remaining_responsibility": "Human review against each source baseline remains mandatory."
+    },
+    {
+      "control_id": "ISRAS-MAP-002",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-SSDF-1.1",
+          "reference": "PO.1"
+        },
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.OC/GV.PO"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "PL-2/CA-2"
+        },
+        {
+          "baseline_id": "OWASP-SAMM-2",
+          "reference": "Policy and Compliance"
+        }
+      ],
+      "remaining_responsibility": "Human review against each source baseline remains mandatory."
+    },
+    {
+      "control_id": "ISRAS-SCM-001",
+      "state": "PARTIALLY_COVERED",
+      "external_references": [
+        {
+          "baseline_id": "NIST-CSF-2.0",
+          "reference": "GV.SC"
+        },
+        {
+          "baseline_id": "NIST-800-53-R5-5.2.0",
+          "reference": "CM-5/AC-6/SA-10/SR-3"
+        },
+        {
+          "baseline_id": "OPENSSF-SCORECARD-CANDIDATE",
+          "reference": "Branch-Protection/Code-Review/Token-Permissions/Dangerous-Workflow/Signed-Releases"
+        }
+      ],
+      "remaining_responsibility": "The mapping is relational and does not replace assessment against the external source."
+    }
+  ],
+  "limitations": [
+    "This is a control-level relationship map, not certification, authorization, or equivalence.",
+    "OpenSSF Scorecard and OWASP SAMM require immutable revision pins before formal v3 phase entry.",
+    "Every PARTIALLY_COVERED row requires source-specific human review before acceptance."
+  ]
+}

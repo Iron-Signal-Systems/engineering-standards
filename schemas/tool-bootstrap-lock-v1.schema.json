@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironsignalsystems.com/schemas/isras/tool-bootstrap-lock-v1.schema.json",
+  "title": "ISRAS Tool Bootstrap Lock v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "created_at",
+    "platform",
+    "python",
+    "python_executable_sha512",
+    "requirements_source_sha512",
+    "resolver_pip_version",
+    "pip_wheel",
+    "requirements_lock_sha512",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ISRAS-TOOL-BOOTSTRAP-LOCK-V1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system",
+        "machine",
+        "python_implementation",
+        "python_abi"
+      ],
+      "properties": {
+        "system": {
+          "type": "string",
+          "minLength": 1
+        },
+        "machine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "python_implementation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "python_abi": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "python": {
+      "type": "string",
+      "minLength": 3
+    },
+    "python_executable_sha512": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$"
+    },
+    "requirements_source_sha512": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$"
+    },
+    "resolver_pip_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pip_wheel": {
+      "$ref": "#/$defs/artifact"
+    },
+    "requirements_lock_sha512": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$"
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "filename",
+        "sha512",
+        "source_url",
+        "source_hashes"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "filename": {
+          "type": "string",
+          "pattern": "^[^/\\\\]+\\.whl$"
+        },
+        "sha512": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 8
+        },
+        "source_hashes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z0-9_+-]+$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]+$"
+          }
+        }
+      }
+    }
+  }
+}

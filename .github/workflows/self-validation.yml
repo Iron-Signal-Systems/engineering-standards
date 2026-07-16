@@ -39,12 +39,12 @@ jobs:
           git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
           auth="$(printf 'x-access-token:%s' "$ISRAS_GITHUB_TOKEN" | base64 | tr -d '\n')"
           git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
-            fetch --no-tags --depth=1 origin "${GITHUB_SHA}"
+            fetch --no-tags --depth=100 origin "${GITHUB_SHA}"
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           unset auth ISRAS_GITHUB_TOKEN
 
-      - name: Create pinned ISRAS tool environment
+      - name: Create pinned ISRAS developer tool environment
         shell: bash
         run: |
           chmod +x tools/environment/bootstrap_tools.sh
@@ -56,3 +56,41 @@ jobs:
         run: |
           chmod +x tools/validation/validate_integration.sh
           ./tools/validation/validate_integration.sh
+
+  v3-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out exact event and v3 base commits
+        shell: bash
+        env:
+          ISRAS_GITHUB_TOKEN: ${{ github.token }}
+          ISRAS_V3_BASE: 08a0a514ec308f76dbf80ffdcb8caa70ce6e345f
+        run: |
+          set -Eeuo pipefail
+          git init .
+          git config core.autocrlf false
+          git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          auth="$(printf 'x-access-token:%s' "$ISRAS_GITHUB_TOKEN" | base64 | tr -d '\n')"
+          git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
+            fetch --no-tags --depth=100 origin "${GITHUB_SHA}"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git -c "http.extraheader=AUTHORIZATION: basic ${auth}" \
+            fetch --no-tags --depth=100 origin "${ISRAS_V3_BASE}"
+          git cat-file -e "${ISRAS_V3_BASE}^{commit}"
+          unset auth ISRAS_GITHUB_TOKEN
+
+      - name: Create pinned ISRAS developer tool environment
+        shell: bash
+        run: |
+          chmod +x tools/environment/bootstrap_tools.sh
+          ./tools/environment/bootstrap_tools.sh
+          echo "ISRAS_PYTHON=$PWD/.isras-tools-venv/bin/python" >> "$GITHUB_ENV"
+
+      - name: Run v3 development-candidate gate
+        shell: bash
+        run: |
+          chmod +x tools/validation/phase-gates/validate_isras_v3_candidate.sh
+          ./tools/validation/phase-gates/validate_isras_v3_candidate.sh

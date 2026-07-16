@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironsignalsystems.com/schemas/isras/github-control-evidence-v1.schema.json",
+  "title": "ISRAS GitHub Control Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "repository",
+    "source_commit",
+    "commit_tree_sha",
+    "default_branch",
+    "collected_at",
+    "collector",
+    "raw_configuration_sha512",
+    "rulesets",
+    "branch_protection"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ISRAS-GITHUB-CONTROL-EVIDENCE-V1"
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$"
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "commit_tree_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "default_branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "version",
+        "actor"
+      ],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "raw_configuration_sha512": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$"
+    },
+    "rulesets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "target",
+          "enforcement",
+          "conditions",
+          "rules"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "target": {
+            "enum": [
+              "branch",
+              "tag",
+              "push"
+            ]
+          },
+          "enforcement": {
+            "type": "string"
+          },
+          "conditions": {
+            "type": "object"
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "bypass_actors": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "branch_protection": {
+      "type": "object",
+      "required": [
+        "dev",
+        "main"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "dev": {
+          "type": "object"
+        },
+        "main": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}
