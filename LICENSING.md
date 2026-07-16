@@ -15,15 +15,13 @@ The complete controlling license text is retained in [`LICENSE`](LICENSE).
 
 ## Effective source boundary
 
-This decision becomes effective at the first exact repository commit containing:
+The BSD-3-Clause licensing decision first became effective at exact commit
+`5c07b428b206e4f4e5d7e33d6f5811d7d4e6e739`.
 
-- the root `LICENSE` file;
-- this revised `LICENSING.md`;
-- synchronized validation and source-manifest updates.
-
-The exact commit containing those files is the auditable licensing boundary.
-This wording avoids attempting to place a commit's own future object identifier
-inside itself.
+That commit introduced the root `LICENSE` file, the revised licensing decision,
+synchronized validation, contribution terms, and source-manifest coverage. This
+later candidate record preserves the exact boundary without rewriting the
+original commit or the immutable v2.0.0 release.
 
 ## Covered materials
 

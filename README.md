@@ -45,6 +45,13 @@ exact source commit.
 The signed annotated tag is the authoritative acceptance-decision object. No
 post-acceptance source commit is required merely to record the decision.
 
+## Development candidate
+
+The `dev` branch is preparing an **ISRAS v2.0.1** patch candidate to carry the
+BSD 3-Clause licensing decision into the signed release line. This candidate is
+not yet accepted or released. The latest accepted release remains
+`isras-v2.0.0` at its immutable exact commit.
+
 ## Validation tool bootstrap
 
 The policy validators use exactly pinned Python tools declared in

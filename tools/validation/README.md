@@ -6,6 +6,17 @@
 - `validate_checkpoint.sh` — isolated historical checkpoint
 - `validate_canonical.sh` — project-specific canonical environment
 
+## Current candidate validation
+
+The ISRAS v2.0.1 patch candidate uses:
+
+`tools/validation/phase-gates/validate_isras_v2_0_1_candidate.sh`
+
+Run this gate only after the exact candidate commit is pushed to remote `dev`.
+It verifies the local and remote commit identity, source manifest, BSD licensing
+boundary, current release state, portable and fresh-clone validation, complete
+regression tests, and accepted historical checkpoints.
+
 ## Accepted historical checkpoints
 
 The checkpoint registry binds accepted releases to immutable source commits and

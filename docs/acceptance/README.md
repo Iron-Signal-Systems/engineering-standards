@@ -21,6 +21,10 @@ release source.
 - [ISRAS v2.0.0 release-source finalization record](isras-v2.0.0-release-finalization.md)
 - [ISRAS v2.0.0 release completion and checkpoint](isras-v2.0.0-release-completion.md)
 
+## Current candidate plans
+
+- [ISRAS v2.0.1 candidate and acceptance plan](isras-v2.0.1-plan.md)
+
 ## Retained acceptance plans
 
 - [ISRAS v1.0.1 acceptance plan](isras-v1.0.1-plan.md)

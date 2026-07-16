@@ -157,6 +157,22 @@ class EngineeringStandardsComplianceTests(unittest.TestCase):
             licensing,
         )
 
+    def test_v2_0_1_candidate_validator_passes(self):
+        result = subprocess.run(
+            [
+                PYTHON,
+                ROOT / "tools/isras/validate_isras_v2_0_1_candidate.py",
+                "--repo-root",
+                ROOT,
+                "--skip-git-diff",
+            ],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_candidate_validator_passes(self):
         result = subprocess.run(
             [

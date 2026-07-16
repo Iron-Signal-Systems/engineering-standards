@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Prepares an ISRAS v2.0.1 patch candidate to carry BSD-3-Clause into the
+  signed release line without changing normative ISRAS controls.
+- Records `5c07b428b206e4f4e5d7e33d6f5811d7d4e6e739` as the first exact
+  BSD-licensed source boundary.
+- Adds the v2.0.1 candidate plan, validator, exact-pushed-source gate, and
+  regression coverage while retaining `VERSION` `2.0.0` until formal candidate
+  acceptance and a separate release-source change.
 - Adopts the BSD 3-Clause License (`BSD-3-Clause`) for repository-authored
   materials in source revisions containing the root `LICENSE` file.
 - Records the prospective licensing boundary without modifying the immutable

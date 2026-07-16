@@ -26,6 +26,7 @@ REQUIRED_FILES = (
     "docs/acceptance/isras-v2.0.0-candidate-acceptance.md",
     "docs/acceptance/isras-v2.0.0-release-finalization.md",
     "docs/acceptance/isras-v2.0.0-release-completion.md",
+    "docs/acceptance/isras-v2.0.1-plan.md",
     "docs/engineering/adopter-quick-start.md",
     "docs/engineering/github-release-rulesets.md",
     "standards/repository-assurance/v2/RELEASE-VERSIONING-SUPPORT-AND-DEPRECATION.md",
@@ -223,6 +224,26 @@ def main() -> int:
         fail("isras-v2.0.0 checkpoint registration is not exact")
     print("PASS: isras-v2.0.0 checkpoint registration is exact")
 
+    patch_candidate = read(
+        repo_root,
+        "docs/acceptance/isras-v2.0.1-plan.md",
+    )
+    for marker in (
+        "CANDIDATE PREPARATION — NOT FORMALLY ACCEPTED",
+        "2.0.1",
+        "isras-v2.0.1",
+        RELEASE_COMMIT,
+        "a1861291110efccaad9c587a99aaaf2de6f21812",
+        "5c07b428b206e4f4e5d7e33d6f5811d7d4e6e739",
+        "Current repository `VERSION` during candidate preparation: `2.0.0`",
+    ):
+        require_marker(
+            patch_candidate,
+            marker,
+            "v2.0.1 candidate and acceptance plan",
+        )
+    print("PASS: v2.0.1 candidate preparation is synchronized")
+
     rulesets = read(repo_root, "docs/engineering/github-release-rulesets.md")
     require_marker(rulesets, "isras-*", "GitHub release-ruleset requirements")
     print("PASS: isras-* tag namespace protection is documented")
@@ -249,7 +270,7 @@ def main() -> int:
     for marker in (
         "BSD 3-Clause",
         "BSD-3-Clause",
-        "first exact repository commit",
+        "5c07b428b206e4f4e5d7e33d6f5811d7d4e6e739",
         "781246e69f8a9a382c25040f94b62dfe3b25ba89",
         "does not modify, replace, retag, or rewrite",
     ):
