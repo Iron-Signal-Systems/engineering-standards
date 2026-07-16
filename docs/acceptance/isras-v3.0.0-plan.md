@@ -29,7 +29,7 @@ Formal phase entry shall not occur until:
   environment, validator, control, test, and outcome relationships;
 - current GitHub rulesets and branch protections have been exported and their
   exact required check names and bypass authority reviewed;
-- predecessor checkpoints have been revalidated from isolated exact trees; and
+- predecessor checkpoints have been revalidated from isolated exact trees using each accepted tree's own declared tool bootstrap and interpreter; and
 - approval independence and reviewer authority are recorded.
 
 ## Candidate validation
@@ -48,7 +48,8 @@ The development candidate gate shall verify:
 - release bootstrap is clean-room, isolated, hash-locked, and exact-set checked;
 - portable CI acquires and verifies every accepted checkpoint and active classification-base commit before regression execution;
 - portable failures identify the exact stage, validator, tested commit, expected or required object, observed result, command, and exit code;
-- portable diagnostic regressions isolate ambient GitHub context, use platform-native path semantics, and prove streamed subprocess handles close; and
+- portable diagnostic regressions isolate ambient GitHub context, use platform-native path semantics, and prove streamed subprocess handles close;
+- historical checkpoint validation provisions the accepted tree's own tool environment before invoking its frozen gate and binds that interpreter through `ISRAS_PYTHON`; and
 - unit, portable, fresh-clone, and applicable specialized campaigns pass.
 
 ## Formal acceptance sequence

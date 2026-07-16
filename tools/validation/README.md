@@ -43,8 +43,12 @@ The v2.0.0 predecessor remains available through:
 
 Historical validation checks out the accepted source on a branch named `dev`
 inside an isolated clone so frozen gates retain their original branch
-assumptions. Checkpoint registration does not move `main` or an accepted release
-tag.
+assumptions. Before the frozen gate runs, the validator executes that accepted
+tree's own `tools/environment/bootstrap_tools.sh` or `Bootstrap-Tools.ps1`,
+creates an isolated `.isras-tools-venv`, and supplies its exact interpreter as
+`ISRAS_PYTHON`. This compatibility bootstrap is predecessor-revalidation
+evidence; it is not ISRAS v3 deterministic release-bootstrap evidence.
+Checkpoint registration does not move `main` or an accepted release tag.
 
 The bootstrap portable validator detects common project types. Replace or
 extend it with explicit project checks before formal repository-assurance
