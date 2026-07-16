@@ -56,6 +56,11 @@ A generalized nonzero result is not sufficient. A failing stage shall print:
 - the validator's detailed assertion output, including expected and observed
   values when the validator has them.
 
+Regression tests for this contract shall set an explicit synthetic GitHub runner
+context instead of inheriting ambient workflow variables, compare filesystem
+paths with platform-native path objects rather than hard-coded separators, and
+prove that streamed subprocess handles are closed before the stage returns.
+
 History failures additionally identify the required commit, its purpose, the
 fetch ref, whether acquisition was attempted, and sanitized fetch stdout and
 stderr. Authentication material must never be printed.

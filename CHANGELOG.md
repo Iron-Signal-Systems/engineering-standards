@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Makes portable diagnostic regressions deterministic across local, Linux, macOS, and Windows execution by isolating GitHub context, comparing native paths structurally, and closing streamed subprocess handles.
 - Makes portable CI acquire and verify accepted checkpoint and change-classification base commits before regression tests, and adds structured stage-level diagnostics so failures identify the exact validator, tested commit, required object, command, observed result, and exit code.
 - Establishes the development-only ISRAS v3 assurance-hardening candidate without modifying accepted ISRAS v1 or v2 normative trees.
 - Requires clean-room release bootstrap from an absent environment, exact Python executable identity, isolated pip operation, retained upstream wheel provenance, exact wheelhouse contents, and exact final installed-distribution accounting.

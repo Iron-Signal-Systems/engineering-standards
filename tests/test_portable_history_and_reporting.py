@@ -3,12 +3,14 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import io
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
+from unittest import mock
 
 sys.dont_write_bytecode = True
 
@@ -90,10 +92,22 @@ class PortableHistoryAndReportingTests(unittest.TestCase):
 
     def test_runner_uses_isolated_repository_tool_bootstrap(self) -> None:
         command = self.runner.build_command(self.runner.STAGES[1], ROOT)
-        joined = " ".join(command)
-        self.assertIn("-I", command)
-        self.assertIn("tools/isras/invoke_repo_tool.py", joined)
-        self.assertIn("tools/isras/doctor.py", joined)
+        self.assertEqual(command[1], "-I")
+        self.assertEqual(
+            Path(command[2]).resolve(),
+            (ROOT / "tools/isras/invoke_repo_tool.py").resolve(),
+        )
+        self.assertEqual(command[5:7], ["--tool", "tools/isras/doctor.py"])
+
+    def test_runner_build_command_uses_windows_native_paths(self) -> None:
+        root = PureWindowsPath("D:/a/engineering-standards/engineering-standards")
+        command = self.runner.build_command(self.runner.STAGES[1], root)
+        self.assertEqual(
+            PureWindowsPath(command[2]),
+            root / "tools/isras/invoke_repo_tool.py",
+        )
+        self.assertEqual(PureWindowsPath(command[4]), root)
+        self.assertEqual(command[5:7], ["--tool", "tools/isras/doctor.py"])
 
     def test_isolated_bootstrap_resolves_sibling_common_module(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -150,6 +164,49 @@ class PortableHistoryAndReportingTests(unittest.TestCase):
             self.assertIn("ISRAS_GIT_HTTP_EXTRAHEADER", source)
             self.assertIn("required historical", source.lower())
 
+    def test_runner_closes_streamed_subprocess_output(self) -> None:
+        class FakeProcess:
+            def __init__(self) -> None:
+                self.stdout = io.StringIO("synthetic output\n")
+                self.exited = False
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, traceback):
+                self.exited = True
+                self.stdout.close()
+                return False
+
+            def wait(self) -> int:
+                return 0
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            isras = root / "tools/isras"
+            isras.mkdir(parents=True)
+            (isras / "invoke_repo_tool.py").write_text("# bootstrap\n", encoding="utf-8")
+            (isras / "synthetic-validator.py").write_text("# validator\n", encoding="utf-8")
+            stage = self.runner.Stage(
+                "synthetic-stage",
+                "ISRAS-PORTABLE-SYNTHETIC-001",
+                "tools/isras/synthetic-validator.py",
+            )
+            process = FakeProcess()
+            stdout = io.StringIO()
+            with mock.patch.dict(os.environ, {"GITHUB_ACTIONS": "false"}, clear=False):
+                with mock.patch.object(
+                    self.runner, "git_head", return_value="UNRESOLVED"
+                ):
+                    with mock.patch.object(
+                        self.runner.subprocess, "Popen", return_value=process
+                    ):
+                        with contextlib.redirect_stdout(stdout):
+                            result = self.runner.run_stage(stage, root)
+            self.assertEqual(result, 0)
+            self.assertTrue(process.exited)
+            self.assertTrue(process.stdout.closed)
+
     def test_runner_emits_exact_failure_context(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -168,8 +225,15 @@ class PortableHistoryAndReportingTests(unittest.TestCase):
             )
             stdout = io.StringIO()
             stderr = io.StringIO()
-            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-                result = self.runner.run_stage(stage, root)
+            synthetic_context = {
+                "GITHUB_ACTIONS": "true",
+                "GITHUB_WORKFLOW": "Synthetic portable workflow",
+                "GITHUB_JOB": "synthetic-portable",
+                "RUNNER_OS": "SyntheticOS",
+            }
+            with mock.patch.dict(os.environ, synthetic_context, clear=False):
+                with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                    result = self.runner.run_stage(stage, root)
             self.assertEqual(result, 7)
             failure = stderr.getvalue()
             for marker in (
@@ -179,10 +243,12 @@ class PortableHistoryAndReportingTests(unittest.TestCase):
                 "validator=tools/isras/synthetic-validator.py",
                 "bootstrap=tools/isras/invoke_repo_tool.py",
                 "tested_commit=UNRESOLVED",
-                "workflow=LOCAL",
-                "job=LOCAL",
+                "workflow=Synthetic portable workflow",
+                "job=synthetic-portable",
+                "runner_os=SyntheticOS",
                 "command=",
                 "exit_code=7",
+                "::error title=ISRAS portable validation failed::",
             ):
                 self.assertIn(marker, failure)
 

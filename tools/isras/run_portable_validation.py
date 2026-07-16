@@ -93,18 +93,18 @@ def run_stage(stage: Stage, root: Path) -> int:
         print(f"stage={stage.name}", file=sys.stderr)
         print(f"missing_path={missing}", file=sys.stderr)
     else:
-        process = subprocess.Popen(
+        with subprocess.Popen(
             command,
             cwd=root,
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             bufsize=1,
-        )
-        assert process.stdout is not None
-        for line in process.stdout:
-            print(line, end="")
-        return_code = process.wait()
+        ) as process:
+            assert process.stdout is not None
+            for line in process.stdout:
+                print(line, end="")
+            return_code = process.wait()
 
     if return_code == 0:
         print("PASS: portable validation stage")
