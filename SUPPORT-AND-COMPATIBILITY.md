@@ -5,17 +5,21 @@ Standard (ISRAS).
 
 ## Supported standard versions
 
-ISRAS v2.0.x is the current major release line. ISRAS v1.0.x remains a supported
-historical line for repositories that are deliberately pinned to an exact
-accepted v1 release and have not completed an ISRAS v2 Engineering Standards
-Impact Assessment and migration.
+ISRAS v2.0.x is the current major release line. `isras-v2.0.1` at exact commit
+`d34fad82781a4e8485f8907fbfd34f236fa79ad2` is the latest accepted ISRAS release and the first signed
+release in the BSD-3-Clause-licensed source line.
+
+ISRAS v1.0.x remains a supported historical line for repositories deliberately
+pinned to an exact accepted v1 release that have not completed an ISRAS v2
+Engineering Standards Impact Assessment and migration.
 
 A release is accepted only when its exact source commit is jointly identified
 by a verified signed annotated `isras-v*` tag and the remote `main` branch.
 
-- ISRAS v2.0.0 is the first release requiring mandatory standards inheritance,
-  phase-entry and phase-exit reviews, maturity-accurate evidence, hostile
-  authority validation, and the bounded-authority invariant.
+- ISRAS v2.0.1 carries the BSD-3-Clause licensing decision into the signed
+  release line without changing normative ISRAS v2 controls.
+- ISRAS v2.0.0 remains an immutable accepted historical predecessor that
+  predates the BSD-3-Clause release line.
 - ISRAS v1.0.1 remains the latest accepted v1 release.
 - `main` represents the latest accepted standard source boundary.
 - `dev` contains current development and may advance after a release.
@@ -32,10 +36,16 @@ Adopting repositories pin an exact ISRAS commit. An ISRAS update requires a
 separately reviewed repository-assurance change and applicable validation in the
 adopting repository.
 
-Moving from ISRAS v1 to ISRAS v2 is a major-version migration. It requires review
-of the v2 migration guide, an Engineering Standards Impact Assessment when
-applicable, exact release pinning, and completion of required phase-compliance
-records. Publication of v2 does not silently alter an existing v1 pin.
+Moving from ISRAS v1 to ISRAS v2 is a major-version migration. It requires
+review of the v2 migration guide, an Engineering Standards Impact Assessment
+when applicable, exact release pinning, and completion of required
+phase-compliance records. Publication of v2 does not silently alter an existing
+v1 pin.
+
+Moving from v2.0.0 to v2.0.1 is a patch adoption. It does not intentionally
+change schemas, reusable workflows, evidence contracts, or required entrypoints,
+but each adopter still performs a reviewed exact-pin update and applicable
+validation.
 
 Patch releases must not intentionally introduce incompatible schema, workflow,
 evidence, or required-entrypoint changes. Minor or major releases must document

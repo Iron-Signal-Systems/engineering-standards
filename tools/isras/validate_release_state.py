@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Validate central ISRAS v2.0.0 release-state and documentation consistency.
+# Validate central ISRAS release-state and documentation consistency.
 from __future__ import annotations
 
 import argparse
@@ -21,6 +21,10 @@ V2_0_1_CANDIDATE_COMMIT = "6543a5a93f078f47d87aa3b8ed8ebd2024cec373"
 V2_0_1_EVIDENCE_COMMIT = "9dbe4d9696ff4a9838fd83cb0f6f652087710f98"
 V2_0_1_EVIDENCE_SHA = "42d7dce7500929647af001f47bbbdf30ae7bef88c598d0aba8edd2424564d2b9"
 V2_0_1_ACCEPTANCE_COMMIT = "57d23742e60d29bf6f46d15b8f64f0497bb260cd"
+V2_0_1_RELEASE_COMMIT = "d34fad82781a4e8485f8907fbfd34f236fa79ad2"
+V2_0_1_RELEASE_TAG = "isras-v2.0.1"
+V2_0_1_TAG_OBJECT = "f4eacec519c96be225ffd37276cc646d3712ab0f"
+V2_0_1_MANIFEST_SHA = "8f54ed1e9bfee251bf89b4c5f12edf11ac1e25ef0d145ba745301f2d05787ef1"
 
 REQUIRED_FILES = (
     "LICENSE",
@@ -33,6 +37,7 @@ REQUIRED_FILES = (
     "docs/acceptance/isras-v2.0.1-plan.md",
     "docs/acceptance/isras-v2.0.1-candidate-acceptance.md",
     "docs/acceptance/isras-v2.0.1-release-finalization.md",
+    "docs/acceptance/isras-v2.0.1-release-completion.md",
     "tools/isras/validate_isras_v2_0_1_release.py",
     "tools/validation/phase-gates/"
     "validate_isras_v2_0_1_release.sh",
@@ -239,7 +244,7 @@ def main() -> int:
         "docs/acceptance/isras-v2.0.1-plan.md",
     )
     for marker in (
-        "RELEASE SOURCE PREPARED — SIGNED TAG AND BRANCH CONVERGENCE PENDING",
+        "RELEASE COMPLETE — IMMUTABLE CHECKPOINT REGISTERED",
         "2.0.1",
         "isras-v2.0.1",
         RELEASE_COMMIT,
@@ -252,7 +257,7 @@ def main() -> int:
             marker,
             "v2.0.1 candidate and acceptance plan",
         )
-    print("PASS: v2.0.1 release-source plan is synchronized")
+    print("PASS: v2.0.1 completed release plan is synchronized")
 
     patch_acceptance = read(
         repo_root,
@@ -295,6 +300,49 @@ def main() -> int:
             "v2.0.1 release-finalization record",
         )
     print("PASS: v2.0.1 release-finalization boundary is predeclared")
+
+    patch_completion = read(
+        repo_root,
+        "docs/acceptance/isras-v2.0.1-release-completion.md",
+    )
+    for marker in (
+        "**Status: COMPLETE**",
+        V2_0_1_RELEASE_TAG,
+        V2_0_1_RELEASE_COMMIT,
+        V2_0_1_TAG_OBJECT,
+        V2_0_1_MANIFEST_SHA,
+        V2_0_1_EVIDENCE_SHA,
+        SIGNING_FINGERPRINT,
+        "35 tests",
+        "remote `dev`",
+        "remote `main`",
+    ):
+        require_marker(
+            patch_completion,
+            marker,
+            "v2.0.1 release-completion record",
+        )
+    print("PASS: v2.0.1 signed release completion is recorded exactly")
+
+    patch_checkpoint = checkpoint_registry.get("checkpoints", {}).get(
+        V2_0_1_RELEASE_TAG,
+        {},
+    )
+    expected_patch_checkpoint = {
+        "commit": V2_0_1_RELEASE_COMMIT,
+        "environment_profile": "portable",
+        "expected_result": {"fail": 0},
+        "gate": (
+            "tools/validation/phase-gates/"
+            "validate_isras_v2_0_1_release.sh"
+        ),
+        "required_branch_name": "dev",
+        "status": "accepted",
+        "tag": V2_0_1_RELEASE_TAG,
+    }
+    if patch_checkpoint != expected_patch_checkpoint:
+        fail("isras-v2.0.1 checkpoint registration is not exact")
+    print("PASS: isras-v2.0.1 checkpoint registration is exact")
 
     candidate_evidence = json.loads(
         read(

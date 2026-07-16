@@ -18,25 +18,19 @@ release source.
 - [ISRAS v1.0.0 tag correction](isras-v1.0.0-tag-correction.md)
 - [ISRAS v1.0.0 release finalization](isras-v1.0.0-release-finalization.md)
 - [ISRAS v2.0.0 candidate formal acceptance](isras-v2.0.0-candidate-acceptance.md)
-- [ISRAS v2.0.1 candidate formal acceptance](isras-v2.0.1-candidate-acceptance.md)
 - [ISRAS v2.0.0 release-source finalization record](isras-v2.0.0-release-finalization.md)
 - [ISRAS v2.0.0 release completion and checkpoint](isras-v2.0.0-release-completion.md)
-
-## Current release finalization
-
-- [ISRAS v2.0.1 release-source finalization]
-  (isras-v2.0.1-release-finalization.md)
-
-## Current candidate plans
-
-- [ISRAS v2.0.1 candidate and acceptance plan](isras-v2.0.1-plan.md)
+- [ISRAS v2.0.1 candidate formal acceptance](isras-v2.0.1-candidate-acceptance.md)
+- [ISRAS v2.0.1 release-source finalization record](isras-v2.0.1-release-finalization.md)
+- [ISRAS v2.0.1 release completion and checkpoint](isras-v2.0.1-release-completion.md)
 
 ## Retained acceptance plans
 
 - [ISRAS v1.0.1 acceptance plan](isras-v1.0.1-plan.md)
 - [ISRAS v2.0.0 candidate and acceptance plan](isras-v2.0.0-plan.md)
+- [ISRAS v2.0.1 candidate and acceptance plan](isras-v2.0.1-plan.md)
 
 ## Retained candidate evidence
 
-- [`isras-v2.0.1-candidate/`](evidence/isras-v2.0.1-candidate/) — formally accepted for release finalization
+- [`isras-v2.0.1-candidate/`](evidence/isras-v2.0.1-candidate/) — accepted and released as `isras-v2.0.1`
 - [`isras-v2.0.0-candidate/`](evidence/isras-v2.0.0-candidate/)

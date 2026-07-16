@@ -20,8 +20,23 @@ The BSD-3-Clause licensing decision first became effective at exact commit
 
 That commit introduced the root `LICENSE` file, the revised licensing decision,
 synchronized validation, contribution terms, and source-manifest coverage. This
-later candidate record preserves the exact boundary without rewriting the
-original commit or the immutable v2.0.0 release.
+release record preserves the exact boundary without rewriting the original
+commit or the immutable v2.0.0 release.
+
+
+## First signed BSD-licensed release
+
+`isras-v2.0.1` is the first signed ISRAS release whose source contains the
+root BSD 3-Clause `LICENSE`.
+
+- Accepted release commit: `d34fad82781a4e8485f8907fbfd34f236fa79ad2`
+- Annotated tag object: `f4eacec519c96be225ffd37276cc646d3712ab0f`
+- Source-manifest SHA-256: `8f54ed1e9bfee251bf89b4c5f12edf11ac1e25ef0d145ba745301f2d05787ef1`
+- Signing-key fingerprint: `SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE`
+
+Remote `main` and the peeled signed tag target converge on the exact release
+commit. This publication does not rewrite the earlier effective-source boundary
+at `5c07b428b206e4f4e5d7e33d6f5811d7d4e6e739`.
 
 ## Covered materials
 

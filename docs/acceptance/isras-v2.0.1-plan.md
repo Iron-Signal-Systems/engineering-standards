@@ -2,19 +2,22 @@
 
 ## Status
 
-`RELEASE SOURCE PREPARED — SIGNED TAG AND BRANCH CONVERGENCE PENDING`
+`RELEASE COMPLETE — IMMUTABLE CHECKPOINT REGISTERED`
 
 ## Target release
 
 - Target version: `2.0.1`
-- Proposed signed tag: `isras-v2.0.1`
+- Signed annotated tag: `isras-v2.0.1`
+- Accepted release commit: `d34fad82781a4e8485f8907fbfd34f236fa79ad2`
+- Annotated tag object: `f4eacec519c96be225ffd37276cc646d3712ab0f`
+- Source-manifest SHA-256: `8f54ed1e9bfee251bf89b4c5f12edf11ac1e25ef0d145ba745301f2d05787ef1`
 - Release-source `VERSION`: `2.0.1`
 - Release type: patch release
+- Completion date: `2026-07-16`
 
-The formally accepted candidate lineage now authorizes this separate
-release-source change to declare `VERSION` `2.0.1`. The source is not an
-accepted release until the exact pushed release campaign, signed-tag
-verification, non-force `main` promotion, and branch/tag convergence all pass.
+The exact pushed release-source campaign passed, the SSH-signed annotated tag
+verified, remote `main` was fast-forwarded without force, and remote `dev`,
+remote `main`, and the peeled tag target converged on `d34fad82781a4e8485f8907fbfd34f236fa79ad2`.
 
 ## Patch-release rationale
 
@@ -117,11 +120,11 @@ This source tree:
 - requires a later exact pushed-source campaign before any tag or `main`
   movement.
 
-The exact release commit is established only after this change is committed,
-pushed, validated, signed, and converged. No self-referential release-commit
-placeholder is retained in this source.
+The exact immutable release commit is `d34fad82781a4e8485f8907fbfd34f236fa79ad2`. The signed tag object
+is `f4eacec519c96be225ffd37276cc646d3712ab0f`, and its peeled target, remote `main`, and the release-time
+remote `dev` boundary all converged on that commit.
 
-## Release-finalization sequence
+## Release-finalization sequence — complete
 
 After formal candidate acceptance:
 
@@ -135,11 +138,11 @@ After formal candidate acceptance:
 
 ## Non-claims
 
-This candidate does not claim:
+Release completion does not claim:
 
-- that ISRAS v2.0.1 is accepted or released;
-- that `main` or any release tag has moved;
-- that adopters automatically receive the BSD-licensed release;
+- that adopting repositories automatically receive ISRAS v2.0.1;
 - independent third-party review;
-- runtime performance, security, or operational-readiness assurance beyond the
-  repository-governance validation actually executed.
+- product-runtime performance, security, or operational readiness beyond the
+  repository-governance validation actually executed;
+- that the later checkpoint-registration commit replaces or redefines the
+  immutable release source.

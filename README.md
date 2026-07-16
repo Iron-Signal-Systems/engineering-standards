@@ -45,16 +45,19 @@ exact source commit.
 The signed annotated tag is the authoritative acceptance-decision object. No
 post-acceptance source commit is required merely to record the decision.
 
-## Release-source finalization
+## Current accepted release
 
-The `dev` branch now contains the formally authorized **ISRAS v2.0.1** release
-source carrying BSD-3-Clause into the signed release line. It is not an accepted
-release until the exact pushed source passes the frozen release gate, the
-SSH-signed annotated `isras-v2.0.1` tag verifies, and remote `dev`, remote
-`main`, and the peeled tag target converge on the same exact commit.
+The latest accepted release is **ISRAS v2.0.1**, jointly identified by:
 
-Until those completion checks pass, the latest accepted release remains
-`isras-v2.0.0` at its immutable exact commit.
+- signed annotated tag `isras-v2.0.1`;
+- exact release commit `d34fad82781a4e8485f8907fbfd34f236fa79ad2`;
+- remote `main`;
+- source-manifest SHA-256 `8f54ed1e9bfee251bf89b4c5f12edf11ac1e25ef0d145ba745301f2d05787ef1`.
+
+ISRAS v2.0.1 carries the BSD 3-Clause licensing decision into the signed release
+line without changing normative ISRAS v2 controls. `dev` may advance with later
+governance or development work while `main` and `isras-v2.0.1` remain fixed at
+the immutable release source.
 
 ## Validation tool bootstrap
 
@@ -120,7 +123,7 @@ product's accepted deployment model is itself container-native.
 2. Confirm the target repository's currently pinned ISRAS release.
 3. Complete an Engineering Standards Impact Assessment when required.
 4. Create a reviewed work branch in the target repository.
-5. Pin the exact verified `isras-v2.0.0` release commit and source-manifest
+5. Pin the exact verified `isras-v2.0.1` release commit and source-manifest
    digest.
 6. Apply and customize the governed baseline without weakening inherited
    controls.
@@ -130,8 +133,8 @@ product's accepted deployment model is itself container-native.
 9. Complete the phase-exit review with exact pushed-source evidence.
 10. Record adoption only after the applicable acceptance boundary passes.
 
-Publication of ISRAS v2.0.0 does not silently change a repository pinned to
-ISRAS v1.0.1.
+Publication of ISRAS v2.0.1 does not silently change a repository pinned to
+ISRAS v2.0.0 or ISRAS v1.0.1.
 
 ## License
 
