@@ -45,11 +45,15 @@ exact source commit.
 The signed annotated tag is the authoritative acceptance-decision object. No
 post-acceptance source commit is required merely to record the decision.
 
-## Development candidate
+## Release-source finalization
 
-The `dev` branch is preparing an **ISRAS v2.0.1** patch candidate to carry the
-BSD 3-Clause licensing decision into the signed release line. This candidate is
-not yet accepted or released. The latest accepted release remains
+The `dev` branch now contains the formally authorized **ISRAS v2.0.1** release
+source carrying BSD-3-Clause into the signed release line. It is not an accepted
+release until the exact pushed source passes the frozen release gate, the
+SSH-signed annotated `isras-v2.0.1` tag verifies, and remote `dev`, remote
+`main`, and the peeled tag target converge on the same exact commit.
+
+Until those completion checks pass, the latest accepted release remains
 `isras-v2.0.0` at its immutable exact commit.
 
 ## Validation tool bootstrap

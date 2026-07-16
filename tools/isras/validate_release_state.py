@@ -7,7 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-EXPECTED_VERSION = "2.0.0"
+EXPECTED_VERSION = "2.0.1"
 CANDIDATE_COMMIT = "4aff00dfdc88154390252898210abc336fa8b2fc"
 EVIDENCE_COMMIT = "b0c982221acde7873307d010aca73ed2e386eb99"
 ACCEPTANCE_COMMIT = "24e911b7c4a63735bcef9b4b84ab9b62ace10298"
@@ -20,6 +20,7 @@ SIGNING_FINGERPRINT = "SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE"
 V2_0_1_CANDIDATE_COMMIT = "6543a5a93f078f47d87aa3b8ed8ebd2024cec373"
 V2_0_1_EVIDENCE_COMMIT = "9dbe4d9696ff4a9838fd83cb0f6f652087710f98"
 V2_0_1_EVIDENCE_SHA = "42d7dce7500929647af001f47bbbdf30ae7bef88c598d0aba8edd2424564d2b9"
+V2_0_1_ACCEPTANCE_COMMIT = "57d23742e60d29bf6f46d15b8f64f0497bb260cd"
 
 REQUIRED_FILES = (
     "LICENSE",
@@ -31,6 +32,10 @@ REQUIRED_FILES = (
     "docs/acceptance/isras-v2.0.0-release-completion.md",
     "docs/acceptance/isras-v2.0.1-plan.md",
     "docs/acceptance/isras-v2.0.1-candidate-acceptance.md",
+    "docs/acceptance/isras-v2.0.1-release-finalization.md",
+    "tools/isras/validate_isras_v2_0_1_release.py",
+    "tools/validation/phase-gates/"
+    "validate_isras_v2_0_1_release.sh",
     "docs/acceptance/evidence/isras-v2.0.1-candidate/acceptance-evidence.json",
     "docs/engineering/adopter-quick-start.md",
     "docs/engineering/github-release-rulesets.md",
@@ -234,20 +239,20 @@ def main() -> int:
         "docs/acceptance/isras-v2.0.1-plan.md",
     )
     for marker in (
-        "CANDIDATE FORMALLY ACCEPTED — RELEASE FINALIZATION AUTHORIZED",
+        "RELEASE SOURCE PREPARED — SIGNED TAG AND BRANCH CONVERGENCE PENDING",
         "2.0.1",
         "isras-v2.0.1",
         RELEASE_COMMIT,
         "a1861291110efccaad9c587a99aaaf2de6f21812",
         "5c07b428b206e4f4e5d7e33d6f5811d7d4e6e739",
-        "Current repository `VERSION` during candidate preparation: `2.0.0`",
+        "Release-source `VERSION`: `2.0.1`",
     ):
         require_marker(
             patch_candidate,
             marker,
             "v2.0.1 candidate and acceptance plan",
         )
-    print("PASS: v2.0.1 formal candidate acceptance is synchronized")
+    print("PASS: v2.0.1 release-source plan is synchronized")
 
     patch_acceptance = read(
         repo_root,
@@ -269,6 +274,27 @@ def main() -> int:
             "v2.0.1 candidate formal-acceptance record",
         )
     print("PASS: v2.0.1 formal candidate-acceptance record is exact")
+
+    patch_finalization = read(
+        repo_root,
+        "docs/acceptance/isras-v2.0.1-release-finalization.md",
+    )
+    for marker in (
+        "AUTHORIZED — COMPLETION REQUIRES SIGNED TAG AND BRANCH CONVERGENCE",
+        "isras-v2.0.1",
+        V2_0_1_CANDIDATE_COMMIT,
+        V2_0_1_EVIDENCE_COMMIT,
+        V2_0_1_ACCEPTANCE_COMMIT,
+        RELEASE_COMMIT,
+        "cannot contain its own final object identity",
+        "changes root `VERSION` from `2.0.0` to `2.0.1`",
+    ):
+        require_marker(
+            patch_finalization,
+            marker,
+            "v2.0.1 release-finalization record",
+        )
+    print("PASS: v2.0.1 release-finalization boundary is predeclared")
 
     candidate_evidence = json.loads(
         read(
@@ -314,12 +340,12 @@ def main() -> int:
     print("PASS: isras-* tag namespace protection is documented")
 
     changelog = read(repo_root, "CHANGELOG.md")
-    require_marker(
-        changelog,
+    for marker in (
+        "## 2.0.1 — BSD-licensed patch release — 2026-07-16",
         "## 2.0.0 — Governance and bounded authority — 2026-07-16",
-        "CHANGELOG",
-    )
-    print("PASS: v2.0.0 release notes exist")
+    ):
+        require_marker(changelog, marker, "CHANGELOG")
+    print("PASS: v2.0.1 and v2.0.0 release notes exist")
 
     license_text = read(repo_root, "LICENSE")
     for marker in (

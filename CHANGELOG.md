@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 2.0.1 — BSD-licensed patch release — 2026-07-16
+
+- Prepares the formally authorized v2.0.1 release-source boundary with
+  `VERSION` `2.0.1`, a frozen release validator, and an exact-source phase gate.
+- Retains accepted candidate source `6543a5a93f078f47d87aa3b8ed8ebd2024cec373`, evidence commit
+  `9dbe4d9696ff4a9838fd83cb0f6f652087710f98`, and formal acceptance commit `57d23742e60d29bf6f46d15b8f64f0497bb260cd`.
+- Requires exact pushed-source validation, an SSH-signed annotated
+  `isras-v2.0.1` tag, non-force `main` promotion, and exact branch/tag
+  convergence before release completion.
 - Formally accepts ISRAS v2.0.1 candidate source
   `6543a5a93f078f47d87aa3b8ed8ebd2024cec373` for release finalization.
 - Binds the decision to evidence commit `9dbe4d9696ff4a9838fd83cb0f6f652087710f98`, evidence JSON

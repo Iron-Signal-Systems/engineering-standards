@@ -2,19 +2,19 @@
 
 ## Status
 
-`CANDIDATE FORMALLY ACCEPTED — RELEASE FINALIZATION AUTHORIZED`
+`RELEASE SOURCE PREPARED — SIGNED TAG AND BRANCH CONVERGENCE PENDING`
 
 ## Target release
 
 - Target version: `2.0.1`
 - Proposed signed tag: `isras-v2.0.1`
-- Current repository `VERSION` during candidate preparation: `2.0.0`
+- Release-source `VERSION`: `2.0.1`
 - Release type: patch release
 
-The repository version remains `2.0.0` during candidate preparation. A later,
-separate release-source change may set `VERSION` to `2.0.1` only after the exact
-candidate source and its evidence are formally accepted for release
-finalization.
+The formally accepted candidate lineage now authorizes this separate
+release-source change to declare `VERSION` `2.0.1`. The source is not an
+accepted release until the exact pushed release campaign, signed-tag
+verification, non-force `main` promotion, and branch/tag convergence all pass.
 
 ## Patch-release rationale
 
@@ -59,9 +59,13 @@ The candidate evidence was committed and pushed at:
 `9dbe4d9696ff4a9838fd83cb0f6f652087710f98`
 
 Formal candidate acceptance is recorded in
-`docs/acceptance/isras-v2.0.1-candidate-acceptance.md`. The accepted candidate
-source remains `6543a5a93f078f47d87aa3b8ed8ebd2024cec373`; the acceptance-record commit is governance
-evidence and does not replace the accepted source.
+`docs/acceptance/isras-v2.0.1-candidate-acceptance.md` and became canonical at:
+
+`57d23742e60d29bf6f46d15b8f64f0497bb260cd`
+
+The accepted candidate source remains `6543a5a93f078f47d87aa3b8ed8ebd2024cec373`; the evidence and
+acceptance commits are governance records and do not replace the accepted
+source.
 
 ## Candidate scope
 
@@ -97,6 +101,25 @@ The exact pushed candidate commit must satisfy all of the following:
 - retained evidence identifies the exact pushed candidate commit and all
   campaign artifacts by SHA-256;
 - formal candidate acceptance is recorded in a later governed commit.
+
+
+## Release-source boundary
+
+This source tree:
+
+- declares `VERSION` `2.0.1`;
+- adds `docs/acceptance/isras-v2.0.1-release-finalization.md`;
+- freezes `tools/isras/validate_isras_v2_0_1_release.py`;
+- freezes
+  `tools/validation/phase-gates/validate_isras_v2_0_1_release.sh`;
+- preserves the accepted normative, schema, template, workflow, integration,
+  predecessor-release, candidate, evidence, and acceptance boundaries;
+- requires a later exact pushed-source campaign before any tag or `main`
+  movement.
+
+The exact release commit is established only after this change is committed,
+pushed, validated, signed, and converged. No self-referential release-commit
+placeholder is retained in this source.
 
 ## Release-finalization sequence
 

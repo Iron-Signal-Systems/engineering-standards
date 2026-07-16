@@ -6,16 +6,20 @@
 - `validate_checkpoint.sh` — isolated historical checkpoint
 - `validate_canonical.sh` — project-specific canonical environment
 
-## Current candidate validation
+## Current release-source validation
 
-The ISRAS v2.0.1 patch candidate uses:
+The ISRAS v2.0.1 release source uses:
 
-`tools/validation/phase-gates/validate_isras_v2_0_1_candidate.sh`
+`tools/validation/phase-gates/validate_isras_v2_0_1_release.sh`
 
-Run this gate only after the exact candidate commit is pushed to remote `dev`.
-It verifies the local and remote commit identity, source manifest, BSD licensing
-boundary, current release state, portable and fresh-clone validation, complete
-regression tests, and accepted historical checkpoints.
+Run this frozen gate only after the exact release-source commit is committed and
+pushed to remote `dev`. The gate verifies policy, source manifest, synchronized
+release state, the v2.0.1 release-source boundary, portable and fresh-clone
+validation, the integration-enabled regression suite, and accepted v1.0.1 and
+v2.0.0 historical checkpoints.
+
+Signed-tag verification, non-force `main` promotion, and exact branch/tag
+convergence remain separate completion checks.
 
 ## Accepted historical checkpoints
 

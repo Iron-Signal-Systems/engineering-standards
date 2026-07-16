@@ -129,10 +129,10 @@ def validated_authority():
 
 
 class EngineeringStandardsComplianceTests(unittest.TestCase):
-    def test_release_version_is_v2_0_0(self):
+    def test_release_version_is_v2_0_1(self):
         self.assertEqual(
             (ROOT / "VERSION").read_text(encoding="utf-8").strip(),
-            "2.0.0",
+            "2.0.1",
         )
 
     def test_bsd_3_clause_license_is_declared(self):
@@ -156,6 +156,22 @@ class EngineeringStandardsComplianceTests(unittest.TestCase):
             "Public visibility of this repository does not grant permission",
             licensing,
         )
+
+    def test_v2_0_1_release_source_validator_passes(self):
+        result = subprocess.run(
+            [
+                PYTHON,
+                ROOT / "tools/isras/validate_isras_v2_0_1_release.py",
+                "--repo-root",
+                ROOT,
+                "--skip-git-lineage",
+            ],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_v2_0_1_candidate_acceptance_is_exact(self):
         record = (
@@ -211,22 +227,54 @@ class EngineeringStandardsComplianceTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
-    def test_candidate_validator_passes(self):
-        result = subprocess.run(
-            [
-                PYTHON,
-                ROOT / "tools/isras/validate_isras_v2_candidate.py",
-                "--repo-root",
-                ROOT,
-                "--skip-v1-git-diff",
-                "--release-finalization",
-            ],
-            text=True,
+    def test_v2_candidate_validator_passes_at_accepted_commit(self):
+        release_commit = (
+            "781246e69f8a9a382c25040f94b62dfe3b25ba89"
+        )
+
+        archive = subprocess.run(
+            ["git", "archive", release_commit],
+            cwd=ROOT,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=False,
         )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(
+            archive.returncode,
+            0,
+            archive.stderr.decode("utf-8", errors="replace"),
+        )
+
+        with tempfile.TemporaryDirectory(
+            prefix="isras-v2-candidate-"
+        ) as temporary:
+            checkout = Path(temporary)
+
+            with tarfile.open(
+                fileobj=io.BytesIO(archive.stdout),
+                mode="r:",
+            ) as handle:
+                handle.extractall(checkout)
+
+            result = subprocess.run(
+                [
+                    PYTHON,
+                    checkout / "tools/isras/validate_isras_v2_candidate.py",
+                    "--repo-root",
+                    checkout,
+                    "--skip-v1-git-diff",
+                    "--release-finalization",
+                ],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(
+                result.returncode,
+                0,
+                result.stdout + result.stderr,
+            )
 
     def test_release_source_validator_passes_at_accepted_commit(self):
         release_commit = (
