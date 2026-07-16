@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Adopts the BSD 3-Clause License (`BSD-3-Clause`) for repository-authored
+  materials in source revisions containing the root `LICENSE` file.
+- Records the prospective licensing boundary without modifying the immutable
+  signed `isras-v2.0.0` release source.
+- Adds synchronized licensing documentation, contribution terms, validation,
+  tests, and source-manifest coverage.
 - Records completion of the SSH-signed ISRAS v2.0.0 release and exact convergence
   of remote `dev`, remote `main`, and the peeled tag target at
   `781246e69f8a9a382c25040f94b62dfe3b25ba89`.

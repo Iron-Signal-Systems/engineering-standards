@@ -122,6 +122,16 @@ product's accepted deployment model is itself container-native.
 Publication of ISRAS v2.0.0 does not silently change a repository pinned to
 ISRAS v1.0.1.
 
+## License
+
+Repository-authored materials in revisions containing the root `LICENSE` file
+are licensed under the BSD 3-Clause License (`BSD-3-Clause`), except where a
+different license is explicitly identified.
+
+See [`LICENSE`](LICENSE) for the controlling license text and
+[`LICENSING.md`](LICENSING.md) for scope, effective-boundary, historical-release,
+and compatibility details.
+
 ## Standard versioning
 
 Adopting repositories pin the standard and reusable workflows to an exact commit

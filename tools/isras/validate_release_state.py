@@ -19,6 +19,7 @@ EVIDENCE_SHA = "0e4516f76032008075a844ddc43cb44fdb90ae09ab31b9af113b32923f082cd7
 SIGNING_FINGERPRINT = "SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE"
 
 REQUIRED_FILES = (
+    "LICENSE",
     "docs/acceptance/isras-v1.0.0-release-finalization.md",
     "docs/acceptance/isras-v1.0.1-plan.md",
     "docs/acceptance/isras-v2.0.0-plan.md",
@@ -234,9 +235,27 @@ def main() -> int:
     )
     print("PASS: v2.0.0 release notes exist")
 
+    license_text = read(repo_root, "LICENSE")
+    for marker in (
+        "BSD 3-Clause License",
+        "Copyright (c) 2026, Iron Signal Systems",
+        "Redistribution and use in source and binary forms",
+        "Neither the name of the copyright holder",
+        'THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"',
+    ):
+        require_marker(license_text, marker, "LICENSE")
+
     licensing = read(repo_root, "LICENSING.md")
-    require_marker(licensing, "**All rights reserved.**", "LICENSING.md")
-    print("PASS: licensing decision is explicit")
+    for marker in (
+        "BSD 3-Clause",
+        "BSD-3-Clause",
+        "first exact repository commit",
+        "781246e69f8a9a382c25040f94b62dfe3b25ba89",
+        "does not modify, replace, retag, or rewrite",
+    ):
+        require_marker(licensing, marker, "LICENSING.md")
+
+    print("PASS: BSD-3-Clause licensing decision is explicit")
 
     print("\nRelease-state validation PASSED.")
     return 0

@@ -135,6 +135,28 @@ class EngineeringStandardsComplianceTests(unittest.TestCase):
             "2.0.0",
         )
 
+    def test_bsd_3_clause_license_is_declared(self):
+        license_text = (ROOT / "LICENSE").read_text(encoding="utf-8")
+        licensing = (ROOT / "LICENSING.md").read_text(encoding="utf-8")
+
+        for marker in (
+            "BSD 3-Clause License",
+            "Copyright (c) 2026, Iron Signal Systems",
+            "Redistribution and use in source and binary forms",
+            "Neither the name of the copyright holder",
+        ):
+            self.assertIn(marker, license_text)
+
+        self.assertIn("BSD-3-Clause", licensing)
+        self.assertIn(
+            "781246e69f8a9a382c25040f94b62dfe3b25ba89",
+            licensing,
+        )
+        self.assertNotIn(
+            "Public visibility of this repository does not grant permission",
+            licensing,
+        )
+
     def test_candidate_validator_passes(self):
         result = subprocess.run(
             [

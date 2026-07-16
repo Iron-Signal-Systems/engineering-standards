@@ -37,6 +37,15 @@ On Windows:
 Before formal acceptance, run fresh-clone, canonical, specialized, and
 historical predecessor validation as applicable.
 
+## Contribution licensing
+
+By submitting a contribution, the contributor represents that they have the
+authority to provide it and agrees that an accepted contribution may be
+distributed under the repository's BSD 3-Clause License.
+
+Contributors must identify third-party material and any licensing obligation
+that may be incompatible with `BSD-3-Clause`.
+
 ## Secrets
 
 Never commit passwords, tokens, private keys, full credential-bearing
