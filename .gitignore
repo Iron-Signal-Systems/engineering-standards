@@ -1,14 +1,9 @@
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-.coverage
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+# Repository-local validation output
+.local/
+
+# Editor and operating-system artifacts
+*.swp
+*.swo
+*~
 .DS_Store
 Thumbs.db
-*.tmp
-*.log
-
-.isras-tools-venv/

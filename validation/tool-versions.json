@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "tools": {
+    "govulncheck": {
+      "module": "golang.org/x/vuln/cmd/govulncheck",
+      "version": "v1.6.0"
+    }
+  }
+}
