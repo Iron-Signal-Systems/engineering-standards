@@ -3,9 +3,11 @@
   "standard": {
     "name": "Iron Signal Repository Assurance Standard",
     "acronym": "ISRAS",
-    "version": "1.0.0",
+    "version": "2.0.1",
     "repository": "Iron-Signal-Systems/engineering-standards",
-    "commit": "SELF",
+    "tag": "isras-v2.0.1",
+    "commit": "d34fad82781a4e8485f8907fbfd34f236fa79ad2",
+    "source_manifest_sha256": "8f54ed1e9bfee251bf89b4c5f12edf11ac1e25ef0d145ba745301f2d05787ef1",
     "definition": "The organization-wide repository reproducibility, validation, historical verification, evidence, acceptance, release, deployment verification, recovery, and maintenance standard for Iron Signal Systems."
   },
   "repository": "Iron-Signal-Systems/engineering-standards",
@@ -31,6 +33,7 @@
   "checkpoint_registry": "tools/validation/checkpoints.json",
   "evidence_directory": "docs/acceptance/evidence",
   "source_manifest": "SOURCE-SHA256SUMS.txt",
+  "source_manifest_sha512": "SOURCE-SHA512SUMS.txt",
   "tool_requirements": "tools/requirements.txt",
   "support_policy": "SUPPORT-AND-COMPATIBILITY.md",
   "documentation_sync_required": true,
@@ -38,5 +41,14 @@
   "native_first": true,
   "containers_required": false,
   "direct_push_to_development_branch": false,
-  "adoption_level": "REPRODUCIBLE"
+  "adoption_level": "RELEASE_ASSURED",
+  "self_assurance": {
+    "mode": "PINNED_ACCEPTED_RELEASE",
+    "governing_release": "isras-v2.0.1",
+    "governing_commit": "d34fad82781a4e8485f8907fbfd34f236fa79ad2",
+    "governing_source_manifest_sha256": "8f54ed1e9bfee251bf89b4c5f12edf11ac1e25ef0d145ba745301f2d05787ef1",
+    "development_state": "ISRAS v2.0.1 is accepted, signed, converged, and checkpointed; ISRAS v3 assurance hardening remains development-only.",
+    "record": "docs/engineering/repository-self-assurance.md",
+    "reassessment_trigger": "Before ISRAS v3 formal phase entry, a self-assurance model change, or a later accepted release promotion."
+  }
 }

@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironsignalsystems.com/schemas/isras/tool-environment-record-v1.schema.json",
+  "title": "ISRAS Tool Environment Record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "recorded_at",
+    "bootstrap_mode",
+    "python",
+    "platform",
+    "pip",
+    "distributions",
+    "requirements",
+    "bootstrap_lock",
+    "wheelhouse_manifest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ISRAS-TOOL-ENVIRONMENT-V1"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "bootstrap_mode": {
+      "enum": [
+        "developer",
+        "release"
+      ]
+    },
+    "python": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executable",
+        "executable_sha512",
+        "version",
+        "implementation",
+        "compiler",
+        "base_executable",
+        "base_executable_sha512",
+        "abi"
+      ],
+      "properties": {
+        "executable": {
+          "type": "string"
+        },
+        "executable_sha512": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        },
+        "version": {
+          "type": "string"
+        },
+        "implementation": {
+          "type": "string"
+        },
+        "compiler": {
+          "type": "string"
+        },
+        "base_executable": {
+          "type": "string"
+        },
+        "base_executable_sha512": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}$"
+        },
+        "abi": {
+          "type": "string"
+        }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system",
+        "release",
+        "machine"
+      ],
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "release": {
+          "type": "string"
+        },
+        "machine": {
+          "type": "string"
+        }
+      }
+    },
+    "pip": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "distribution_sha512"
+      ],
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "distribution_sha512": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      }
+    },
+    "distributions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "version"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "requirements": {
+      "$ref": "#/$defs/file_identity"
+    },
+    "bootstrap_lock": {
+      "$ref": "#/$defs/file_identity"
+    },
+    "wheelhouse_manifest": {
+      "$ref": "#/$defs/file_identity"
+    }
+  },
+  "$defs": {
+    "file_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha512"
+      ],
+      "properties": {
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sha512": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{128}$"
+        }
+      }
+    }
+  }
+}

@@ -6,6 +6,17 @@
 - `validate_checkpoint.sh` — isolated historical checkpoint
 - `validate_canonical.sh` — project-specific canonical environment
 
+## ISRAS v3 development-candidate validation
+
+The development-only assurance-hardening candidate uses:
+
+`tools/validation/phase-gates/validate_isras_v3_candidate.sh`
+
+This gate verifies base ancestry and absence of unstaged drift, the immutable v1 and v2 normative trees, internally consistent repository self-assurance, clean-room deterministic bootstrap controls, Git-index SHA-512 source accounting, machine-readable templates, the actual C5 candidate classification, control-level external-crosswalk coverage, and v3 regression tests.
+
+The v3 gate is not an acceptance or release gate. It must not move `VERSION`,
+`main`, or an accepted `isras-*` tag.
+
 ## Accepted historical checkpoints
 
 The checkpoint registry binds accepted releases to immutable source commits and
