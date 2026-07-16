@@ -1,0 +1,33 @@
+test_automatic_privilege_propagation_is_rejected (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_automatic_privilege_propagation_is_rejected) ... ok
+test_candidate_validator_passes (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_candidate_validator_passes) ... ok
+test_candidate_version_remains_v1_0_1 (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_candidate_version_remains_v1_0_1) ... ok
+test_database_owner_runtime_is_rejected (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_database_owner_runtime_is_rejected) ... ok
+test_identity_separation_collapse_is_rejected (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_identity_separation_collapse_is_rejected) ... ok
+test_maturity_overclaim_is_rejected (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_maturity_overclaim_is_rejected) ... ok
+test_missing_hostile_evidence_is_rejected (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_missing_hostile_evidence_is_rejected) ... ok
+test_open_deviation_blocks_phase_exit (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_open_deviation_blocks_phase_exit) ... ok
+test_out_of_sync_phase_exit_is_rejected (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_out_of_sync_phase_exit_is_rejected) ... ok
+test_placeholder_exit_commit_is_rejected (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_placeholder_exit_commit_is_rejected) ... ok
+test_required_impact_assessment_must_be_supplied (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_required_impact_assessment_must_be_supplied) ... ok
+test_role_accumulation_to_unrestricted_authority_is_rejected (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_role_accumulation_to_unrestricted_authority_is_rejected) ... ok
+test_unrestricted_execution_context_is_rejected (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_unrestricted_execution_context_is_rejected) ... ok
+test_validated_exit_and_authority_pass (tests.test_engineering_standards_compliance.EngineeringStandardsComplianceTests.test_validated_exit_and_authority_pass) ... ok
+test_acceptance_evidence_resolves_self_and_records_runner (tests.test_isras_tools.ISRToolsTests.test_acceptance_evidence_resolves_self_and_records_runner) ... ok
+test_accepted_v1_0_1_checkpoint_is_exact (tests.test_isras_tools.ISRToolsTests.test_accepted_v1_0_1_checkpoint_is_exact) ... ok
+test_adopter_and_policy_validation (tests.test_isras_tools.ISRToolsTests.test_adopter_and_policy_validation) ... ok
+test_adopter_escapes_windows_style_template_values (tests.test_isras_tools.ISRToolsTests.test_adopter_escapes_windows_style_template_values) ... ok
+test_adopter_refuses_overwrite (tests.test_isras_tools.ISRToolsTests.test_adopter_refuses_overwrite) ... ok
+test_doctor_rejects_version_mismatch (tests.test_isras_tools.ISRToolsTests.test_doctor_rejects_version_mismatch) ... ok
+test_fresh_clone_and_historical_checkpoint (tests.test_isras_tools.ISRToolsTests.test_fresh_clone_and_historical_checkpoint) ... ok
+test_hosted_workflows_fetch_exact_event_sha (tests.test_isras_tools.ISRToolsTests.test_hosted_workflows_fetch_exact_event_sha) ... ok
+test_policy_rejects_caller_selected_portable_runner (tests.test_isras_tools.ISRToolsTests.test_policy_rejects_caller_selected_portable_runner) ... ok
+test_portable_doctor_accepts_equivalent_git_transport (tests.test_isras_tools.ISRToolsTests.test_portable_doctor_accepts_equivalent_git_transport) ... ok
+test_portable_doctor_rejects_different_repository (tests.test_isras_tools.ISRToolsTests.test_portable_doctor_rejects_different_repository) ... ok
+test_skip_existing_writes_only_missing_files (tests.test_isras_tools.ISRToolsTests.test_skip_existing_writes_only_missing_files) ... ok
+test_source_manifest_uses_only_tracked_files (tests.test_isras_tools.ISRToolsTests.test_source_manifest_uses_only_tracked_files) ... ok
+test_windows_workflows_avoid_brittle_sha_string_comparison (tests.test_isras_tools.ISRToolsTests.test_windows_workflows_avoid_brittle_sha_string_comparison) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 4.889s
+
+OK

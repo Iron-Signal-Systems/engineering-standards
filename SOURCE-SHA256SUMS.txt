@@ -26,6 +26,15 @@ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  docs/acceptanc
 93abf4fa266a5742076ea992abab4f9bacf539ee91262dc4c194a89f901c568a  docs/acceptance/evidence/README.md
 5b8c3e9f95363e59bdd0395820e93acbed1f8c2e10b99f01da153dcad0e04804  docs/acceptance/evidence/isras-v1.0.0-candidate/README.md
 d00d6cbfd629c629cc5f64a5eb51eb66765f53dc1502e90cb62d47ff2346ac52  docs/acceptance/evidence/isras-v1.0.0-candidate/acceptance-evidence.json
+33a98dc4fb309d72bba577f2a1775a3cbf683b5a3b85c3cefca99e86399d60d6  docs/acceptance/evidence/isras-v2.0.0-candidate/README.md
+0e4516f76032008075a844ddc43cb44fdb90ae09ab31b9af113b32923f082cd7  docs/acceptance/evidence/isras-v2.0.0-candidate/acceptance-evidence.json
+9f91afd4ca889e1f601bec845b1e5eafb9b6c67eedd1ccc5e1aaa80faf98ecff  docs/acceptance/evidence/isras-v2.0.0-candidate/campaign-artifacts.sha256
+e6c0e1363846199519f9f89cc09f762d51a98293e7c092ac22abfe3e6242c1ab  docs/acceptance/evidence/isras-v2.0.0-candidate/fresh-clone-validation.log
+faa84b89d190eda63df7cbb5395665c9e34d72f9b17609040099de85339646ad  docs/acceptance/evidence/isras-v2.0.0-candidate/portable-validation.log
+31550fdb051b99b48b406a3bfb5688ed9b2dfa7955160aa443e4d0acdccf9d7f  docs/acceptance/evidence/isras-v2.0.0-candidate/regression-tests.log
+637891ec357167e5a9c61ef0b8d8262d82d36bab366ecb8aa98606767bbf4c95  docs/acceptance/evidence/isras-v2.0.0-candidate/source-manifest-verification.log
+615a5b10395564558206a6365f74017ec4d4e2b3cd9d43b1eeb5d08c64915475  docs/acceptance/evidence/isras-v2.0.0-candidate/v1.0.1-checkpoint-validation.log
+933acc67cc465bf9860ca86af776e92ff19ec79b0cb3a5590a8123d58d3d5aec  docs/acceptance/evidence/isras-v2.0.0-candidate/v2-candidate-validation.log
 7905ffe0aee0164e335ed58f08a0a3381eb888158f8b6b22685ebd9d6e38a54c  docs/acceptance/isras-v1.0.0-candidate.md
 62d7ad6bfffe15dc3b3b0ee22c34fbabec4e243caafee5225d8bd8c7bc006e3d  docs/acceptance/isras-v1.0.0-release-finalization.md
 e38ab2c5a522809ab6b86d9144f8eff9ec5fc3b3feea2512874ab066a4324e30  docs/acceptance/isras-v1.0.0-tag-correction.md
