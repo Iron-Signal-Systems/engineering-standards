@@ -1,28 +1,33 @@
 #!/usr/bin/env python3
-"""Validate central ISRAS release-state and documentation consistency."""
-
+# Validate central ISRAS v2.0.0 release-state and documentation consistency.
 from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
 
-
-EXPECTED_VERSION = "1.0.1"
+EXPECTED_VERSION = "2.0.0"
+CANDIDATE_COMMIT = "4aff00dfdc88154390252898210abc336fa8b2fc"
+EVIDENCE_COMMIT = "b0c982221acde7873307d010aca73ed2e386eb99"
+ACCEPTANCE_COMMIT = "24e911b7c4a63735bcef9b4b84ab9b62ace10298"
 
 REQUIRED_FILES = (
     "docs/acceptance/isras-v1.0.0-release-finalization.md",
     "docs/acceptance/isras-v1.0.1-plan.md",
+    "docs/acceptance/isras-v2.0.0-plan.md",
+    "docs/acceptance/isras-v2.0.0-candidate-acceptance.md",
+    "docs/acceptance/isras-v2.0.0-release-finalization.md",
     "docs/engineering/adopter-quick-start.md",
     "docs/engineering/github-release-rulesets.md",
+    "standards/repository-assurance/v2/RELEASE-VERSIONING-SUPPORT-AND-DEPRECATION.md",
+    "tools/isras/validate_isras_v2_release.py",
+    "tools/validation/phase-gates/validate_isras_v2_release.sh",
 )
 
-STALE_PHRASES = (
-    "ISRAS v1.0.0 remains an acceptance candidate",
-    "Until the first formal v1 acceptance",
-    "No response-time promise is made until",
-    "Authorized for controlled replacement; remote replacement pending",
-    "main remains blocked from promotion",
+STALE_CURRENT_PHRASES = (
+    "The first normative standard is the **Iron Signal Repository Assurance Standard (ISRAS) v1**",
+    "ISRAS v1.0.x releases are supported when their exact source commit is",
+    "`CANDIDATE DEVELOPMENT`",
 )
 
 RELEASE_MARKERS = (
@@ -40,7 +45,6 @@ def fail(message: str) -> None:
 
 
 def normalize(value: str) -> str:
-    """Collapse formatting whitespace for prose-marker comparisons."""
     return " ".join(value.split())
 
 
@@ -60,7 +64,6 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", required=True)
     args = parser.parse_args()
-
     repo_root = Path(args.repo_root).resolve()
 
     version = read(repo_root, "VERSION").strip()
@@ -72,22 +75,19 @@ def main() -> int:
         read(repo_root, relative)
         print(f"PASS: required release file exists: {relative}")
 
-    selected_files = (
+    selected_current_files = (
         "README.md",
         "SUPPORT-AND-COMPATIBILITY.md",
-        "SECURITY.md",
         "templates/repository-baseline/SUPPORT-AND-COMPATIBILITY.md",
-        "templates/repository-baseline/SECURITY.md",
-        "docs/acceptance/isras-v1.0.0-tag-correction.md",
+        "docs/acceptance/isras-v2.0.0-plan.md",
+        "standards/repository-assurance/v2/RELEASE-VERSIONING-SUPPORT-AND-DEPRECATION.md",
     )
-
-    for relative in selected_files:
-        content = read(repo_root, relative)
-        normalized_content = normalize(content)
-        for phrase in STALE_PHRASES:
-            if normalize(phrase) in normalized_content:
-                fail(f"stale release wording in {relative}: {phrase!r}")
-    print("PASS: stale release-state wording is absent")
+    for relative in selected_current_files:
+        content = normalize(read(repo_root, relative))
+        for phrase in STALE_CURRENT_PHRASES:
+            if normalize(phrase) in content:
+                fail(f"stale current release wording in {relative}: {phrase!r}")
+    print("PASS: stale current release-state wording is absent")
 
     root_support = read(repo_root, "SUPPORT-AND-COMPATIBILITY.md")
     template_support = read(
@@ -117,20 +117,7 @@ def main() -> int:
             require_marker(content, marker, relative)
     print("PASS: release models enforce exact-boundary convergence")
 
-    correction = read(
-        repo_root,
-        "docs/acceptance/isras-v1.0.0-tag-correction.md",
-    )
-    for marker in (
-        "Controlled replacement completed and verified",
-        "3f7d4e7f5b340c65cfe74f757ba0a24b2f94cc2b",
-        "f9655ddbbf04430fc468aab405f2ed880df3e97d",
-        "Signature verification: `PASS`",
-    ):
-        require_marker(correction, marker, "v1.0.0 tag-correction record")
-    print("PASS: v1.0.0 tag correction is recorded as complete")
-
-    finalization = read(
+    v1_finalization = read(
         repo_root,
         "docs/acceptance/isras-v1.0.0-release-finalization.md",
     )
@@ -140,26 +127,64 @@ def main() -> int:
         "3f7d4e7f5b340c65cfe74f757ba0a24b2f94cc2b",
         "f9655ddbbf04430fc468aab405f2ed880df3e97d",
     ):
-        require_marker(finalization, marker, "v1.0.0 release-finalization record")
-    print("PASS: v1.0.0 release finalization record is complete")
+        require_marker(v1_finalization, marker, "v1.0.0 release-finalization record")
+    print("PASS: v1.0.0 release finalization record remains complete")
 
-    plan = read(repo_root, "docs/acceptance/isras-v1.0.1-plan.md")
+    candidate_acceptance = read(
+        repo_root,
+        "docs/acceptance/isras-v2.0.0-candidate-acceptance.md",
+    )
     for marker in (
-        "Candidate plan",
-        "isras-v1.0.1",
-        "authoritative acceptance-decision object",
-        "No later source commit is required",
+        "Accepted for release finalization",
+        CANDIDATE_COMMIT,
+        EVIDENCE_COMMIT,
+        "40 PASS and 0 FAIL",
     ):
-        require_marker(plan, marker, "v1.0.1 acceptance plan")
-    print("PASS: v1.0.1 acceptance plan is predeclared")
+        require_marker(
+            candidate_acceptance,
+            marker,
+            "v2.0.0 candidate-acceptance record",
+        )
+    print("PASS: v2.0.0 candidate acceptance remains exact")
+
+    finalization = read(
+        repo_root,
+        "docs/acceptance/isras-v2.0.0-release-finalization.md",
+    )
+    for marker in (
+        "AUTHORIZED — COMPLETION REQUIRES SIGNED TAG AND BRANCH CONVERGENCE",
+        "isras-v2.0.0",
+        CANDIDATE_COMMIT,
+        EVIDENCE_COMMIT,
+        ACCEPTANCE_COMMIT,
+        "remote `dev`",
+        "remote `main`",
+    ):
+        require_marker(finalization, marker, "v2.0.0 release-finalization record")
+    print("PASS: v2.0.0 release finalization boundary is predeclared")
+
+    plan = read(repo_root, "docs/acceptance/isras-v2.0.0-plan.md")
+    for marker in (
+        "RELEASE SOURCE PREPARED FOR EXACT-COMMIT FINALIZATION",
+        "isras-v2.0.0",
+        CANDIDATE_COMMIT,
+        EVIDENCE_COMMIT,
+        ACCEPTANCE_COMMIT,
+    ):
+        require_marker(plan, marker, "v2.0.0 acceptance plan")
+    print("PASS: v2.0.0 exact-commit finalization plan is synchronized")
 
     rulesets = read(repo_root, "docs/engineering/github-release-rulesets.md")
     require_marker(rulesets, "isras-*", "GitHub release-ruleset requirements")
     print("PASS: isras-* tag namespace protection is documented")
 
     changelog = read(repo_root, "CHANGELOG.md")
-    require_marker(changelog, "## 1.0.1 — Release hardening", "CHANGELOG")
-    print("PASS: v1.0.1 release notes exist")
+    require_marker(
+        changelog,
+        "## 2.0.0 — Governance and bounded authority — 2026-07-16",
+        "CHANGELOG",
+    )
+    print("PASS: v2.0.0 release notes exist")
 
     licensing = read(repo_root, "LICENSING.md")
     require_marker(licensing, "**All rights reserved.**", "LICENSING.md")

@@ -2,14 +2,16 @@
 
 ## Status
 
-`CANDIDATE ACCEPTED FOR RELEASE FINALIZATION`
+`RELEASE SOURCE PREPARED FOR EXACT-COMMIT FINALIZATION`
 
-The accepted repository version remains `1.0.1`. The exact candidate source
-commit `4aff00dfdc88154390252898210abc336fa8b2fc` was formally accepted for release finalization on
-2026-07-16, with retained evidence committed at `b0c982221acde7873307d010aca73ed2e386eb99`. This decision
-authorizes a separate release-finalization change; it does not itself change
-`VERSION`, create the release tag, register a v2 checkpoint, or alter adopter
-pins.
+The exact candidate source commit `4aff00dfdc88154390252898210abc336fa8b2fc` was formally accepted
+for release finalization on 2026-07-16, with retained evidence committed at
+`b0c982221acde7873307d010aca73ed2e386eb99` and formal authorization committed at
+`24e911b7c4a63735bcef9b4b84ab9b62ace10298`. The release source now declares `VERSION` `2.0.0`.
+Finalization is not complete until the exact pushed source passes the complete
+campaign, the signed `isras-v2.0.0` tag verifies, and remote `dev`, remote
+`main`, and the peeled tag target converge. Checkpoint registration and
+repository adoption remain separate governed changes.
 
 ## Objective
 
@@ -96,13 +98,26 @@ change; it does not itself mutate `VERSION`.
 
 ## Release finalization after candidate acceptance
 
+### In-tree release-source change
+
 1. Update `VERSION` from `1.0.1` to `2.0.0`.
-2. Update release notes and acceptance record.
-3. Regenerate and verify `SOURCE-SHA256SUMS.txt`.
-4. Rerun complete validation on the exact pushed finalization commit.
-5. Create and verify the signed `isras-v2.0.0` tag.
-6. Register the accepted immutable v2.0.0 checkpoint.
-7. Publish exact commit and source-manifest digest.
+2. Synchronize release, support, compatibility, acceptance, README, changelog,
+   validator, test, and migration documentation.
+3. Add the frozen ISRAS v2 release-source gate.
+4. Regenerate and verify `SOURCE-SHA256SUMS.txt`.
+
+### Exact pushed-source completion
+
+5. Push the exact release-source commit to `dev`.
+6. Rerun the complete portable, fresh-clone, regression, historical-checkpoint,
+   release-source, and manifest campaign from that exact commit.
+7. Create and verify the SSH-signed annotated `isras-v2.0.0` tag.
+8. Fast-forward `main` without force to the exact same commit.
+9. Verify remote `dev`, remote `main`, and the peeled tag target are identical.
+10. Publish the exact commit, source-manifest digest, evidence digest, validation
+    result, and signing identity.
+11. Register the accepted immutable v2.0.0 checkpoint in a subsequent governed
+    change.
 
 ## Adoption sequence
 

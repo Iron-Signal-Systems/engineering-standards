@@ -126,10 +126,10 @@ def validated_authority():
 
 
 class EngineeringStandardsComplianceTests(unittest.TestCase):
-    def test_candidate_version_remains_v1_0_1(self):
+    def test_release_version_is_v2_0_0(self):
         self.assertEqual(
             (ROOT / "VERSION").read_text(encoding="utf-8").strip(),
-            "1.0.1",
+            "2.0.0",
         )
 
     def test_candidate_validator_passes(self):
@@ -137,6 +137,23 @@ class EngineeringStandardsComplianceTests(unittest.TestCase):
             [
                 PYTHON,
                 ROOT / "tools/isras/validate_isras_v2_candidate.py",
+                "--repo-root",
+                ROOT,
+                "--skip-v1-git-diff",
+                "--release-finalization",
+            ],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_release_source_validator_passes(self):
+        result = subprocess.run(
+            [
+                PYTHON,
+                ROOT / "tools/isras/validate_isras_v2_release.py",
                 "--repo-root",
                 ROOT,
                 "--skip-v1-git-diff",
