@@ -46,6 +46,8 @@ The development candidate gate shall verify:
 - the control-level external crosswalk covers every catalog control without
   premature `COVERED` claims;
 - release bootstrap is clean-room, isolated, hash-locked, and exact-set checked;
+- portable CI acquires and verifies every accepted checkpoint and active classification-base commit before regression execution;
+- portable failures identify the exact stage, validator, tested commit, expected or required object, observed result, command, and exit code; and
 - unit, portable, fresh-clone, and applicable specialized campaigns pass.
 
 ## Formal acceptance sequence

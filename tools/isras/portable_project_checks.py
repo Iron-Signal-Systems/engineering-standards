@@ -156,7 +156,7 @@ def check_python(repo_root: Path, profiles: set[str]) -> None:
 
     test_files = list((repo_root / "tests").glob("test_*.py")) if (repo_root / "tests").is_dir() else []
     if test_files:
-        run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"], cwd=repo_root)
+        run([sys.executable, "-m", "unittest", "discover", "-v", "-s", "tests", "-p", "test_*.py"], cwd=repo_root)
         print_result("Python unittest suite passes", True)
 
     pytest_configured = (repo_root / "pytest.ini").exists() or (repo_root / "tox.ini").exists()

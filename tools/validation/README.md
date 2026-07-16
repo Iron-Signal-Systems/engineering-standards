@@ -49,3 +49,14 @@ tag.
 The bootstrap portable validator detects common project types. Replace or
 extend it with explicit project checks before formal repository-assurance
 acceptance.
+
+## Portable history preflight and structured diagnostics
+
+Portable validation now discovers every accepted checkpoint commit and active
+change-classification base before project regressions run. Shallow CI checkouts
+acquire those exact objects and verify that each resolves as a commit. The
+portable shell and PowerShell entrypoints use
+`tools/isras/run_portable_validation.py`, which invokes repository tools through
+the bounded isolated bootstrap `tools/isras/invoke_repo_tool.py` and prints stage,
+validator, tested commit, workflow, job, command, exit code, and a stable failure code. See
+`docs/engineering/portable-validation-history-and-diagnostics.md`.
