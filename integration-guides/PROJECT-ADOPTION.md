@@ -119,9 +119,10 @@ A newer release being available is information, not modification authority.
 ## Current implementation status
 
 The pinned project framework is the accepted architectural direction for the
-`0.1.1-development` cycle. The strict v1 pin schema and read-only parser are now
-implemented. Artifact acquisition, release verification, command execution,
-project initialization, and upgrade application are not yet implemented.
+`0.1.1-development` cycle. The strict v1 pin schema, read-only parser, and
+release-artifact acquisition and verification boundary are implemented. Project
+command execution, initialization, reusable hosted validation, upgrade
+application, and consuming-project adoption are not yet implemented.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
 deprecated for new adoption. It must not be used to initialize another project.
@@ -136,4 +137,5 @@ has passed its own tests and acceptance gates.
 - [`standards/PINNED-PROJECT-FRAMEWORK.md`](../standards/PINNED-PROJECT-FRAMEWORK.md)
 - [`standards/PROJECT-PIN-SCHEMA.md`](../standards/PROJECT-PIN-SCHEMA.md)
 - [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](../standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
+- [`standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](../standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md)
 - [`standards/PROJECT-UPGRADE-CONTRACT.md`](../standards/PROJECT-UPGRADE-CONTRACT.md)

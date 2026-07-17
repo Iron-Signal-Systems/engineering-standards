@@ -79,12 +79,14 @@ to reject incompatible pin schemas, profiles, commands, and evidence formats.
 
 ## Manifest and digest requirements
 
-Every downloadable artifact shall be covered by SHA-256 and SHA-512 manifests.
-Manifests shall be generated from the final release bytes and shall themselves be
-bound to the release identity.
+Every non-manifest downloadable artifact shall be covered by SHA-256 and
+SHA-512 manifests generated from the final release bytes. The project pin binds
+the final bytes of both manifests directly, avoiding impossible self-referential
+manifest hashes.
 
-A consuming project shall verify the digest from its committed pin or an
-equivalent release-bound trust record before execution or extraction.
+Manifest entries shall be unique, sorted, and match both the project pin and the
+locally observed bytes. A consuming project shall verify the complete digest from
+its committed pin before execution or extraction.
 
 A digest mismatch is fail-closed. Tooling shall not automatically retry against a
 different release.
@@ -106,6 +108,11 @@ Release provenance shall identify at least:
 
 Provenance is evidence of how the artifact was produced. It is not by itself a
 claim of independent audit or universal production fitness.
+
+The v1 machine-readable provenance contract is committed at
+`schemas/isras-provenance-v1.schema.json`. Provenance lists the core produced
+artifacts but not itself or the manifests. Both manifests cover provenance, and
+the project pin covers both manifests.
 
 ## Reusable workflow boundary
 

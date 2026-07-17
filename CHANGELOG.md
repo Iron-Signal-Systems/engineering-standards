@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Added fail-closed release-artifact acquisition and verification. The project
+  pin can now select an exact published GitHub release, require a GitHub-verified
+  signed annotated tag at the pinned commit, acquire only declared assets,
+  compare complete SHA-256 and SHA-512 values, cross-check both manifests,
+  validate v1 provenance, retain full local evidence, and grant or deny a
+  separate execution-authorization result. Local-directory verification remains
+  available but cannot authorize execution because release and tag identity are
+  not checked.
+
 - Added the strict v1 `.isras/project.json` schema, standard-library Go parser,
   read-only project-pin declaration validation and inspection commands, release
   and workflow identity checks, artifact digest requirements, Go profile command
