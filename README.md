@@ -89,6 +89,7 @@ See:
 - [`standards/PINNED-PROJECT-FRAMEWORK.md`](standards/PINNED-PROJECT-FRAMEWORK.md)
 - [`standards/PROJECT-PIN-SCHEMA.md`](standards/PROJECT-PIN-SCHEMA.md)
 - [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
+- [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](standards/RELEASE-ARTIFACT-PRODUCTION.md)
 - [`standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md)
 - [`standards/PROJECT-UPGRADE-CONTRACT.md`](standards/PROJECT-UPGRADE-CONTRACT.md)
 
@@ -136,6 +137,18 @@ Run its three deliberately separated stages:
 
 The `check` stage changes no Git refs. The `tag` stage creates only the signed
 local tag. The `publish` stage performs the explicitly confirmed remote writes.
+
+Build the local release-artifact producer:
+
+```bash
+./tools/build-release-artifacts.sh
+```
+
+The producer requires a stable signed release commit and signed annotated tag.
+It creates validator, framework, contracts, provenance, and checksum-manifest
+bytes under `.local/releases/` without publishing them. See
+[`standards/RELEASE-ARTIFACT-PRODUCTION.md`](standards/RELEASE-ARTIFACT-PRODUCTION.md)
+for the explicit provenance inputs and production command.
 
 Run only the secret scanner:
 

@@ -18,11 +18,17 @@ const (
 	SourceRepository            = "github.com/Iron-Signal-Systems/engineering-standards"
 	OwnershipReference          = "reference-repository"
 	OwnershipProjectOwnedExport = "project-owned-export"
+	OwnershipReleaseArtifact    = "release-artifact"
 )
 
 var (
-	versionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$`)
-	commitPattern  = regexp.MustCompile(`^[0-9a-f]{40}$`)
+	versionPattern       = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$`)
+	stableVersionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
+	commitPattern        = regexp.MustCompile(`^[0-9a-f]{40}$`)
+
+	releaseVersion      string
+	releaseTag          string
+	releaseSourceCommit string
 )
 
 type Metadata struct {
@@ -37,12 +43,16 @@ type Metadata struct {
 
 type Identity struct {
 	Metadata
+	ReleaseTag       string
 	RepositoryCommit string
 }
 
 func Load(root, repositoryCommit string) (Identity, error) {
 	if !commitPattern.MatchString(repositoryCommit) {
 		return Identity{}, fmt.Errorf("invalid repository commit identity %q", repositoryCommit)
+	}
+	if identity, configured, err := linkedReleaseIdentity(repositoryCommit); configured || err != nil {
+		return identity, err
 	}
 
 	path := filepath.Join(root, filepath.FromSlash(MetadataPath))
@@ -69,6 +79,34 @@ func Load(root, repositoryCommit string) (Identity, error) {
 		identity.SourceCommit = repositoryCommit
 	}
 	return identity, nil
+}
+
+func linkedReleaseIdentity(repositoryCommit string) (Identity, bool, error) {
+	configured := releaseVersion != "" || releaseTag != "" || releaseSourceCommit != ""
+	if !configured {
+		return Identity{}, false, nil
+	}
+	if !stableVersionPattern.MatchString(releaseVersion) {
+		return Identity{}, true, errors.New("embedded release validator version is invalid")
+	}
+	if releaseTag != "isras-v"+releaseVersion {
+		return Identity{}, true, errors.New("embedded release validator tag does not match its version")
+	}
+	if !commitPattern.MatchString(releaseSourceCommit) || strings.Trim(releaseSourceCommit, "0") == "" {
+		return Identity{}, true, errors.New("embedded release validator source commit is invalid")
+	}
+	return Identity{
+		Metadata: Metadata{
+			SchemaVersion:    1,
+			Profile:          Profile,
+			StandardVersion:  releaseVersion,
+			Ownership:        OwnershipReleaseArtifact,
+			SourceRepository: SourceRepository,
+			SourceCommit:     releaseSourceCommit,
+		},
+		ReleaseTag:       releaseTag,
+		RepositoryCommit: repositoryCommit,
+	}, true, nil
 }
 
 func requireJSONEOF(decoder *json.Decoder) error {
@@ -126,8 +164,11 @@ func validateMetadata(root string, metadata Metadata) error {
 
 func (identity Identity) Header() string {
 	label := "reference"
-	if identity.Ownership == OwnershipProjectOwnedExport {
+	switch identity.Ownership {
+	case OwnershipProjectOwnedExport:
 		label = "project-owned export"
+	case OwnershipReleaseArtifact:
+		label = "release artifact"
 	}
 	return fmt.Sprintf("%s %s [%s]", identity.Profile, identity.StandardVersion, label)
 }

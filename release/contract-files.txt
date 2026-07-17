@@ -1,0 +1,7 @@
+release/contract-files.txt
+schemas/isras-artifact-build-report-v1.schema.json
+schemas/isras-project-v1.schema.json
+schemas/isras-provenance-v1.schema.json
+standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md
+standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md
+standards/PROJECT-PIN-SCHEMA.md

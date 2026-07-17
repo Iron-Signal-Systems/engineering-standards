@@ -26,17 +26,25 @@ A mismatch among these identities is a release failure.
 
 ## Required artifact classes
 
-The first production contract is expected to include:
+The initial deterministic producer creates this exact core artifact set:
 
 ```text
-isras-validator-<os>-<arch>
+isras-validator-linux-amd64
 isras-project-framework.tar.gz
 isras-contracts.tar.gz
-isras-migration-from-previous.json
+provenance.json
 SHA256SUMS
 SHA512SUMS
-provenance.json
 ```
+
+The output directory contains no additional file. Complete digests for all six
+assets are recorded in private artifact-build evidence so a project pin can bind
+the final manifests without adding an undeclared release asset.
+
+A release that requires migration metadata shall add the separately versioned
+`isras-migration-from-previous.json` artifact only after its schema and production
+contract are accepted. The project-pin and verifier already permit one migration
+artifact, but the initial producer does not claim to create it.
 
 The exact supported operating systems, architectures, names, and formats are
 versioned by the release contract.
@@ -60,6 +68,11 @@ requests that version.
 The validator shall validate a target repository. It shall not modify the target
 unless a separately named, explicitly authorized command has modification
 authority.
+
+The initial validator binary embeds its stable version, release tag, exact source
+commit, and release-artifact ownership through linker-bound values. It does not
+trust a consuming repository to supply release identity through the deprecated
+copied validator-identity file.
 
 ## Framework artifact
 
@@ -113,6 +126,10 @@ The v1 machine-readable provenance contract is committed at
 `schemas/isras-provenance-v1.schema.json`. Provenance lists the core produced
 artifacts but not itself or the manifests. Both manifests cover provenance, and
 the project pin covers both manifests.
+
+The deterministic producer and its exact source-list, archive-normalization,
+atomic-output, and private-evidence rules are defined in
+[`RELEASE-ARTIFACT-PRODUCTION.md`](RELEASE-ARTIFACT-PRODUCTION.md).
 
 ## Reusable workflow boundary
 

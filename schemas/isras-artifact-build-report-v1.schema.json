@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Iron-Signal-Systems/engineering-standards/schemas/isras-artifact-build-report-v1.schema.json",
+  "title": "ISRAS Artifact Build Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "profile",
+    "version",
+    "release_tag",
+    "source_repository",
+    "source_commit",
+    "go_version",
+    "output_directory",
+    "artifacts",
+    "evidence_json",
+    "evidence_text"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "profile": {"const": "ISRAS-SD"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "release_tag": {"type": "string", "pattern": "^isras-v[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "source_repository": {"const": "github.com/Iron-Signal-Systems/engineering-standards"},
+    "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "go_version": {"type": "string", "pattern": "^go[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "output_directory": {"type": "string", "minLength": 1},
+    "artifacts": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {"$ref": "#/$defs/artifact"}
+    },
+    "evidence_json": {"type": "string", "minLength": 1},
+    "evidence_text": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name", "size", "sha256", "sha512"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "validator",
+            "framework",
+            "contracts",
+            "provenance",
+            "sha256-manifest",
+            "sha512-manifest"
+          ]
+        },
+        "os": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$"},
+        "arch": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$"},
+        "name": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+        "size": {"type": "integer", "minimum": 1, "maximum": 536870912},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "sha512": {"type": "string", "pattern": "^[0-9a-f]{128}$"}
+      }
+    }
+  }
+}

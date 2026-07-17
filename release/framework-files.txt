@@ -1,0 +1,13 @@
+integration-guides/PROJECT-ADOPTION.md
+release/framework-files.txt
+schemas/isras-artifact-build-report-v1.schema.json
+schemas/isras-project-v1.schema.json
+schemas/isras-provenance-v1.schema.json
+standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md
+standards/GO-REFERENCE-PROFILE.md
+standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md
+standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md
+standards/PINNED-PROJECT-FRAMEWORK.md
+standards/PROJECT-PIN-SCHEMA.md
+standards/PROJECT-UPGRADE-CONTRACT.md
+standards/RELEASE-ARTIFACT-PRODUCTION.md
