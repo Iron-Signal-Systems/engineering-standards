@@ -121,11 +121,17 @@ func Run(ctx context.Context, opts Options) (result Result, runErr error) {
 	if err := e.preflight(); err != nil {
 		return e.result, err
 	}
+
+	local, remote, err := e.inspectAndVerifyTagState()
+	if err != nil {
+		return e.result, err
+	}
+
 	if err := e.runReleaseValidation(); err != nil {
 		return e.result, err
 	}
 
-	local, remote, err := e.inspectTag()
+	local, remote, err = e.inspectAndVerifyTagState()
 	if err != nil {
 		return e.result, err
 	}
@@ -345,6 +351,55 @@ func (e *engine) runReleaseValidation() error {
 		if err := e.run(command[0], command[1:]...); err != nil {
 			return fmt.Errorf("release validation command %s failed: %w", strings.Join(command, " "), err)
 		}
+	}
+	return nil
+}
+
+func (e *engine) inspectAndVerifyTagState() (remoteTag, remoteTag, error) {
+	local, remote, err := e.inspectTag()
+	if err != nil {
+		return local, remote, err
+	}
+	if err := validateTagIdentity(local, remote, e.result.Commit, e.result.Tag); err != nil {
+		return local, remote, err
+	}
+	if local.Exists {
+		if err := e.verifyLocalTag(local); err != nil {
+			return local, remote, err
+		}
+	}
+	return local, remote, nil
+}
+
+func validateTagIdentity(local, remote remoteTag, expectedCommit, tag string) error {
+	if local.Exists && local.CommitSHA != expectedCommit {
+		return fmt.Errorf(
+			"local tag %s identifies %s, but the current release candidate is %s; release tags are immutable, so advance VERSION and release metadata instead of reusing the existing tag",
+			tag,
+			short(local.CommitSHA),
+			short(expectedCommit),
+		)
+	}
+	if remote.Exists && remote.CommitSHA != expectedCommit {
+		return fmt.Errorf(
+			"remote tag %s identifies %s, but the current release candidate is %s; release tags are immutable, so advance VERSION and release metadata instead of reusing the existing tag",
+			tag,
+			short(remote.CommitSHA),
+			short(expectedCommit),
+		)
+	}
+	if remote.Exists && !local.Exists {
+		return fmt.Errorf(
+			"remote tag %s exists without a corresponding local tag; fetch and verify the immutable tag before continuing",
+			tag,
+		)
+	}
+	if local.Exists && remote.Exists && local.ObjectSHA != remote.ObjectSHA {
+		return fmt.Errorf(
+			"remote tag object %s does not match local tag object %s",
+			short(remote.ObjectSHA),
+			short(local.ObjectSHA),
+		)
 	}
 	return nil
 }

@@ -75,6 +75,11 @@ be signed, annotated, and point directly to the exact commit that passed the
 required release validation. The first practical Solo Developer Baseline release
 uses `isras-v0.1.0`.
 
+A release tag name is immutable and may identify only one release commit. A
+candidate whose `VERSION` derives an existing tag that identifies different
+source shall fail. The candidate must advance its version, changelog entry, and
+release notes rather than reuse or replace the published tag.
+
 ## Clean-clone validation
 
 Before a release tag is created, the exact pushed candidate commit shall pass

@@ -78,6 +78,46 @@ func TestCompareRemoteTagRequiresExactObjectAndCommit(t *testing.T) {
 	}
 }
 
+func TestValidateTagIdentityRejectsPublishedVersionBoundToDifferentCommit(t *testing.T) {
+	candidate := "a58ea97fb881a2582a1fe5e24436513c2d99a2a3"
+	published := "96d0bbae212027ef2c74d4d90dc3fe1df981bd58"
+	object := "23963864b9b35f7ca6317d8b074cf4ed76200fdc"
+	local := remoteTag{Exists: true, ObjectSHA: object, CommitSHA: published}
+	remote := remoteTag{Exists: true, ObjectSHA: object, CommitSHA: published}
+
+	err := validateTagIdentity(local, remote, candidate, "isras-v0.1.0")
+	if err == nil {
+		t.Fatal("published isras-v0.1.0 tag was accepted for a different release candidate")
+	}
+	if !strings.Contains(err.Error(), "advance VERSION") {
+		t.Fatalf("conflict did not provide version-advance guidance: %v", err)
+	}
+}
+
+func TestValidateTagIdentityAcceptsExactPublishedRelease(t *testing.T) {
+	commit := strings.Repeat("c", 40)
+	object := strings.Repeat("d", 40)
+	local := remoteTag{Exists: true, ObjectSHA: object, CommitSHA: commit}
+	remote := remoteTag{Exists: true, ObjectSHA: object, CommitSHA: commit}
+
+	if err := validateTagIdentity(local, remote, commit, "isras-v1.2.3"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestValidateTagIdentityRejectsRemoteTagWithoutLocalTag(t *testing.T) {
+	commit := strings.Repeat("e", 40)
+	remote := remoteTag{
+		Exists:    true,
+		ObjectSHA: strings.Repeat("f", 40),
+		CommitSHA: commit,
+	}
+
+	if err := validateTagIdentity(remoteTag{}, remote, commit, "isras-v1.2.3"); err == nil {
+		t.Fatal("remote tag without a corresponding local tag was accepted")
+	}
+}
+
 func TestVerifyReleaseView(t *testing.T) {
 	view := releaseView{
 		TagName:      "isras-v0.1.0",
