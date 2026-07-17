@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Corrected secret-scanner semantics for approved external-secret references,
+  Go identifier and selector expressions, Go comments, and shell dynamic
+  assignments while preserving detection of string literals, malformed source,
+  embedded URL credentials, unknown schemes, and hardcoded command-body values.
 - Corrected the secret-scanning boundary so staged Git-index content and
   working-tree content are evaluated independently. A clean working-tree copy can
   no longer conceal a staged finding, and dangerous credential filenames now
