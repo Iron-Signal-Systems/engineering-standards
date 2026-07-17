@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Updated GitHub-maintained workflow actions to `actions/checkout@v5` and
+  `actions/setup-go@v6`, removing Node 20 deprecation annotations while
+  preserving the Go implementation and existing Go validation behavior.
+
 - Replaced the stale hard-coded validator profile with committed version and
   source identity metadata. The validator now reports reference versus
   project-owned export ownership, exact export source commit, target module, and
