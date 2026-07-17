@@ -120,6 +120,115 @@ func TestAllowlistProposalContainsFingerprintNotValue(t *testing.T) {
 	}
 }
 
+func TestStagedSecretCannotBeHiddenByCleanWorkingTree(t *testing.T) {
+	root := initRepo(t)
+	path := filepath.Join(root, "config.txt")
+	value := "Stage" + "OnlyBoundary987"
+	if err := os.WriteFile(path, scannerAssignment("client_secret", value), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	git(t, root, "add", "config.txt")
+	if err := os.WriteFile(path, scannerAssignment("client_secret", "${CLIENT_SECRET}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	result, err := ScanRepo(context.Background(), root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	finding := requireFinding(t, result, "sensitive-assignment", sourceStagedIndex)
+	if finding.Redactable {
+		t.Fatal("staged-index finding must not offer working-tree redaction")
+	}
+	if strings.Contains(finding.ID, value) || strings.Contains(finding.Fingerprint, value) {
+		t.Fatal("finding metadata exposed the staged value")
+	}
+}
+
+func TestWorkingTreeSecretCannotBeHiddenByCleanIndex(t *testing.T) {
+	root := initRepo(t)
+	path := filepath.Join(root, "config.txt")
+	if err := os.WriteFile(path, scannerAssignment("client_secret", "${CLIENT_SECRET}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	git(t, root, "add", "config.txt")
+	if err := os.WriteFile(path, scannerAssignment("client_secret", "Working"+"TreeBoundary987"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	result, err := ScanRepo(context.Background(), root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	finding := requireFinding(t, result, "sensitive-assignment", sourceWorkingTree)
+	if !finding.Redactable {
+		t.Fatal("working-tree finding should retain redaction support")
+	}
+}
+
+func TestIdenticalIndexAndWorkingTreeContentIsNotDuplicated(t *testing.T) {
+	root := initRepo(t)
+	path := filepath.Join(root, "config.txt")
+	if err := os.WriteFile(path, scannerAssignment("client_secret", "Same"+"Boundary987"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	git(t, root, "add", "config.txt")
+	result, err := ScanRepo(context.Background(), root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	count := 0
+	for _, finding := range result.Findings {
+		if finding.Rule == "sensitive-assignment" {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Fatalf("expected one finding for identical content, got %d", count)
+	}
+}
+
+func TestDangerousBinaryFilenameFailsBeforeBinarySkip(t *testing.T) {
+	root := initRepo(t)
+	path := filepath.Join(root, "identity.p12")
+	if err := os.WriteFile(path, []byte{0, 1, 2, 3}, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	git(t, root, "add", "identity.p12")
+	result, err := ScanRepo(context.Background(), root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	requireFinding(t, result, "dangerous-filename", sourceRepositoryPath)
+}
+
+func TestDangerousOversizedFilenameFailsBeforeSizeSkip(t *testing.T) {
+	root := initRepo(t)
+	path := filepath.Join(root, "credentials.json")
+	if err := os.WriteFile(path, []byte(strings.Repeat("x", maxFileSize+1)), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	git(t, root, "add", "credentials.json")
+	result, err := ScanRepo(context.Background(), root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	requireFinding(t, result, "dangerous-filename", sourceRepositoryPath)
+}
+
+func scannerAssignment(name, value string) []byte {
+	return []byte(name + "=" + value + "\n")
+}
+
+func requireFinding(t *testing.T, result Result, ruleName, source string) Finding {
+	t.Helper()
+	for _, finding := range result.Findings {
+		if finding.Rule == ruleName && finding.Source == source {
+			return finding
+		}
+	}
+	t.Fatalf("finding not present: rule=%s source=%s findings=%#v", ruleName, source, result.Findings)
+	return Finding{}
+}
+
 func initRepo(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()

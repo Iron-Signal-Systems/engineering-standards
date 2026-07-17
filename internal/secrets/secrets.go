@@ -1,6 +1,7 @@
 package secrets
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -11,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -18,13 +20,19 @@ import (
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/executil"
 )
 
-const maxFileSize = 2 * 1024 * 1024
+const (
+	maxFileSize          = 2 * 1024 * 1024
+	sourceWorkingTree    = "working-tree"
+	sourceStagedIndex    = "staged-index"
+	sourceRepositoryPath = "repository-path"
+)
 
 type Finding struct {
 	ID          string `json:"id"`
 	Rule        string `json:"rule"`
 	Severity    string `json:"severity"`
 	Path        string `json:"path"`
+	Source      string `json:"source"`
 	Line        int    `json:"line"`
 	Column      int    `json:"column"`
 	Fingerprint string `json:"fingerprint"`
@@ -116,52 +124,206 @@ var dangerousBaseNames = map[string]bool{
 	"kubeconfig":       true,
 }
 
+type indexEntry struct {
+	Mode   string
+	Object string
+	Path   string
+}
+
 func ScanRepo(ctx context.Context, root string) (Result, error) {
 	allowlist, err := loadAllowlist(filepath.Join(root, "validation", "secret-allowlist.json"))
 	if err != nil {
 		return Result{}, err
 	}
-	listed := executil.Run(ctx, root, "git", "ls-files", "-z", "--cached", "--others", "--exclude-standard")
-	if listed.Err != nil {
-		return Result{}, fmt.Errorf("list repository files: %w", listed.Err)
+	indexEntries, err := listIndexEntries(ctx, root)
+	if err != nil {
+		return Result{}, err
 	}
-	paths := strings.Split(listed.Stdout, "\x00")
+	untracked, err := listUntrackedPaths(ctx, root)
+	if err != nil {
+		return Result{}, err
+	}
+
+	indexByPath := make(map[string]indexEntry, len(indexEntries))
+	pathSet := make(map[string]struct{}, len(indexEntries)+len(untracked))
+	for _, entry := range indexEntries {
+		indexByPath[entry.Path] = entry
+		pathSet[entry.Path] = struct{}{}
+	}
+	for _, path := range untracked {
+		pathSet[path] = struct{}{}
+	}
+
+	paths := make([]string, 0, len(pathSet))
+	for path := range pathSet {
+		if path == "" || strings.HasPrefix(path, ".local/") {
+			continue
+		}
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+
 	result := Result{}
 	for _, rel := range paths {
-		if rel == "" || strings.HasPrefix(rel, ".local/") {
-			continue
+		pathScanned := false
+
+		if finding, ok := dangerousFilenameFinding(rel); ok {
+			appendFinding(&result, finding, allowlist)
 		}
-		path := filepath.Join(root, filepath.FromSlash(rel))
-		info, err := os.Stat(path)
-		if err != nil || !info.Mode().IsRegular() {
-			result.Skipped++
-			continue
-		}
-		if info.Size() > maxFileSize {
-			result.Skipped++
-			continue
-		}
-		data, err := os.ReadFile(path)
+
+		workData, workPresent, workScannable, err := readWorkingTreeFile(root, rel)
 		if err != nil {
-			return Result{}, fmt.Errorf("read %s: %w", rel, err)
+			return Result{}, err
 		}
-		if !utf8.Valid(data) || containsNUL(data) {
-			result.Skipped++
-			continue
+		if workPresent && workScannable {
+			pathScanned = true
+			appendFindings(&result, scanContent(rel, workData, sourceWorkingTree), allowlist)
 		}
-		result.Scanned++
-		fileFindings := scanFile(filepath.ToSlash(rel), data)
-		for _, finding := range fileFindings {
-			if allowed(finding, allowlist) {
-				result.Allowed = append(result.Allowed, finding)
-			} else {
-				result.Findings = append(result.Findings, finding)
+
+		if entry, ok := indexByPath[rel]; ok {
+			indexData, indexPresent, indexScannable, err := readIndexBlob(ctx, root, entry)
+			if err != nil {
+				return Result{}, err
+			}
+			if indexPresent && indexScannable && (!workScannable || !bytes.Equal(indexData, workData)) {
+				pathScanned = true
+				appendFindings(&result, scanContent(rel, indexData, sourceStagedIndex), allowlist)
 			}
 		}
+
+		if pathScanned {
+			result.Scanned++
+		} else {
+			result.Skipped++
+		}
 	}
+
+	result.Findings = deduplicate(result.Findings)
+	result.Allowed = deduplicate(result.Allowed)
 	sortFindings(result.Findings)
 	sortFindings(result.Allowed)
 	return result, nil
+}
+
+func listIndexEntries(ctx context.Context, root string) ([]indexEntry, error) {
+	listed := executil.Run(ctx, root, "git", "ls-files", "--stage", "-z")
+	if listed.Err != nil {
+		return nil, fmt.Errorf("list staged repository files: %w", listed.Err)
+	}
+	var entries []indexEntry
+	for _, record := range strings.Split(listed.Stdout, "\x00") {
+		if record == "" {
+			continue
+		}
+		tab := strings.IndexByte(record, '\t')
+		if tab < 0 {
+			return nil, errors.New("parse staged repository entry")
+		}
+		fields := strings.Fields(record[:tab])
+		if len(fields) != 3 {
+			return nil, errors.New("parse staged repository entry")
+		}
+		path := filepath.ToSlash(record[tab+1:])
+		if fields[2] != "0" {
+			return nil, fmt.Errorf("unmerged staged repository entry: %s", path)
+		}
+		entries = append(entries, indexEntry{
+			Mode: fields[0], Object: fields[1], Path: path,
+		})
+	}
+	return entries, nil
+}
+
+func listUntrackedPaths(ctx context.Context, root string) ([]string, error) {
+	listed := executil.Run(ctx, root, "git", "ls-files", "-z", "--others", "--exclude-standard")
+	if listed.Err != nil {
+		return nil, fmt.Errorf("list untracked repository files: %w", listed.Err)
+	}
+	var paths []string
+	for _, path := range strings.Split(listed.Stdout, "\x00") {
+		if path != "" {
+			paths = append(paths, filepath.ToSlash(path))
+		}
+	}
+	return paths, nil
+}
+
+func readIndexBlob(ctx context.Context, root string, entry indexEntry) ([]byte, bool, bool, error) {
+	if !strings.HasPrefix(entry.Mode, "100") && entry.Mode != "120000" {
+		return nil, true, false, nil
+	}
+	sizeResult := executil.Run(ctx, root, "git", "cat-file", "-s", entry.Object)
+	if sizeResult.Err != nil {
+		return nil, false, false, fmt.Errorf("inspect staged %s: %w", entry.Path, sizeResult.Err)
+	}
+	size, err := strconv.ParseInt(strings.TrimSpace(sizeResult.Stdout), 10, 64)
+	if err != nil || size < 0 {
+		return nil, false, false, fmt.Errorf("parse staged size for %s", entry.Path)
+	}
+	if size > maxFileSize {
+		return nil, true, false, nil
+	}
+	blobResult := executil.Run(ctx, root, "git", "cat-file", "blob", entry.Object)
+	if blobResult.Err != nil {
+		return nil, false, false, fmt.Errorf("read staged %s: %w", entry.Path, blobResult.Err)
+	}
+	data := []byte(blobResult.Stdout)
+	if !utf8.Valid(data) || containsNUL(data) {
+		return data, true, false, nil
+	}
+	return data, true, true, nil
+}
+
+func readWorkingTreeFile(root, rel string) ([]byte, bool, bool, error) {
+	path := filepath.Join(root, filepath.FromSlash(rel))
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, false, false, nil
+		}
+		return nil, false, false, fmt.Errorf("inspect %s: %w", rel, err)
+	}
+	if !info.Mode().IsRegular() || info.Size() > maxFileSize {
+		return nil, true, false, nil
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, true, false, fmt.Errorf("read %s: %w", rel, err)
+	}
+	if !utf8.Valid(data) || containsNUL(data) {
+		return data, true, false, nil
+	}
+	return data, true, true, nil
+}
+
+func appendFindings(result *Result, findings []Finding, allowlist Allowlist) {
+	for _, finding := range findings {
+		appendFinding(result, finding, allowlist)
+	}
+}
+
+func appendFinding(result *Result, finding Finding, allowlist Allowlist) {
+	if allowed(finding, allowlist) {
+		result.Allowed = append(result.Allowed, finding)
+	} else {
+		result.Findings = append(result.Findings, finding)
+	}
+}
+
+func dangerousFilenameFinding(path string) (Finding, bool) {
+	base := strings.ToLower(filepath.Base(path))
+	if !dangerousBaseNames[base] &&
+		!strings.HasSuffix(base, ".p12") &&
+		!strings.HasSuffix(base, ".pfx") &&
+		!strings.HasSuffix(base, ".key") {
+		return Finding{}, false
+	}
+	return Finding{
+		ID: findingID("dangerous-filename", path, 0), Rule: "dangerous-filename", Severity: "high",
+		Path: path, Source: sourceRepositoryPath, Line: 1, Column: 1,
+		Fingerprint: fingerprint("dangerous-filename", path, []byte(path)),
+		Redactable:  false, Allowable: strings.Contains(path, "testdata/"),
+	}, true
 }
 
 func Find(ctx context.Context, root, id string) (Finding, error) {
@@ -174,7 +336,7 @@ func Find(ctx context.Context, root, id string) (Finding, error) {
 			return finding, nil
 		}
 	}
-	return Finding{}, fmt.Errorf("finding %s is not present in the current working tree", id)
+	return Finding{}, fmt.Errorf("finding %s is not present in the current repository state", id)
 }
 
 func PrepareRedaction(ctx context.Context, root, id string) (string, Finding, error) {
@@ -336,15 +498,15 @@ func ApplyAllow(root, id string) (string, error) {
 
 func scanFile(path string, data []byte) []Finding {
 	var findings []Finding
-	base := strings.ToLower(filepath.Base(path))
-	if dangerousBaseNames[base] || strings.HasSuffix(base, ".p12") || strings.HasSuffix(base, ".pfx") || strings.HasSuffix(base, ".key") {
-		fingerprint := fingerprint("dangerous-filename", path, []byte(path))
-		findings = append(findings, Finding{
-			ID: findingID("dangerous-filename", path, 0), Rule: "dangerous-filename", Severity: "high",
-			Path: path, Line: 1, Column: 1, Fingerprint: fingerprint,
-			Redactable: false, Allowable: strings.Contains(path, "testdata/"),
-		})
+	if finding, ok := dangerousFilenameFinding(path); ok {
+		findings = append(findings, finding)
 	}
+	findings = append(findings, scanContent(path, data, sourceWorkingTree)...)
+	return deduplicate(findings)
+}
+
+func scanContent(path string, data []byte, source string) []Finding {
+	var findings []Finding
 	for _, current := range rules {
 		matches := current.pattern.FindAllSubmatchIndex(data, -1)
 		for _, match := range matches {
@@ -364,9 +526,9 @@ func scanFile(path string, data []byte) []Finding {
 				allowable = false
 			}
 			findings = append(findings, Finding{
-				ID: findingID(current.name, path, start), Rule: current.name, Severity: current.severity,
-				Path: path, Line: line, Column: column, Fingerprint: fp,
-				Redactable: current.redactable, Allowable: allowable,
+				ID: findingIDForSource(current.name, path, start, source), Rule: current.name, Severity: current.severity,
+				Path: path, Source: source, Line: line, Column: column, Fingerprint: fp,
+				Redactable: current.redactable && source != sourceStagedIndex, Allowable: allowable,
 				Start: start, End: end,
 			})
 		}
@@ -435,12 +597,20 @@ func fingerprint(ruleName, path string, value []byte) string {
 }
 
 func findingID(ruleName, path string, offset int) string {
+	return findingIDForSource(ruleName, path, offset, sourceWorkingTree)
+}
+
+func findingIDForSource(ruleName, path string, offset int, source string) string {
 	h := sha256.New()
 	h.Write([]byte(ruleName))
 	h.Write([]byte{0})
 	h.Write([]byte(filepath.ToSlash(path)))
 	h.Write([]byte{0})
 	h.Write([]byte(fmt.Sprintf("%d", offset)))
+	if source != "" && source != sourceWorkingTree {
+		h.Write([]byte{0})
+		h.Write([]byte(source))
+	}
 	value := hex.EncodeToString(h.Sum(nil))
 	return "ISSEC-" + strings.ToUpper(value[:16])
 }

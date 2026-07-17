@@ -182,7 +182,7 @@ func (r *Runner) Secrets(ctx context.Context) []model.Check {
 	}
 	for _, finding := range result.Findings {
 		actions := secretActions(r.Command, finding)
-		detail := fmt.Sprintf("%s · %s:%d · %s", finding.ID, finding.Path, finding.Line, finding.Rule)
+		detail := fmt.Sprintf("%s · %s:%d · %s · %s", finding.ID, finding.Path, finding.Line, finding.Rule, valueOr(finding.Source, "working-tree"))
 		check := model.Check{Section: "SECRET PROTECTION", Name: "Possible sensitive value", Status: model.Fail, Detail: detail, Actions: actions}
 		check.LogPath = r.simpleFailure("secret "+finding.ID, "no unresolved sensitive-value findings", detail+" · detected value [REDACTED]", actions)
 		checks = append(checks, check)
@@ -363,6 +363,16 @@ func secretActions(command string, finding secrets.Finding) []model.Action {
 		Label: "READ ONLY", Description: "Inspect finding metadata without displaying the detected value:",
 		Command: command + " secrets inspect " + finding.ID,
 	}}
+	if finding.Source == "staged-index" {
+		path := shellPath(finding.Path)
+		actions = append(actions, model.Action{
+			Label: "READ ONLY", Description: "Confirm the affected path is staged without displaying its content:",
+			Command: "git status --short -- " + path,
+		}, model.Action{
+			Label: "MODIFIES INDEX", Description: "Unstage the affected path before correcting and restaging it:",
+			Command: "git restore --staged -- " + path,
+		})
+	}
 	if finding.Redactable {
 		actions = append(actions, model.Action{
 			Label: "CREATES LOCAL PLAN", Description: "Prepare a redaction plan without changing source:",
