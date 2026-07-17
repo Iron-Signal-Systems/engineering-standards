@@ -26,10 +26,41 @@ The exporter copies:
 
 - `cmd/isras-validate/`;
 - validator packages under `internal/isras/`;
-- scanner and dashboard unit tests;
+- scanner, dashboard, and validator-identity unit tests;
+- `validation/isras-validator-identity.json`;
 - `validation/secret-allowlist.json`;
 - `validation/tool-versions.json`;
 - `tools/isras/build-validator.sh`.
+
+## Validator identity boundary
+
+The reference validator reads committed identity metadata from
+`validation/isras-validator-identity.json`. Its declared standard version must
+match the repository `VERSION` file. A mismatch is a validation startup failure,
+not a cosmetic warning.
+
+During export, the exporter replaces reference ownership with
+`project-owned-export` and records:
+
+- the declared ISRAS profile and standard version;
+- the canonical Engineering Standards source repository;
+- the exact Engineering Standards source commit used for the export;
+- the adopting project's Go module path.
+
+The target repository's current commit is discovered at runtime and is reported
+separately from the immutable export source commit. This prevents an exported
+validator from presenting itself as the live Engineering Standards repository or
+from silently inheriting a later development version.
+
+After building the target-owned validator, inspect the identity directly:
+
+```bash
+./.local/bin/isras-validate version
+```
+
+The normal validation dashboard also includes the version and ownership class in
+its header. Updating an exported validator is a new reviewed export with a new
+source commit, not an implicit upstream change.
 
 ## Transactional export boundary
 

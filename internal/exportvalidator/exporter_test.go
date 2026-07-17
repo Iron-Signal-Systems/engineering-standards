@@ -1,6 +1,7 @@
 package exportvalidator
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -34,10 +35,76 @@ func TestExporterAcceptsOrdinaryCloneAndStagesValidatedExport(t *testing.T) {
 		"internal/isras/secrets/secrets.go",
 		"internal/isras/validation/validation.go",
 		"internal/isras/validation/validation_test.go",
+		"internal/isras/validatoridentity/identity.go",
+		"internal/isras/validatoridentity/identity_test.go",
 		"tools/isras/build-validator.sh",
+		"validation/isras-validator-identity.json",
 		"validation/secret-allowlist.json",
 		"validation/tool-versions.json",
 	)
+}
+
+func TestExporterPinsImmutableProjectOwnedIdentity(t *testing.T) {
+	source := createSourceFixture(t, false)
+	target := createTargetFixture(t, targetOptions{})
+
+	output, err := runExporter(source, target, false)
+	if err != nil {
+		t.Fatalf("export failed: %v\n%s", err, output)
+	}
+
+	data := readFile(t, filepath.Join(target, "validation", "isras-validator-identity.json"))
+	var identity struct {
+		SchemaVersion    int    `json:"schema_version"`
+		Profile          string `json:"profile"`
+		StandardVersion  string `json:"standard_version"`
+		Ownership        string `json:"ownership"`
+		SourceRepository string `json:"source_repository"`
+		SourceCommit     string `json:"source_commit"`
+		TargetModule     string `json:"target_module"`
+	}
+	if err := json.Unmarshal([]byte(data), &identity); err != nil {
+		t.Fatal(err)
+	}
+
+	sourceHead := strings.TrimSpace(git(t, source, "rev-parse", "HEAD"))
+	if identity.SchemaVersion != 1 || identity.Profile != "ISRAS-SD" {
+		t.Fatalf("unexpected identity schema/profile: %#v", identity)
+	}
+	if identity.StandardVersion != "0.1.1-development" {
+		t.Fatalf("unexpected standard version: %s", identity.StandardVersion)
+	}
+	if identity.Ownership != "project-owned-export" {
+		t.Fatalf("unexpected ownership: %s", identity.Ownership)
+	}
+	if identity.SourceRepository != "github.com/Iron-Signal-Systems/engineering-standards" {
+		t.Fatalf("unexpected source repository: %s", identity.SourceRepository)
+	}
+	if identity.SourceCommit != sourceHead {
+		t.Fatalf("source commit mismatch: got %s want %s", identity.SourceCommit, sourceHead)
+	}
+	if identity.TargetModule != "example.com/target" {
+		t.Fatalf("target module mismatch: %s", identity.TargetModule)
+	}
+	if !strings.Contains(output, "ISRAS source:    "+identity.SourceRepository+"@"+sourceHead) {
+		t.Fatalf("identity evidence missing from output:\n%s", output)
+	}
+}
+
+func TestExporterRejectsSourceIdentityVersionDrift(t *testing.T) {
+	source := createSourceFixture(t, false)
+	target := createTargetFixture(t, targetOptions{})
+	path := filepath.Join(source, "validation", "isras-validator-identity.json")
+	data := strings.Replace(readFile(t, path), "0.1.1-development", "0.1.0-development", 1)
+	writeFile(t, path, data, 0o644)
+	git(t, source, "add", path)
+	git(t, source, "commit", "-q", "-m", "drift identity")
+
+	output, err := runExporter(source, target, false)
+	if err == nil || !strings.Contains(output, "identity version does not match VERSION") {
+		t.Fatalf("expected source identity drift rejection: err=%v\n%s", err, output)
+	}
+	requireClean(t, target)
 }
 
 func TestExporterAcceptsLinkedWorktree(t *testing.T) {
@@ -232,6 +299,7 @@ func createSourceFixtureWithDependency(t *testing.T, dependency string) string {
 	)
 
 	writeFile(t, filepath.Join(root, "go.mod"), "module github.com/Iron-Signal-Systems/engineering-standards\n\ngo 1.23.0\n", 0o644)
+	writeFile(t, filepath.Join(root, "VERSION"), "0.1.1-development\n", 0o644)
 	writeFile(t, filepath.Join(root, "cmd", "isras-validate", "main.go"), `package main
 
 import (
@@ -246,6 +314,16 @@ func main() { fmt.Println(validation.Message()) }
 	for _, name := range packages {
 		writeFile(t, filepath.Join(root, "internal", name, name+".go"), "package "+name+"\n", 0o644)
 	}
+	copyFile(t,
+		filepath.Join(repositoryRoot, "internal", "validatoridentity", "identity.go"),
+		filepath.Join(root, "internal", "validatoridentity", "identity.go"),
+		0o644,
+	)
+	copyFile(t,
+		filepath.Join(repositoryRoot, "internal", "validatoridentity", "identity_test.go"),
+		filepath.Join(root, "internal", "validatoridentity", "identity_test.go"),
+		0o644,
+	)
 
 	validationSource := "package validation\n\nfunc Message() string { return \"ok\" }\n"
 	if dependency != "" {
@@ -263,6 +341,14 @@ import "testing"
 
 func TestMessage(t *testing.T) {
 	if Message() == "" { t.Fatal("empty") }
+}
+`, 0o644)
+	writeFile(t, filepath.Join(root, "validation", "isras-validator-identity.json"), `{
+  "schema_version": 1,
+  "profile": "ISRAS-SD",
+  "standard_version": "0.1.1-development",
+  "ownership": "reference-repository",
+  "source_repository": "github.com/Iron-Signal-Systems/engineering-standards"
 }
 `, 0o644)
 	writeFile(t, filepath.Join(root, "validation", "secret-allowlist.json"), "{\"version\":1,\"entries\":[]}\n", 0o644)

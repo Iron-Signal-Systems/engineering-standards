@@ -14,11 +14,15 @@ The target must:
   - be a clean, non-bare Git working tree;
   - contain a go.mod file;
   - not already contain cmd/isras-validate or internal/isras;
-  - not already contain validation/secret-allowlist.json.
+  - not already contain validator source or identity paths.
 
 Normal mode may update go.mod and go.sum through go mod tidy when the copied
 validator changes the target import graph. Existing module requirements may be
 promoted from indirect to direct, but they may not be removed or change version.
+
+The export records the exact Engineering Standards version and source commit in
+validation/isras-validator-identity.json. The target owns the copied source; it
+does not silently track later Engineering Standards changes.
 
 The export does not commit or push the target project.
 USAGE
@@ -53,6 +57,30 @@ run_go() {
     "${go_timeout_seconds}s" go "$@"
 }
 
+json_string_field() {
+  local field="$1" path="$2"
+  awk -v field="$field" '
+    match($0, "^[[:space:]]*\"" field "\"[[:space:]]*:[[:space:]]*\"") {
+      line=substr($0, RSTART+RLENGTH)
+      sub(/\".*$/, "", line)
+      print line
+      exit
+    }
+  ' "$path"
+}
+
+json_number_field() {
+  local field="$1" path="$2"
+  awk -v field="$field" '
+    match($0, "^[[:space:]]*\"" field "\"[[:space:]]*:[[:space:]]*[0-9]+") {
+      line=substr($0, RSTART, RLENGTH)
+      sub(/^.*:[[:space:]]*/, "", line)
+      print line
+      exit
+    }
+  ' "$path"
+}
+
 source_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 [[ -n "$source_root" ]] || {
   echo "ERROR: run from the engineering-standards repository" >&2
@@ -64,6 +92,51 @@ if [[ -n "$(git -C "$source_root" status --porcelain=v1 --untracked-files=all)" 
   git -C "$source_root" status --short --branch >&2
   exit 1
 fi
+
+source_head="$(git -C "$source_root" rev-parse --verify HEAD)"
+[[ "$source_head" =~ ^[0-9a-f]{40}$ ]] || {
+  echo "ERROR: unable to resolve exact Engineering Standards source commit" >&2
+  exit 1
+}
+
+source_version_path="$source_root/VERSION"
+source_identity_path="$source_root/validation/isras-validator-identity.json"
+[[ -f "$source_version_path" ]] || {
+  echo "ERROR: Engineering Standards VERSION is missing" >&2
+  exit 1
+}
+[[ -f "$source_identity_path" ]] || {
+  echo "ERROR: Engineering Standards validator identity metadata is missing" >&2
+  exit 1
+}
+
+source_version="$(tr -d '\r\n' < "$source_version_path")"
+source_schema="$(json_number_field schema_version "$source_identity_path")"
+source_profile="$(json_string_field profile "$source_identity_path")"
+source_identity_version="$(json_string_field standard_version "$source_identity_path")"
+source_ownership="$(json_string_field ownership "$source_identity_path")"
+source_repository="$(json_string_field source_repository "$source_identity_path")"
+
+[[ "$source_schema" == "1" ]] || {
+  echo "ERROR: unsupported source validator identity schema: ${source_schema:-missing}" >&2
+  exit 1
+}
+[[ "$source_profile" == "ISRAS-SD" ]] || {
+  echo "ERROR: unexpected source validator profile: ${source_profile:-missing}" >&2
+  exit 1
+}
+[[ "$source_identity_version" == "$source_version" ]] || {
+  echo "ERROR: source validator identity version does not match VERSION" >&2
+  exit 1
+}
+[[ "$source_ownership" == "reference-repository" ]] || {
+  echo "ERROR: source validator identity is not reference-repository ownership" >&2
+  exit 1
+}
+[[ "$source_repository" == "github.com/Iron-Signal-Systems/engineering-standards" ]] || {
+  echo "ERROR: unexpected source validator repository identity" >&2
+  exit 1
+}
 
 target_input="$(realpath -e "$1")"
 git -C "$target_input" rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
@@ -93,6 +166,7 @@ readonly -a export_paths=(
   ".gitignore"
   "cmd/isras-validate"
   "internal/isras"
+  "validation/isras-validator-identity.json"
   "validation/secret-allowlist.json"
   "validation/tool-versions.json"
   "tools/isras/build-validator.sh"
@@ -101,6 +175,7 @@ readonly -a export_paths=(
 for path in \
   cmd/isras-validate \
   internal/isras \
+  validation/isras-validator-identity.json \
   validation/secret-allowlist.json \
   validation/tool-versions.json \
   tools/isras/build-validator.sh; do
@@ -114,6 +189,10 @@ target_head="$(git -C "$target" rev-parse --verify HEAD)"
 target_module="$(cd "$target" && run_go list -m -f '{{.Path}}')"
 [[ -n "$target_module" ]] || {
   echo "ERROR: unable to resolve target module path" >&2
+  exit 1
+}
+[[ "$target_module" =~ ^[A-Za-z0-9._~+!/-]+$ ]] || {
+  echo "ERROR: target module path cannot be represented safely in identity metadata" >&2
   exit 1
 }
 
@@ -136,6 +215,7 @@ rollback_target() {
     .gitignore \
     cmd/isras-validate \
     internal/isras \
+    validation/isras-validator-identity.json \
     validation/secret-allowlist.json \
     validation/tool-versions.json \
     tools/isras/build-validator.sh \
@@ -197,6 +277,7 @@ is_allowed_export_path() {
     .gitignore|go.mod|go.sum|\
     cmd/isras-validate|cmd/isras-validate/*|\
     internal/isras|internal/isras/*|\
+    validation/isras-validator-identity.json|\
     validation/secret-allowlist.json|\
     validation/tool-versions.json|\
     tools/isras/build-validator.sh)
@@ -219,13 +300,24 @@ mkdir -p \
   "$scratch/tools/isras"
 
 cp -a "$source_root/cmd/isras-validate" "$scratch/cmd/"
-for package in dashboard executil failurelog model redact repository secrets validation; do
+for package in dashboard executil failurelog model redact repository secrets validation validatoridentity; do
   cp -a "$source_root/internal/$package" "$scratch/internal/isras/$package"
 done
 cp "$source_root/validation/secret-allowlist.json" \
   "$scratch/validation/secret-allowlist.json"
 cp "$source_root/validation/tool-versions.json" \
   "$scratch/validation/tool-versions.json"
+cat > "$scratch/validation/isras-validator-identity.json" <<IDENTITY
+{
+  "schema_version": 1,
+  "profile": "$source_profile",
+  "standard_version": "$source_version",
+  "ownership": "project-owned-export",
+  "source_repository": "$source_repository",
+  "source_commit": "$source_head",
+  "target_module": "$target_module"
+}
+IDENTITY
 cp "$source_root/tools/build-validator.sh" \
   "$scratch/tools/isras/build-validator.sh"
 chmod 0755 "$scratch/tools/isras/build-validator.sh"
@@ -283,6 +375,7 @@ git add -- \
   go.mod \
   cmd/isras-validate \
   internal/isras \
+  validation/isras-validator-identity.json \
   validation/secret-allowlist.json \
   validation/tool-versions.json \
   tools/isras/build-validator.sh
@@ -318,12 +411,15 @@ if [[ "$mode" == "dry-run" ]]; then
 
 PROJECT VALIDATOR EXPORT DRY RUN PASSED
 ────────────────────────────────────────────────────────────────────
-Target:        $target
-Target commit: $target_head
-Go module:     $target_module
-Modified:      no
-Committed:     no
-Pushed:        no
+Target:          $target
+Target commit:   $target_head
+Go module:       $target_module
+ISRAS version:   $source_version
+ISRAS source:    $source_repository@$source_head
+Ownership:       project-owned-export
+Modified:        no
+Committed:       no
+Pushed:          no
 
 Proposed staged paths:
 $(printf '  %s\n' "${scratch_paths[@]}")
@@ -380,15 +476,18 @@ cat <<RESULT
 
 PROJECT VALIDATOR EXPORTED TRANSACTIONALLY
 ────────────────────────────────────────────────────────────────────
-Target:        $target
-Target commit: $target_head
-Go module:     $target_module
-Source owned:  yes — copied into the target repository
-Scratch tested: yes
-Target tested:  yes
-Staged:         yes
-Committed:      no
-Pushed:         no
+Target:          $target
+Target commit:   $target_head
+Go module:       $target_module
+ISRAS version:   $source_version
+ISRAS source:    $source_repository@$source_head
+Ownership:       project-owned-export
+Source owned:    yes — copied into the target repository
+Scratch tested:  yes
+Target tested:   yes
+Staged:          yes
+Committed:       no
+Pushed:          no
 
 Review the staged export:
   cd '$target'
@@ -398,6 +497,9 @@ Review the staged export:
 
 Build the target-owned validator:
   ./tools/isras/build-validator.sh
+
+Inspect the immutable validator identity:
+  ./.local/bin/isras-validate version
 
 Run project validation:
   ./.local/bin/isras-validate all

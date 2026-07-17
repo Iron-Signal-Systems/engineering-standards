@@ -32,6 +32,28 @@ required version in `validation/tool-versions.json`. If the tool or current
 vulnerability data is unavailable, validation shall not claim that no known
 vulnerability exists.
 
+### Validator version and source identity
+
+A repository-owned validator shall report a committed, machine-readable identity.
+The identity shall distinguish the Engineering Standards reference repository from
+a project-owned export and shall include, as applicable:
+
+- the ISRAS profile and declared standard version;
+- the canonical Engineering Standards source repository;
+- the exact source commit used for an export;
+- the adopting Go module;
+- the current repository commit where the validator is running.
+
+Reference identity metadata shall match the repository `VERSION` file. Exported
+identity metadata shall pin an exact source commit and shall not claim reference
+repository ownership. Unknown identity fields, unsupported schema versions,
+invalid commit identities, missing target modules, and version drift shall fail
+closed before validation results are rendered.
+
+The validator shall expose this evidence through a dedicated `version` command and
+shall include the ownership class in normal dashboard headers. Project-owned
+exports do not silently inherit later Engineering Standards versions.
+
 ### Transactional project-validator export
 
 A project-owned validator export shall be assembled and validated against a
