@@ -34,9 +34,24 @@ vulnerability exists.
 
 ## 3. Secret protection
 
-Tracked and staged source shall be scanned for likely credentials, private key
-material, authorization headers, embedded URL credentials, dangerous credential
-filenames, and suspicious sensitive assignments.
+Tracked, staged, modified, and untracked source shall be scanned for likely
+credentials, private key material, authorization headers, embedded URL
+credentials, dangerous credential filenames, and suspicious sensitive
+assignments.
+
+The working tree and staged Git index are separate evidence sources. A clean
+working-tree copy shall not conceal sensitive content already staged for commit,
+and a clean staged copy shall not conceal sensitive content present only in the
+working tree. Identical index and working-tree content may be scanned once.
+
+Dangerous credential filenames shall be evaluated before content-size,
+text-encoding, or binary-content skips. A credential container does not become
+acceptable merely because its contents are binary or exceed the text-scanning
+limit.
+
+Staged-index findings shall be identified as staged evidence and shall not offer
+automatic working-tree redaction. The affected path must be unstaged, corrected,
+restaged, and revalidated.
 
 The scanner shall:
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Corrected the secret-scanning boundary so staged Git-index content and
+  working-tree content are evaluated independently. A clean working-tree copy can
+  no longer conceal a staged finding, and dangerous credential filenames now
+  fail before binary, encoding, or size-based content skips.
 - Added required native CI validation for Ubuntu Server 22.04 LTS alongside the
   existing Ubuntu Server 24.04 LTS validation, plus official OCI userland CI for
   Arch Linux and supported Fedora Server 43 and 44 release lines. Added weekly
