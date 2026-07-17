@@ -6,8 +6,12 @@ on:
       - dev
   push:
     branches:
+      - dev
       - feature/**
       - fix/**
+  schedule:
+    - cron: "17 10 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
