@@ -164,6 +164,17 @@ jobs:
           go-version-file: go.mod
           cache: false
 
+      - name: Establish container Git workspace trust
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+          test "$(git rev-parse --show-toplevel)" = "$GITHUB_WORKSPACE"
+          git status --short --branch
+          git log -1 --format='commit=%H'
+
       - name: Record platform evidence
         shell: bash
         run: |
