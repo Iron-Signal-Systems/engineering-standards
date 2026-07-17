@@ -91,6 +91,35 @@ is a GitHub API operation rather than Git repository transport.
 The command checks `gh auth status` before attempting publication. It never asks
 for, displays, or stores an authentication token itself.
 
+## Output censoring boundary
+
+Release automation shall censor terminal output and retained workflow logs before
+bytes reach either destination. The same censoring boundary applies to:
+
+- displayed command arguments;
+- streamed child-process standard output and standard error;
+- captured command output written to logs;
+- command failures and wrapped errors;
+- read-retry diagnostics;
+- remote URLs and GitHub CLI diagnostics; and
+- final workflow summaries and failure reasons.
+
+Structured command output may remain uncensored only in bounded process memory
+for the minimum time required to parse authoritative Git or GitHub state. It
+shall be censored before it is logged, displayed, or incorporated into an error.
+
+Credential-shaped assignments and command flags, authorization headers, URL
+userinfo, supported GitHub, AWS, and Slack token forms, and private-key material
+shall be replaced with explicit `[REDACTED]` markers. Multiline private-key
+blocks shall be suppressed across write boundaries rather than handled as
+independent lines.
+
+An incomplete output line is bounded to 64 KiB and captured subprocess output is
+bounded to 1 MiB. Content exceeding those limits is discarded or truncated with
+an explicit marker rather than emitted without complete censoring context.
+Censoring does not change a command's exit status or convert a failed release
+stage into a pass.
+
 ## Failure behavior
 
 Every invocation writes a private local log under:
