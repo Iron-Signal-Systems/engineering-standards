@@ -11,6 +11,11 @@ Artifact verification does not execute the validator, extract an archive, modify
 project source, update the pin, select another release, commit, push, merge, tag,
 or publish.
 
+The corresponding producer-side contract is
+[`RELEASE-ARTIFACT-PRODUCTION.md`](RELEASE-ARTIFACT-PRODUCTION.md). Production and
+verification remain separate authorities: producing bytes does not authorize
+their execution, and verifying local bytes does not prove online release identity.
+
 ## Commands
 
 The reference validator exposes:

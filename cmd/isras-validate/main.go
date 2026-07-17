@@ -118,6 +118,9 @@ func renderIdentity(writer io.Writer, identity validatoridentity.Identity) {
 	fmt.Fprintf(writer, "Profile:           %s\n", identity.Profile)
 	fmt.Fprintf(writer, "Standard version:  %s\n", identity.StandardVersion)
 	fmt.Fprintf(writer, "Ownership:         %s\n", identity.Ownership)
+	if identity.ReleaseTag != "" {
+		fmt.Fprintf(writer, "Release tag:       %s\n", identity.ReleaseTag)
+	}
 	fmt.Fprintf(writer, "Source repository: %s\n", identity.SourceRepository)
 	fmt.Fprintf(writer, "Source commit:     %s\n", identity.SourceCommit)
 	if identity.TargetModule != "" {

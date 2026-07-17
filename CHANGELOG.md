@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Added deterministic release-artifact production from an exact signed source
+  commit and annotated release tag. The producer embeds immutable release
+  identity into the external validator, builds normalized framework and contract
+  archives from committed sorted file lists, generates v1 provenance and both
+  checksum manifests, records complete private build evidence, and commits the
+  exact six-file artifact set atomically. Production performs no publication,
+  archive extraction, consuming-project validation, or remote write.
+
 - Added fail-closed release-artifact acquisition and verification. The project
   pin can now select an exact published GitHub release, require a GitHub-verified
   signed annotated tag at the pinned commit, acquire only declared assets,
