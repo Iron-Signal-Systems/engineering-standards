@@ -6,13 +6,13 @@ import (
 )
 
 func TestStableVersionPattern(t *testing.T) {
-	accepted := []string{"0.1.0", "1.0.0", "12.34.56"}
+	accepted := []string{"0.1.0", "0.1.1", "1.0.0", "12.34.56"}
 	for _, value := range accepted {
 		if !stableVersionPattern.MatchString(value) {
 			t.Fatalf("stable version %q was rejected", value)
 		}
 	}
-	rejected := []string{"0.1", "v0.1.0", "0.1.0-development", "0.1.0+build", ""}
+	rejected := []string{"0.1", "v0.1.0", "0.1.0-development", "0.1.1-development", "0.1.0+build", ""}
 	for _, value := range rejected {
 		if stableVersionPattern.MatchString(value) {
 			t.Fatalf("non-stable version %q was accepted", value)

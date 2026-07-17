@@ -20,6 +20,12 @@ versioned, validated, accepted, and maintained.
 
 ## Current implementation profile
 
+The active `dev` branch declares `0.1.1-development`. The stable published
+baseline remains `0.1.0` on `main` and under the signed `isras-v0.1.0` tag.
+Development versions are intentionally ineligible for release publication until
+a deliberate release-preparation change replaces the suffix with a stable
+`MAJOR.MINOR.PATCH` value and finalizes matching release artifacts.
+
 This repository implements the **ISRAS Solo Developer Baseline** as a practical
 baseline for a single developer while retaining truthful engineering discipline
 and a path toward the complete ISRAS vision.

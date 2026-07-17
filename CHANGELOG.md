@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Started the `0.1.1-development` cycle after publishing and freezing
+  `isras-v0.1.0`; active `dev` work is now explicitly non-release source.
 - Corrected `isras-release check` so an existing local or remote release tag
   bound to a different commit fails before the expensive validation campaign;
   tag identity is checked again after validation to detect intervening changes.
