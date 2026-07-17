@@ -21,3 +21,8 @@
   OpenPGP keys, GitHub web-flow commits, and SSH allowed-signers failures.
 - Removed automatic commit-amendment guidance from signature remediation and
   added regression tests proving that unsafe recommendation cannot return.
+
+- Added repository-owned clean-clone release validation that proves the exact
+  pushed branch tip, clones the canonical origin, checks out the exact commit,
+  rebuilds committed validation tooling, runs release-mode validation, and
+  retains local review evidence.

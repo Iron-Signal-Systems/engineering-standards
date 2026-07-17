@@ -67,3 +67,12 @@ A release shall additionally require:
 
 Independent review shall be recorded only when performed by a qualified person
 other than the author.
+
+## Clean-clone validation
+
+Before a release tag is created, the exact pushed candidate commit shall pass
+the repository-owned clean-clone campaign defined in
+[`CLEAN-CLONE-RELEASE-VALIDATION.md`](CLEAN-CLONE-RELEASE-VALIDATION.md).
+
+The campaign retains local review evidence but does not itself create a tag or
+make a release claim.
