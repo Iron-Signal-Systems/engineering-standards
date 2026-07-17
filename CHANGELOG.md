@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Made project-validator export transactional: ordinary clones and linked
+  worktrees are validated in an exact-commit scratch clone, deterministic module
+  changes are applied and staged, existing requirements cannot disappear or
+  change version, and failed applied validation restores the target boundary.
 - Corrected secret-scanner semantics for approved external-secret references,
   Go identifier and selector expressions, Go comments, and shell dynamic
   assignments while preserving detection of string literals, malformed source,
@@ -34,7 +38,7 @@
   `govulncheck` checks.
 - Added repository-owned secret detection with censored output, deterministic
   finding identifiers, redaction plans, and bounded allowlist proposals.
-- Required a local `*.log` for each failed validation check.
+- Required a local `*.log` for every failed validation check.
 - Required exact, context-specific remediation commands in terminal output.
 - Declared Arch Linux as the primary development platform, with supported
   Ubuntu Server LTS and Fedora Server releases as default server targets.
