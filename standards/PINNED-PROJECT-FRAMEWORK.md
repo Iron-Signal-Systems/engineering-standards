@@ -13,12 +13,16 @@ Publication of `0.1.6` does not silently alter the project.
 
 ## The project pin
 
-Every adopting project shall commit one authoritative project pin. The final
-path and schema are release artifacts; the intended boundary is:
+Every adopting project shall commit one authoritative project pin at:
 
 ```text
 .isras/project.json
 ```
+
+The v1 machine-readable contract is committed at
+[`schemas/isras-project-v1.schema.json`](../schemas/isras-project-v1.schema.json).
+The strict standard-library Go parser is documented in
+[`standards/PROJECT-PIN-SCHEMA.md`](PROJECT-PIN-SCHEMA.md).
 
 The pin identifies at least:
 
@@ -32,6 +36,10 @@ The pin identifies at least:
 - project identity;
 - project-owned validation declaration;
 - compatibility or migration metadata required by the release.
+
+The v1 parser validates structure and identity only. It does not download
+artifacts, execute project commands, verify a remote release, or modify the
+project. Those authorities remain separate later implementation steps.
 
 Human-readable version, immutable tag, exact commit, and artifact digest are all
 required. A floating branch, `latest`, mutable download URL without a digest, or

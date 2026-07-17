@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Added the strict v1 `.isras/project.json` schema, standard-library Go parser,
+  read-only project-pin declaration validation and inspection commands, release
+  and workflow identity checks, artifact digest requirements, Go profile command
+  declarations, bounded evidence paths, and hostile JSON regression tests.
+  Terminal output truthfully labels artifact metadata as declared and unverified,
+  abbreviates digest fingerprints, and performs no artifact acquisition, hashing,
+  comparison, execution, or project mutation.
+
 - Defined the pinned project framework: language-neutral ISRAS core
   requirements, language and platform profiles, Go as the first reference
   profile, immutable project release pins, external validator execution,

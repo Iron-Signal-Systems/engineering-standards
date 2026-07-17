@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Iron-Signal-Systems/engineering-standards/schemas/isras-project-v1.schema.json",
+  "title": "ISRAS Project Pin v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project",
+    "standard",
+    "artifacts",
+    "workflow",
+    "profiles",
+    "commands",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^github\\.com/Iron-Signal-Systems/[A-Za-z0-9][A-Za-z0-9._-]{0,99}$"
+        }
+      }
+    },
+    "standard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "version",
+        "release_tag",
+        "source_repository",
+        "source_commit"
+      ],
+      "properties": {
+        "profile": {
+          "const": "ISRAS-SD"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "release_tag": {
+          "type": "string",
+          "pattern": "^isras-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "source_repository": {
+          "const": "github.com/Iron-Signal-Systems/engineering-standards"
+        },
+        "source_commit": {
+          "$ref": "#/$defs/commit"
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "path", "commit"],
+      "properties": {
+        "repository": {
+          "const": "github.com/Iron-Signal-Systems/engineering-standards"
+        },
+        "path": {
+          "const": ".github/workflows/validate-project.yml"
+        },
+        "commit": {
+          "$ref": "#/$defs/commit"
+        }
+      }
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["go"]
+      }
+    },
+    "commands": {
+      "type": "object",
+      "minProperties": 7,
+      "maxProperties": 64,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+      },
+      "required": [
+        "format_check",
+        "static_analysis",
+        "test",
+        "build",
+        "module_consistency",
+        "module_integrity",
+        "known_vulnerabilities"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/command"
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["directory"],
+      "properties": {
+        "directory": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$",
+          "not": {
+            "pattern": "(^|/)\\.{1,2}($|/)|^\\.git($|/)"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "not": {
+        "const": "0000000000000000000000000000000000000000"
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "not": {
+        "const": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "sha512": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$",
+      "not": {
+        "const": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name", "sha256", "sha512"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "validator",
+            "framework",
+            "contracts",
+            "provenance",
+            "sha256-manifest",
+            "sha512-manifest",
+            "migration"
+          ]
+        },
+        "os": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,31}$"
+        },
+        "arch": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,31}$"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "sha512": {
+          "$ref": "#/$defs/sha512"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "validator"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["os", "arch"]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {"required": ["os"]},
+                {"required": ["arch"]}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "command": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4096,
+        "pattern": "^[^\\u0000\\r\\n]+$"
+      }
+    }
+  }
+}
