@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/executil"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/failurelog"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/model"
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/projectpin"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/repository"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/secrets"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/validation"
@@ -61,6 +63,8 @@ func run() int {
 		return render(validatorIdentity.Header(), model.Summary{Checks: runner.System(ctx)})
 	case "repo", "repository":
 		return render(validatorIdentity.Header(), model.Summary{Checks: runner.Repository(ctx)})
+	case "project-pin":
+		return runProjectPin(runner, args[1:])
 	case "go":
 		return runGo(ctx, runner, validatorIdentity.Header(), args[1:])
 	case "secrets":
@@ -120,6 +124,91 @@ func renderIdentity(writer io.Writer, identity validatoridentity.Identity) {
 		fmt.Fprintf(writer, "Target module:     %s\n", identity.TargetModule)
 	}
 	fmt.Fprintf(writer, "Repository commit: %s\n", identity.RepositoryCommit)
+}
+
+func runProjectPin(runner *validation.Runner, args []string) int {
+	action := "validate"
+	if len(args) > 0 {
+		if len(args) != 1 {
+			fmt.Fprintln(os.Stderr, "FAIL: project-pin accepts one action: validate or inspect")
+			return 2
+		}
+		action = args[0]
+	}
+	if action != "validate" && action != "inspect" {
+		fmt.Fprintf(os.Stderr, "FAIL: unknown project-pin action %q\n", action)
+		return 2
+	}
+
+	pin, err := projectpin.Load(runner.Root)
+	if err != nil {
+		return actionFailure(runner, action+" project pin", err)
+	}
+	if action == "validate" {
+		renderProjectPinValidation(os.Stdout, pin)
+		return 0
+	}
+
+	renderProjectPin(os.Stdout, pin)
+	return 0
+}
+
+func renderProjectPinValidation(writer io.Writer, pin projectpin.Pin) {
+	fmt.Fprintln(writer, "PROJECT PIN DECLARATION VALIDATION")
+	fmt.Fprintln(writer, "==================================")
+	fmt.Fprintln(writer, "Declaration status:    PASS")
+	fmt.Fprintln(writer, "Validation scope:      metadata structure and identity only")
+	fmt.Fprintln(writer, "Artifact verification: NOT PERFORMED")
+	fmt.Fprintf(writer, "Path:                  %s\n", projectpin.MetadataPath)
+	fmt.Fprintf(writer, "Project:               %s\n", pin.Project.Repository)
+	fmt.Fprintf(writer, "ISRAS release:         %s\n", pin.Standard.ReleaseTag)
+	fmt.Fprintf(writer, "Source commit:         %s\n", pin.Standard.SourceCommit)
+}
+
+func renderProjectPin(writer io.Writer, pin projectpin.Pin) {
+	commandNames := make([]string, 0, len(pin.Commands))
+	for name := range pin.Commands {
+		commandNames = append(commandNames, name)
+	}
+	sort.Strings(commandNames)
+
+	fmt.Fprintln(writer, "ISRAS PROJECT PIN DECLARATION")
+	fmt.Fprintln(writer, "=============================")
+	fmt.Fprintln(writer, "Declaration status:      PASS")
+	fmt.Fprintln(writer, "Validation scope:        metadata structure and identity only")
+	fmt.Fprintln(writer, "Artifact verification:   NOT PERFORMED")
+	fmt.Fprintln(writer, "Verification reason:     artifact bytes were not acquired or hashed")
+	fmt.Fprintf(writer, "Schema version:          %d\n", pin.SchemaVersion)
+	fmt.Fprintf(writer, "Project:                 %s\n", pin.Project.Repository)
+	fmt.Fprintf(writer, "ISRAS profile:           %s\n", pin.Standard.Profile)
+	fmt.Fprintf(writer, "ISRAS version:           %s\n", pin.Standard.Version)
+	fmt.Fprintf(writer, "Release tag:             %s\n", pin.Standard.ReleaseTag)
+	fmt.Fprintf(writer, "Source repository:       %s\n", pin.Standard.SourceRepository)
+	fmt.Fprintf(writer, "Source commit:           %s\n", pin.Standard.SourceCommit)
+	fmt.Fprintf(writer, "Workflow path:           %s\n", pin.Workflow.Path)
+	fmt.Fprintf(writer, "Workflow commit:         %s\n", pin.Workflow.Commit)
+	fmt.Fprintf(writer, "Profiles:                %s\n", strings.Join(pin.Profiles, ", "))
+	fmt.Fprintf(writer, "Evidence:                %s\n", pin.Evidence.Directory)
+	fmt.Fprintf(writer, "Commands declared:       %s\n", strings.Join(commandNames, ", "))
+	fmt.Fprintf(writer, "Artifacts declared:      %d\n", len(pin.Artifacts))
+	for index, artifact := range pin.Artifacts {
+		label := artifact.Kind
+		if artifact.Kind == "validator" {
+			label += " (" + artifact.OS + "/" + artifact.Arch + ")"
+		}
+		fmt.Fprintf(writer, "  %d. %s: %s\n", index+1, label, artifact.Name)
+		fmt.Fprintf(writer, "     Declared SHA-256: %s\n", abbreviatedDigest(artifact.SHA256))
+		fmt.Fprintf(writer, "     Declared SHA-512: %s\n", abbreviatedDigest(artifact.SHA512))
+		fmt.Fprintln(writer, "     Byte verification: NOT PERFORMED")
+	}
+}
+
+func abbreviatedDigest(value string) string {
+	const visible = 12
+	if len(value) <= visible*2 {
+		return value
+	}
+	return value[:visible] + "..." + value[len(value)-visible:]
 }
 
 func runGo(ctx context.Context, runner *validation.Runner, header string, args []string) int {
@@ -409,4 +498,6 @@ Usage:
   %s secrets prepare-allow FINDING-ID --reason 'bounded reason'
   %s secrets apply-allow FINDING-ID
 `, header, command, command, command, command, command, command, command, command, command, command, command, command, command)
+	fmt.Printf("  %s project-pin validate\n", command)
+	fmt.Printf("  %s project-pin inspect\n", command)
 }

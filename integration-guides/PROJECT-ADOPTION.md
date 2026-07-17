@@ -64,7 +64,17 @@ project-owned bounded exceptions
 CI integration pinned to an immutable workflow commit
 ```
 
-The final paths and schemas are defined by the selected release.
+The first committed project-pin contract is
+[`schemas/isras-project-v1.schema.json`](../schemas/isras-project-v1.schema.json).
+A repository containing a candidate pin can run:
+
+```bash
+./.local/bin/isras-validate project-pin validate
+./.local/bin/isras-validate project-pin inspect
+```
+
+These commands are read-only and do not acquire artifacts or execute the declared
+project commands.
 
 ISRAS shall not ordinarily copy its Go validator source or tests into the
 project, and shall not add itself to the project's application dependency graph.
@@ -108,21 +118,22 @@ A newer release being available is information, not modification authority.
 
 ## Current implementation status
 
-The pinned project framework is now the accepted architectural direction for the
-`0.1.1-development` cycle.
+The pinned project framework is the accepted architectural direction for the
+`0.1.1-development` cycle. The strict v1 pin schema and read-only parser are now
+implemented. Artifact acquisition, release verification, command execution,
+project initialization, and upgrade application are not yet implemented.
 
-The existing `tools/export-project-validator.sh` source-copy model is deprecated
-for new adoption. It must not be used to initialize another project. It remains
-temporarily in the repository until the pinned acquisition, initialization,
-validation, and upgrade tooling replaces it through reviewed changes.
+The existing `tools/export-project-validator.sh` source-copy model remains
+deprecated for new adoption. It must not be used to initialize another project.
 
-No consuming project should be modified until the replacement boundary has
-passed its own tests and acceptance gates.
+No consuming project should be modified until the complete replacement boundary
+has passed its own tests and acceptance gates.
 
 ## Related contracts
 
 - [`standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md`](../standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md)
 - [`standards/GO-REFERENCE-PROFILE.md`](../standards/GO-REFERENCE-PROFILE.md)
 - [`standards/PINNED-PROJECT-FRAMEWORK.md`](../standards/PINNED-PROJECT-FRAMEWORK.md)
+- [`standards/PROJECT-PIN-SCHEMA.md`](../standards/PROJECT-PIN-SCHEMA.md)
 - [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](../standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
 - [`standards/PROJECT-UPGRADE-CONTRACT.md`](../standards/PROJECT-UPGRADE-CONTRACT.md)
