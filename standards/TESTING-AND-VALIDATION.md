@@ -32,6 +32,25 @@ required version in `validation/tool-versions.json`. If the tool or current
 vulnerability data is unavailable, validation shall not claim that no known
 vulnerability exists.
 
+### Transactional project-validator export
+
+A project-owned validator export shall be assembled and validated against a
+scratch clone of the target's exact clean commit before the target working tree
+is modified. Ordinary clones and linked worktrees shall be identified through
+Git rather than through assumptions about the physical `.git` path.
+
+The normal export operation may run `go mod tidy` and stage deterministic
+`go.mod` or `go.sum` changes required by copied validator imports. It shall:
+
+- show module-file changes for review;
+- allow an existing requirement to move from indirect to direct;
+- reject removal or version changes of existing requirements;
+- require a second `go mod tidy -diff` to be empty;
+- run tests, vet, build, and module verification before and after transfer;
+- apply the exact proven patch and stage it without committing or pushing;
+- restore the recorded target commit after any failed applied validation;
+- bound Go command duration so network or tool execution cannot hang silently.
+
 ## 3. Secret protection
 
 Tracked, staged, modified, and untracked source shall be scanned for likely
