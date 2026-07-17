@@ -83,3 +83,16 @@ the repository-owned clean-clone campaign defined in
 
 The campaign retains local review evidence but does not itself create a tag or
 make a release claim.
+
+
+## Repository-owned release workflow
+
+The staged `isras-release` command defined in
+[`RELEASE-WORKFLOW-AUTOMATION.md`](RELEASE-WORKFLOW-AUTOMATION.md) applies the
+release controls through typed Go code. `check` performs validation without
+changing refs, `tag --confirm` creates or verifies only the signed local tag, and
+`publish --confirm` verifies and performs the bounded remote publication steps.
+
+The automation does not weaken the exact-source, signing, clean-clone,
+release-note, platform, recovery, or truthful-assurance requirements in this
+standard.

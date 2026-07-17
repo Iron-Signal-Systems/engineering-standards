@@ -73,6 +73,23 @@ been pushed to its remote branch:
 ./.local/bin/isras-release-validate
 ```
 
+Build the staged repository-owned release workflow command:
+
+```bash
+./tools/build-release-command.sh
+```
+
+Run its three deliberately separated stages:
+
+```bash
+./.local/bin/isras-release check
+./.local/bin/isras-release tag --confirm
+./.local/bin/isras-release publish --confirm
+```
+
+The `check` stage changes no Git refs. The `tag` stage creates only the signed
+local tag. The `publish` stage performs the explicitly confirmed remote writes.
+
 Run only the secret scanner:
 
 ```bash
@@ -99,5 +116,6 @@ See:
 - [`standards/PLATFORM-SUPPORT.md`](standards/PLATFORM-SUPPORT.md)
 - [`standards/RELEASES-AND-SIGNING.md`](standards/RELEASES-AND-SIGNING.md)
 - [`standards/CLEAN-CLONE-RELEASE-VALIDATION.md`](standards/CLEAN-CLONE-RELEASE-VALIDATION.md)
+- [`standards/RELEASE-WORKFLOW-AUTOMATION.md`](standards/RELEASE-WORKFLOW-AUTOMATION.md)
 - [`docs/archive/README.md`](docs/archive/README.md)
 - [`integration-guides/PROJECT-ADOPTION.md`](integration-guides/PROJECT-ADOPTION.md)
