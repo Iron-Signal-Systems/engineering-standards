@@ -53,6 +53,25 @@ Staged-index findings shall be identified as staged evidence and shall not offer
 automatic working-tree redaction. The affected path must be unstaged, corrected,
 restaged, and revalidated.
 
+Approved external-secret reference schemes are `secret://`, `vault://`,
+`keyring://`, and `credential://`. Recognition of those references suppresses
+only assignment-literal classification; embedded user/password material and
+other credential-shaped content inside a URI remain findings. Unknown schemes
+are not automatically trusted.
+
+Valid Go source is classified using Go syntax positions. Identifier and selector
+expressions such as `config.ClientSecret` are references rather than committed
+literal values. Quoted string literals remain scannable, and malformed Go-like
+source receives ordinary text classification rather than inferred semantics.
+
+For shell source, variable references, command substitutions, arithmetic
+expansions, and dynamically constructed assignments are not treated as committed
+assignment literals. Their command bodies and surrounding source remain subject
+to the ordinary scanner rules.
+
+Scanner regression fixtures shall construct credential-shaped test values at
+runtime so the scanner package remains safe under its own repository-wide scan.
+
 The scanner shall:
 
 - never display or log the complete detected value;

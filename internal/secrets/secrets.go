@@ -507,6 +507,7 @@ func scanFile(path string, data []byte) []Finding {
 
 func scanContent(path string, data []byte, source string) []Finding {
 	var findings []Finding
+	semantics := semanticContextFor(path, data)
 	for _, current := range rules {
 		matches := current.pattern.FindAllSubmatchIndex(data, -1)
 		for _, match := range matches {
@@ -515,6 +516,10 @@ func scanContent(path string, data []byte, source string) []Finding {
 				continue
 			}
 			start, end := match[idx], match[idx+1]
+			if current.name == "sensitive-assignment" &&
+				ignoreSensitiveAssignment(path, data, match[0], match[1], start, end, semantics) {
+				continue
+			}
 			value := data[start:end]
 			if placeholder(value) {
 				continue
