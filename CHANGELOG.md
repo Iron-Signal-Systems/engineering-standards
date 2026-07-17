@@ -17,3 +17,7 @@
 - Added an archive-and-restart installer that preserves the previous repository
   through a branch, signed tag, local Git bundle, and digest manifest before
   replacing the active tree.
+- Added context-aware commit-signature diagnostics for unsigned commits, missing
+  OpenPGP keys, GitHub web-flow commits, and SSH allowed-signers failures.
+- Removed automatic commit-amendment guidance from signature remediation and
+  added regression tests proving that unsafe recommendation cannot return.

@@ -119,17 +119,7 @@ func (r *Runner) Repository(ctx context.Context) []model.Check {
 		checks = append(checks, check)
 	}
 
-	verify := executil.Run(ctx, r.Root, "git", "verify-commit", "HEAD")
-	if verify.Err != nil {
-		checks = append(checks, r.commandFailure("Commit signature", "REPOSITORY", verify,
-			"HEAD should have a valid Git signature", "signature verification failed",
-			[]model.Action{
-				{Label: "READ ONLY", Description: "Review the current commit signature:", Command: "git show --show-signature --no-patch HEAD"},
-				{Label: "MODIFIES GIT HISTORY", Description: "After reviewing the exact commit, sign it by amending without changing its message:", Command: "git commit --amend --no-edit -S"},
-			}))
-	} else {
-		checks = append(checks, model.Check{Section: "REPOSITORY", Name: "Commit signature", Status: model.Pass, Detail: "verified"})
-	}
+	checks = append(checks, r.commitSignatureCheck(ctx))
 	return checks
 }
 
