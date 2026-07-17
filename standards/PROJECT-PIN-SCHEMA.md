@@ -44,6 +44,27 @@ in the parsed pin for later machine comparison and evidence.
 `inspect` reports command names but deliberately does not print command
 arguments.
 
+## Artifact verification command
+
+The next read-only boundary is:
+
+```bash
+./.local/bin/isras-validate project-pin verify-artifacts
+```
+
+This command reads the exact published GitHub release, verifies its signed
+annotated tag and source commit, acquires only the declared assets, hashes their
+actual bytes, compares both digests, checks both manifests, validates provenance,
+and writes local evidence. It never executes or extracts an artifact.
+
+A local source directory may be checked with `--source-directory PATH`. Local
+mode verifies bytes, manifests, and provenance but reports execution
+authorization as DENIED because the published release record and signed tag were
+not checked.
+
+See
+[`ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](ARTIFACT-ACQUISITION-AND-VERIFICATION.md).
+
 ## Top-level fields
 
 The v1 object contains exactly:

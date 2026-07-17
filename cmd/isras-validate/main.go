@@ -64,7 +64,7 @@ func run() int {
 	case "repo", "repository":
 		return render(validatorIdentity.Header(), model.Summary{Checks: runner.Repository(ctx)})
 	case "project-pin":
-		return runProjectPin(runner, args[1:])
+		return runProjectPin(ctx, runner, args[1:])
 	case "go":
 		return runGo(ctx, runner, validatorIdentity.Header(), args[1:])
 	case "secrets":
@@ -126,16 +126,20 @@ func renderIdentity(writer io.Writer, identity validatoridentity.Identity) {
 	fmt.Fprintf(writer, "Repository commit: %s\n", identity.RepositoryCommit)
 }
 
-func runProjectPin(runner *validation.Runner, args []string) int {
+func runProjectPin(ctx context.Context, runner *validation.Runner, args []string) int {
 	action := "validate"
 	if len(args) > 0 {
-		if len(args) != 1 {
-			fmt.Fprintln(os.Stderr, "FAIL: project-pin accepts one action: validate or inspect")
-			return 2
-		}
 		action = args[0]
 	}
-	if action != "validate" && action != "inspect" {
+
+	switch action {
+	case "validate", "inspect":
+		if len(args) > 1 {
+			fmt.Fprintf(os.Stderr, "FAIL: project-pin %s accepts no options\n", action)
+			return 2
+		}
+	case "verify-artifacts":
+	default:
 		fmt.Fprintf(os.Stderr, "FAIL: unknown project-pin action %q\n", action)
 		return 2
 	}
@@ -144,13 +148,24 @@ func runProjectPin(runner *validation.Runner, args []string) int {
 	if err != nil {
 		return actionFailure(runner, action+" project pin", err)
 	}
-	if action == "validate" {
+
+	switch action {
+	case "validate":
 		renderProjectPinValidation(os.Stdout, pin)
 		return 0
+	case "inspect":
+		renderProjectPin(os.Stdout, pin)
+		return 0
+	case "verify-artifacts":
+		report, jsonPath, textPath, verifyErr := verifyProjectArtifacts(ctx, runner.Root, pin, args[1:])
+		renderProjectArtifactVerification(os.Stdout, runner.Root, report, jsonPath, textPath)
+		if verifyErr != nil {
+			return actionFailure(runner, "verify project artifacts", verifyErr)
+		}
+		return 0
+	default:
+		panic("unreachable project-pin action")
 	}
-
-	renderProjectPin(os.Stdout, pin)
-	return 0
 }
 
 func renderProjectPinValidation(writer io.Writer, pin projectpin.Pin) {
@@ -500,4 +515,5 @@ Usage:
 `, header, command, command, command, command, command, command, command, command, command, command, command, command, command)
 	fmt.Printf("  %s project-pin validate\n", command)
 	fmt.Printf("  %s project-pin inspect\n", command)
+	fmt.Printf("  %s project-pin verify-artifacts [--source-directory PATH]\n", command)
 }
