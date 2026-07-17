@@ -66,6 +66,30 @@ archive branch, signed archive tag, and local Git bundle created by the restart
 installer. That work remains available as a future source for team, production,
 regulated, and independently reviewed profiles.
 
+## Core standard and project framework
+
+ISRAS defines required engineering outcomes, assurance evidence, lifecycle
+controls, and repository governance. It does not prescribe one programming
+language, application architecture, framework, or deployment model for every
+project.
+
+Go is the initial implementation language for ISRAS tooling and the first
+supported project profile. Projects retain authority to select another justified
+technology under an accepted profile.
+
+Each adopting project pins one accepted ISRAS release and remains governed by
+that exact release until an explicit upgrade. The validator and framework remain
+versioned Engineering Standards release artifacts rather than copied product
+source.
+
+See:
+
+- [`standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md`](standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md)
+- [`standards/GO-REFERENCE-PROFILE.md`](standards/GO-REFERENCE-PROFILE.md)
+- [`standards/PINNED-PROJECT-FRAMEWORK.md`](standards/PINNED-PROJECT-FRAMEWORK.md)
+- [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
+- [`standards/PROJECT-UPGRADE-CONTRACT.md`](standards/PROJECT-UPGRADE-CONTRACT.md)
+
 ## Quick start
 
 Build the repository-owned validator:

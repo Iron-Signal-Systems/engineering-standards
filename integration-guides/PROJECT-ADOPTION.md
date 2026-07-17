@@ -1,111 +1,128 @@
 # Project Adoption
 
-The active baseline is designed so each adopting project retains the exact Go
-validator and its unit tests in that project's own Git history.
+## Purpose
 
-## Export the reference validator
+An Iron Signal Systems project adopts an accepted, immutable ISRAS release. The
+project uses that release as the framework for repository governance,
+documentation, testing, validation, evidence, release, and recovery while
+retaining authority over its language and application design.
 
-From a clean `engineering-standards` working tree:
+A project does not follow `engineering-standards/dev`, `main`, or the newest
+available release automatically.
 
-```bash
-./tools/export-project-validator.sh /path/to/target-project
+## Adoption model
+
+A project created while `isras-v0.1.5` is the accepted baseline shall pin
+`isras-v0.1.5`, its exact release commit, and the required artifact digests. It
+remains on that release until an explicit upgrade is planned, reviewed,
+validated, committed, and accepted.
+
+The project commits its pin and project-specific declarations. It executes the
+validator released by Engineering Standards rather than copying the validator
+implementation into the project.
+
+## What ISRAS governs
+
+The pinned release identifies the applicable:
+
+- core engineering requirements;
+- repository-framework requirements;
+- selected language and platform profiles;
+- required project declarations;
+- validation and evidence contracts;
+- release and recovery expectations;
+- exception rules;
+- upgrade path.
+
+## What the project governs
+
+The project retains authority over:
+
+- language selection;
+- application architecture;
+- frameworks and libraries;
+- package and source layout;
+- data model;
+- deployment topology;
+- project-specific commands and tests;
+- additional security and operational controls.
+
+A Go profile provides Go-specific implementation guidance. It does not prohibit a
+different project from selecting Rust or another justified technology under a
+supported profile.
+
+## Project-owned adoption artifacts
+
+The intended project boundary includes:
+
+```text
+.isras/project.json
+tools/isras
+project-owned documentation
+project-owned command declarations
+project-owned bounded exceptions
+CI integration pinned to an immutable workflow commit
 ```
 
-A read-only preflight is available:
+The final paths and schemas are defined by the selected release.
 
-```bash
-./tools/export-project-validator.sh --dry-run /path/to/target-project
-```
+ISRAS shall not ordinarily copy its Go validator source or tests into the
+project, and shall not add itself to the project's application dependency graph.
 
-The target must be a clean, non-bare Git working tree with an existing `go.mod`
-file. Ordinary clones and linked Git worktrees are both supported. The exporter
-asks Git for the target worktree and repository state; it does not assume that
-`.git` is a directory.
+## New project
 
-The exporter copies:
+New-project initialization will:
 
-- `cmd/isras-validate/`;
-- validator packages under `internal/isras/`;
-- scanner, dashboard, and validator-identity unit tests;
-- `validation/isras-validator-identity.json`;
-- `validation/secret-allowlist.json`;
-- `validation/tool-versions.json`;
-- `tools/isras/build-validator.sh`.
+1. require an exact accepted release;
+2. verify the signed tag, source commit, manifests, and artifacts;
+3. select applicable profiles;
+4. prepare the repository framework;
+5. preserve project authority over application design;
+6. validate the initialized result;
+7. leave reviewable changes without committing or pushing.
 
-## Validator identity boundary
+## Existing project
 
-The reference validator reads committed identity metadata from
-`validation/isras-validator-identity.json`. Its declared standard version must
-match the repository `VERSION` file. A mismatch is a validation startup failure,
-not a cosmetic warning.
+Existing-project adoption begins with an inventory. It maps existing project
+artifacts to the pinned release and prepares only the missing or incompatible
+framework changes.
 
-During export, the exporter replaces reference ownership with
-`project-owned-export` and records:
+Adoption is not permission to reorganize working application source merely to
+match a reference layout.
 
-- the declared ISRAS profile and standard version;
-- the canonical Engineering Standards source repository;
-- the exact Engineering Standards source commit used for the export;
-- the adopting project's Go module path.
+## Local and CI consistency
 
-The target repository's current commit is discovered at runtime and is reported
-separately from the immutable export source commit. This prevents an exported
-validator from presenting itself as the live Engineering Standards repository or
-from silently inheriting a later development version.
+Local validation and CI shall read the same committed project pin. They shall
+execute the same ISRAS release identity and report the same target project
+boundary.
 
-After building the target-owned validator, inspect the identity directly:
+CI may call an immutable reusable workflow from Engineering Standards, but that
+workflow must verify that its release identity corresponds to the project pin.
 
-```bash
-./.local/bin/isras-validate version
-```
+## Upgrade
 
-The normal validation dashboard also includes the version and ownership class in
-its header. Updating an exported validator is a new reviewed export with a new
-source commit, not an implicit upstream change.
+A project moves to a later ISRAS release only through the process defined by
+[`standards/PROJECT-UPGRADE-CONTRACT.md`](../standards/PROJECT-UPGRADE-CONTRACT.md).
 
-## Transactional export boundary
+A newer release being available is information, not modification authority.
 
-The target working tree is not modified while the candidate export is being
-assembled. The exporter:
+## Current implementation status
 
-1. records the exact clean target commit;
-2. creates a detached scratch clone at that commit;
-3. copies and rewrites the validator in the scratch clone;
-4. runs `gofmt` and `go mod tidy` there;
-5. rejects removal or version changes of existing module requirements;
-6. permits an existing requirement to move from indirect to direct;
-7. displays resulting `go.mod` and `go.sum` changes;
-8. requires a second `go mod tidy -diff` to be empty;
-9. runs all Go tests, vet, build, and module verification;
-10. creates one exact Git patch from the proven scratch tree;
-11. applies and stages that patch in the real target;
-12. repeats module, test, vet, build, and verification checks in the target.
+The pinned project framework is now the accepted architectural direction for the
+`0.1.1-development` cycle.
 
-If any post-application check fails or the process receives a handled interrupt,
-the exporter resets the target to the recorded commit and removes only the new
-export paths. A worktree-specific transaction journal is retained only while the
-real target is being modified.
+The existing `tools/export-project-validator.sh` source-copy model is deprecated
+for new adoption. It must not be used to initialize another project. It remains
+temporarily in the repository until the pinned acquisition, initialization,
+validation, and upgrade tooling replaces it through reviewed changes.
 
-Go commands are bounded by a default 900-second timeout so module resolution or
-tests cannot remain hidden indefinitely. A project may set
-`ISRAS_EXPORT_GO_TIMEOUT_SECONDS` to another positive integer when a larger,
-reviewed validation budget is required.
+No consuming project should be modified until the replacement boundary has
+passed its own tests and acceptance gates.
 
-The exporter stages the validator, `.gitignore`, and any deterministic `go.mod`
-or `go.sum` changes. It never commits, pushes, tags, or changes a remote ref.
+## Related contracts
 
-## Project ownership
-
-After export, the project owns the copied source. Changes to the organization
-reference validator do not silently alter an adopting repository. A later update
-is a normal reviewed source change with a visible diff and rerun tests.
-
-## Required project additions
-
-Each project shall also document:
-
-- its supported operating systems and deployment profiles;
-- its project-specific validation commands;
-- its security-sensitive change boundaries;
-- any additional scanners or specialized tests;
-- its release and recovery process;
-- its current assurance status.
+- [`standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md`](../standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md)
+- [`standards/GO-REFERENCE-PROFILE.md`](../standards/GO-REFERENCE-PROFILE.md)
+- [`standards/PINNED-PROJECT-FRAMEWORK.md`](../standards/PINNED-PROJECT-FRAMEWORK.md)
+- [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](../standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
+- [`standards/PROJECT-UPGRADE-CONTRACT.md`](../standards/PROJECT-UPGRADE-CONTRACT.md)

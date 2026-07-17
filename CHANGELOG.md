@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Defined the pinned project framework: language-neutral ISRAS core
+  requirements, language and platform profiles, Go as the first reference
+  profile, immutable project release pins, external validator execution,
+  versioned project-framework artifacts, and explicit project upgrades.
+  Deprecated the copied-validator source-export model for new adoption while its
+  replacement is implemented and validated.
+
 - Censored release-workflow command arguments, streamed and captured subprocess
   output, retry diagnostics, retained logs, and final errors. Added bounded
   capture and line budgets plus fail-closed multiline private-key suppression so
