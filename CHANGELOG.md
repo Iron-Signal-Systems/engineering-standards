@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Corrected `isras-release check` so an existing local or remote release tag
+  bound to a different commit fails before the expensive validation campaign;
+  tag identity is checked again after validation to detect intervening changes.
 - Added the repository-owned `isras-release` Go command with separated `check`, `tag`, and `publish` authority stages, retained local logs, bounded read retries, exact tag verification, safe `main` fast-forwarding, and GitHub Release publication through authenticated `gh`.
 
 ## 0.1.0 — 2026-07-17

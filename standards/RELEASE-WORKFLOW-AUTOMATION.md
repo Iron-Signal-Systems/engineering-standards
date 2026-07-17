@@ -39,6 +39,12 @@ The stage requires:
 - complete commit-mode validation; and
 - clean-clone release-mode validation of the exact pushed commit.
 
+Before the expensive validation campaign begins, `check` inspects the derived
+local and remote release tag. An existing tag that identifies any commit other
+than the current candidate is a hard failure because release tag names are
+immutable. The command repeats the tag-identity inspection after validation so
+an intervening tag change cannot be silently accepted.
+
 ### Tag
 
 ```bash
@@ -102,3 +108,7 @@ A stage may be rerun after interruption. Existing local tags, remote tags,
 `main`, and GitHub Releases are accepted only when they exactly match the tested
 release identity and required publication state. Conflicting state stops the
 workflow for investigation.
+
+A published version cannot be reused for later source. When `VERSION` derives a
+tag that already identifies a different commit, the workflow fails and directs
+the developer to advance `VERSION`, the changelog, and the release notes.
