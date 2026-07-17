@@ -31,6 +31,22 @@ not turn a failure into a pass.
 Potential secrets shall appear as `[REDACTED]`. Paths, rule names, finding IDs,
 line numbers, and non-sensitive context may remain visible.
 
+Repository-owned release automation is part of this boundary. Command arguments,
+streamed and captured child-process output, retries, remote diagnostics, retained
+release logs, and returned errors shall be censored before display or retention.
+Raw captured output may exist only in bounded process memory when required to
+parse authoritative state.
+
+The censor shall retain incomplete lines across write calls so a value split by
+the operating system or child process cannot evade detection. Multiline
+private-key blocks shall be suppressed until the matching end marker. An output
+line exceeding the censor's bounded context or a capture exceeding its memory
+budget shall be replaced by an explicit limit marker rather than emitted raw.
+
+Censoring is defense in depth, not proof that an arbitrary unlabeled value is
+safe. A credential known or suspected to have reached a terminal, log, artifact,
+commit, tag, or release must still be rotated or revoked and investigated.
+
 ## 3. Terminal actions
 
 Each actionable failure shall display only commands relevant to that failure.

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Censored release-workflow command arguments, streamed and captured subprocess
+  output, retry diagnostics, retained logs, and final errors. Added bounded
+  capture and line budgets plus fail-closed multiline private-key suppression so
+  detected sensitive values cannot be reproduced through release automation.
+
 - Updated GitHub-maintained workflow actions to `actions/checkout@v5` and
   `actions/setup-go@v6`, removing Node 20 deprecation annotations while
   preserving the Go implementation and existing Go validation behavior.

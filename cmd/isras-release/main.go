@@ -4,10 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/redact"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/releaseworkflow"
 )
 
@@ -16,22 +18,33 @@ func main() {
 }
 
 func run() int {
-	if len(os.Args) < 2 {
-		usage()
+	return runWithIO(os.Args, os.Stdin, os.Stdout, os.Stderr)
+}
+
+func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) (code int) {
+	safeOut := redact.NewWriter(stdout)
+	safeErr := redact.NewWriter(stderr)
+	defer func() {
+		_ = safeOut.Flush()
+		_ = safeErr.Flush()
+	}()
+
+	if len(args) < 2 {
+		usage(safeErr)
 		return 2
 	}
 
-	action := releaseworkflow.Action(os.Args[1])
+	action := releaseworkflow.Action(args[1])
 	switch action {
 	case releaseworkflow.ActionCheck, releaseworkflow.ActionTag, releaseworkflow.ActionPublish:
 	default:
-		fmt.Fprintf(os.Stderr, "FAIL: unsupported action %q\n\n", os.Args[1])
-		usage()
+		fmt.Fprintf(safeErr, "FAIL: unsupported action %q\n\n", args[1])
+		usage(safeErr)
 		return 2
 	}
 
 	set := flag.NewFlagSet("isras-release "+string(action), flag.ContinueOnError)
-	set.SetOutput(os.Stderr)
+	set.SetOutput(safeErr)
 	var (
 		repo             string
 		version          string
@@ -54,11 +67,11 @@ func run() int {
 		fmt.Fprintf(set.Output(), "Usage: isras-release %s [options]\n", action)
 		set.PrintDefaults()
 	}
-	if err := set.Parse(os.Args[2:]); err != nil {
+	if err := set.Parse(args[2:]); err != nil {
 		return 2
 	}
 	if set.NArg() != 0 {
-		fmt.Fprintln(os.Stderr, "FAIL: unexpected positional arguments")
+		fmt.Fprintln(safeErr, "FAIL: unexpected positional arguments")
 		set.Usage()
 		return 2
 	}
@@ -75,44 +88,44 @@ func run() int {
 		GitHubRepository: githubRepository,
 		Title:            title,
 		Confirm:          confirm,
-		Stdin:            os.Stdin,
-		Stdout:           os.Stdout,
-		Stderr:           os.Stderr,
+		Stdin:            stdin,
+		Stdout:           safeOut,
+		Stderr:           safeErr,
 	})
 	if err != nil {
-		fmt.Println()
-		fmt.Fprintln(os.Stderr, "RESULT")
-		fmt.Fprintln(os.Stderr, "Overall status           ● FAIL  release workflow stopped safely")
-		fmt.Fprintln(os.Stderr, "Reason                   ◆ INFO ", err)
+		fmt.Fprintln(safeOut)
+		fmt.Fprintln(safeErr, "RESULT")
+		fmt.Fprintln(safeErr, "Overall status           ● FAIL  release workflow stopped safely")
+		fmt.Fprintln(safeErr, "Reason                   ◆ INFO ", err)
 		if result.LogPath != "" {
-			fmt.Fprintln(os.Stderr, "Workflow log             ◆ INFO ", relative(result.RepositoryRoot, result.LogPath))
+			fmt.Fprintln(safeErr, "Workflow log             ◆ INFO ", relative(result.RepositoryRoot, result.LogPath))
 		}
 		return 1
 	}
 
-	fmt.Println()
-	fmt.Println("RESULT")
-	fmt.Println("Overall status           ● PASS  release workflow stage completed")
-	fmt.Printf("Action                   ● PASS  %s\n", action)
-	fmt.Printf("Version                  ● PASS  %s\n", result.Version)
-	fmt.Printf("Tag                      ● PASS  %s\n", result.Tag)
-	fmt.Printf("Commit                   ● PASS  %s\n", result.Commit)
+	fmt.Fprintln(safeOut)
+	fmt.Fprintln(safeOut, "RESULT")
+	fmt.Fprintln(safeOut, "Overall status           ● PASS  release workflow stage completed")
+	fmt.Fprintf(safeOut, "Action                   ● PASS  %s\n", action)
+	fmt.Fprintf(safeOut, "Version                  ● PASS  %s\n", result.Version)
+	fmt.Fprintf(safeOut, "Tag                      ● PASS  %s\n", result.Tag)
+	fmt.Fprintf(safeOut, "Commit                   ● PASS  %s\n", result.Commit)
 	if result.MainCommit != "" {
-		fmt.Printf("Main                     ● PASS  %s\n", result.MainCommit)
+		fmt.Fprintf(safeOut, "Main                     ● PASS  %s\n", result.MainCommit)
 	}
 	if result.ReleaseURL != "" {
-		fmt.Printf("GitHub Release           ● PASS  %s\n", result.ReleaseURL)
+		fmt.Fprintf(safeOut, "GitHub Release           ● PASS  %s\n", result.ReleaseURL)
 	}
-	fmt.Printf("Workflow log             ◆ INFO  %s\n", relative(result.RepositoryRoot, result.LogPath))
+	fmt.Fprintf(safeOut, "Workflow log             ◆ INFO  %s\n", relative(result.RepositoryRoot, result.LogPath))
 	return 0
 }
 
-func usage() {
-	fmt.Fprintln(os.Stderr, "Usage: isras-release <check|tag|publish> [options]")
-	fmt.Fprintln(os.Stderr)
-	fmt.Fprintln(os.Stderr, "  check     validate the exact pushed release candidate without changing refs")
-	fmt.Fprintln(os.Stderr, "  tag       run checks, then create or verify the signed local tag (--confirm)")
-	fmt.Fprintln(os.Stderr, "  publish   run checks, push/verify the tag, fast-forward main, and publish GitHub Release (--confirm)")
+func usage(writer io.Writer) {
+	fmt.Fprintln(writer, "Usage: isras-release <check|tag|publish> [options]")
+	fmt.Fprintln(writer)
+	fmt.Fprintln(writer, "  check     validate the exact pushed release candidate without changing refs")
+	fmt.Fprintln(writer, "  tag       run checks, then create or verify the signed local tag (--confirm)")
+	fmt.Fprintln(writer, "  publish   run checks, push/verify the tag, fast-forward main, and publish GitHub Release (--confirm)")
 }
 
 func relative(root, path string) string {

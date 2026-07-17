@@ -13,7 +13,10 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/redact"
 )
 
 type Action string
@@ -67,9 +70,9 @@ type engine struct {
 	ctx    context.Context
 	opts   Options
 	result Result
-	log    *os.File
-	out    io.Writer
-	errOut io.Writer
+	log    *redact.Writer
+	out    *redact.Writer
+	errOut *redact.Writer
 	in     io.Reader
 	origin string
 }
@@ -77,6 +80,10 @@ type engine struct {
 var stableVersionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
 
 func Run(ctx context.Context, opts Options) (result Result, runErr error) {
+	defer func() {
+		runErr = censorError(runErr)
+	}()
+
 	applyDefaults(&opts)
 	if err := validateAction(opts.Action); err != nil {
 		return result, err
@@ -95,13 +102,14 @@ func Run(ctx context.Context, opts Options) (result Result, runErr error) {
 	defer logFile.Close()
 	result.LogPath = logPath
 
+	logWriter := redact.NewWriter(logFile)
 	e := &engine{
 		ctx:    ctx,
 		opts:   opts,
 		result: result,
-		log:    logFile,
-		out:    io.MultiWriter(opts.Stdout, logFile),
-		errOut: io.MultiWriter(opts.Stderr, logFile),
+		log:    logWriter,
+		out:    redact.NewWriter(io.MultiWriter(opts.Stdout, logWriter)),
+		errOut: redact.NewWriter(io.MultiWriter(opts.Stderr, logWriter)),
 		in:     opts.Stdin,
 	}
 
@@ -115,6 +123,7 @@ func Run(ctx context.Context, opts Options) (result Result, runErr error) {
 		if runErr != nil {
 			fmt.Fprintf(e.log, "REASON: %v\n", runErr)
 		}
+		_ = e.flushWriters()
 	}()
 
 	e.heading()
@@ -174,6 +183,38 @@ func Run(ctx context.Context, opts Options) (result Result, runErr error) {
 	default:
 		return e.result, fmt.Errorf("unsupported action %q", opts.Action)
 	}
+}
+
+type censoredError struct {
+	err error
+}
+
+func (e censoredError) Error() string {
+	return redact.Sanitize(e.err.Error())
+}
+
+func (e censoredError) Unwrap() error {
+	return e.err
+}
+
+func censorError(err error) error {
+	if err == nil {
+		return nil
+	}
+	return censoredError{err: err}
+}
+
+func (e *engine) flushWriters() error {
+	var flushErrors []error
+	for _, writer := range []*redact.Writer{e.out, e.errOut, e.log} {
+		if writer == nil {
+			continue
+		}
+		if err := writer.Flush(); err != nil {
+			flushErrors = append(flushErrors, err)
+		}
+	}
+	return errors.Join(flushErrors...)
 }
 
 func applyDefaults(opts *Options) {
@@ -727,7 +768,7 @@ func (e *engine) capture(name string, args ...string) (string, error) {
 func (e *engine) capturePrivate(name string, args ...string) (string, error) {
 	cmd := exec.CommandContext(e.ctx, name, args...)
 	cmd.Dir = e.result.RepositoryRoot
-	var buffer bytes.Buffer
+	var buffer boundedBuffer
 	cmd.Stdout = &buffer
 	cmd.Stderr = &buffer
 	err := cmd.Run()
@@ -746,7 +787,7 @@ func (e *engine) capturePrivate(name string, args ...string) (string, error) {
 func (e *engine) commandStatus(name string, args ...string) (int, error) {
 	cmd := exec.CommandContext(e.ctx, name, args...)
 	cmd.Dir = e.result.RepositoryRoot
-	var buffer bytes.Buffer
+	var buffer boundedBuffer
 	cmd.Stdout = &buffer
 	cmd.Stderr = &buffer
 	fmt.Fprintf(e.log, "\nCOMMAND: %s\n", safeCommand(name, args))
@@ -782,6 +823,49 @@ func (e *engine) captureAllowAnyExit(name string, args ...string) (string, error
 	return e.execute(false, false, name, args...)
 }
 
+const maxCapturedCommandOutput = 1 << 20
+
+type boundedBuffer struct {
+	mu        sync.Mutex
+	buffer    bytes.Buffer
+	truncated bool
+}
+
+func (b *boundedBuffer) Write(data []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	originalLength := len(data)
+	remaining := maxCapturedCommandOutput - b.buffer.Len()
+	if remaining > 0 {
+		if remaining > len(data) {
+			remaining = len(data)
+		}
+		_, _ = b.buffer.Write(data[:remaining])
+	}
+	if remaining < len(data) {
+		b.truncated = true
+	}
+	return originalLength, nil
+}
+
+func (b *boundedBuffer) Len() int {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buffer.Len()
+}
+
+func (b *boundedBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	output := b.buffer.String()
+	if b.truncated {
+		output = strings.TrimRight(output, "\r\n") + "\n[OUTPUT TRUNCATED AT 1 MiB]"
+	}
+	return output
+}
+
 type commandError struct {
 	Command  string
 	ExitCode int
@@ -803,7 +887,7 @@ func (e *engine) execute(interactive, stream bool, name string, args ...string) 
 		cmd.Stdin = e.in
 	}
 
-	var buffer bytes.Buffer
+	var buffer boundedBuffer
 	if stream {
 		cmd.Stdout = io.MultiWriter(e.out, &buffer)
 		cmd.Stderr = io.MultiWriter(e.errOut, &buffer)
@@ -813,12 +897,20 @@ func (e *engine) execute(interactive, stream bool, name string, args ...string) 
 	}
 
 	err := cmd.Run()
+	if stream {
+		if flushErr := errors.Join(e.out.Flush(), e.errOut.Flush()); flushErr != nil {
+			err = errors.Join(err, fmt.Errorf("flush censored command output: %w", flushErr))
+		}
+	}
 	output := strings.TrimSpace(buffer.String())
 	if !stream && output != "" {
 		fmt.Fprintf(e.log, "OUTPUT:\n%s\n", output)
 	}
 	if err == nil {
 		fmt.Fprintln(e.log, "EXIT CODE: 0")
+		if stream {
+			return redact.Sanitize(output), nil
+		}
 		return output, nil
 	}
 	exitCode := -1
@@ -827,7 +919,7 @@ func (e *engine) execute(interactive, stream bool, name string, args ...string) 
 		exitCode = exitErr.ExitCode()
 	}
 	fmt.Fprintf(e.log, "EXIT CODE: %d\n", exitCode)
-	return output, &commandError{Command: safeCommand(name, args), ExitCode: exitCode, Output: concise(output)}
+	return redact.Sanitize(output), &commandError{Command: safeCommand(name, args), ExitCode: exitCode, Output: concise(output)}
 }
 
 func parseRemoteTag(output, tag string) (remoteTag, error) {
@@ -946,7 +1038,7 @@ func safeCommand(name string, args []string) string {
 	for _, arg := range args {
 		parts = append(parts, shellQuote(arg))
 	}
-	return strings.Join(parts, " ")
+	return redact.Sanitize(strings.Join(parts, " "))
 }
 
 func shellQuote(value string) string {
@@ -966,17 +1058,18 @@ func shellQuote(value string) string {
 
 func sanitizeOrigin(origin string) string {
 	if !strings.Contains(origin, "://") {
-		return origin
+		return redact.Sanitize(origin)
 	}
 	parsed, err := url.Parse(origin)
 	if err != nil || parsed.User == nil {
-		return origin
+		return redact.Sanitize(origin)
 	}
 	parsed.User = url.User("REDACTED")
-	return parsed.String()
+	return redact.Sanitize(parsed.String())
 }
 
 func concise(value string) string {
+	value = redact.Sanitize(value)
 	value = strings.Join(strings.Fields(value), " ")
 	if len(value) > 500 {
 		return value[:500] + "…"
