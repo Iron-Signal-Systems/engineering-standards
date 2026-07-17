@@ -2,6 +2,8 @@
 
 ## 0.1.0-development — 2026-07-16
 
+- Raised the required Go toolchain to Go 1.25.12 after CI identified reachable `net/url` standard-library vulnerabilities under Go 1.23.12.
+
 - Restarted the active ISRAS implementation as a practical solo-developer
   baseline.
 - Preserved the complete long-term ISRAS vision and terminology.
