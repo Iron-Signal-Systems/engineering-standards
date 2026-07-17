@@ -68,6 +68,13 @@ A release shall additionally require:
 Independent review shall be recorded only when performed by a qualified person
 other than the author.
 
+## Tag naming
+
+ISRAS releases use the tag form `isras-vMAJOR.MINOR.PATCH`. A release tag shall
+be signed, annotated, and point directly to the exact commit that passed the
+required release validation. The first practical Solo Developer Baseline release
+uses `isras-v0.1.0`.
+
 ## Clean-clone validation
 
 Before a release tag is created, the exact pushed candidate commit shall pass

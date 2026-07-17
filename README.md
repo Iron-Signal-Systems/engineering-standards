@@ -20,10 +20,9 @@ versioned, validated, accepted, and maintained.
 
 ## Current implementation profile
 
-This repository currently implements the **ISRAS Solo Developer Baseline** as a
-development candidate. It is intentionally sized for a single developer while
-retaining truthful engineering discipline and a path toward the complete ISRAS
-vision.
+This repository implements the **ISRAS Solo Developer Baseline** as a practical
+baseline for a single developer while retaining truthful engineering discipline
+and a path toward the complete ISRAS vision.
 
 The profile requires:
 
@@ -66,6 +65,14 @@ Run commit validation after committing the exact candidate:
 ./.local/bin/isras-validate all --mode commit
 ```
 
+Build and run clean-clone release validation after the exact signed commit has
+been pushed to its remote branch:
+
+```bash
+./tools/build-release-validator.sh
+./.local/bin/isras-release-validate
+```
+
 Run only the secret scanner:
 
 ```bash
@@ -78,9 +85,10 @@ modifying actions.
 
 ## Assurance status
 
-This tree is a development candidate. A successful local run establishes
-**self-validation**, not independent review, certification, regulatory
-compliance, production readiness, or absence of vulnerabilities.
+This repository provides a **self-validated** engineering baseline. A successful
+validation run does not establish independent review, certification, regulatory
+compliance, production readiness for every adopting project, or absence of all
+vulnerabilities.
 
 See:
 
@@ -90,5 +98,6 @@ See:
 - [`standards/FAILURE-LOGGING-AND-REMEDIATION.md`](standards/FAILURE-LOGGING-AND-REMEDIATION.md)
 - [`standards/PLATFORM-SUPPORT.md`](standards/PLATFORM-SUPPORT.md)
 - [`standards/RELEASES-AND-SIGNING.md`](standards/RELEASES-AND-SIGNING.md)
+- [`standards/CLEAN-CLONE-RELEASE-VALIDATION.md`](standards/CLEAN-CLONE-RELEASE-VALIDATION.md)
 - [`docs/archive/README.md`](docs/archive/README.md)
 - [`integration-guides/PROJECT-ADOPTION.md`](integration-guides/PROJECT-ADOPTION.md)
