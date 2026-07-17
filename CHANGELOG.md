@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added required native CI validation for Ubuntu Server 22.04 LTS alongside the
+  existing Ubuntu Server 24.04 LTS validation, plus official OCI userland CI for
+  Arch Linux and supported Fedora Server 43 and 44 release lines. Added weekly
+  scheduled validation, exact merged-`dev` validation, and explicit documentation
+  distinguishing native evidence from container-userland evidence.
 - Started the `0.1.1-development` cycle after publishing and freezing
   `isras-v0.1.0`; active `dev` work is now explicitly non-release source.
 - Corrected `isras-release check` so an existing local or remote release tag

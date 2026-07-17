@@ -1,0 +1,223 @@
+name: ISRAS Linux Platform Validation
+
+on:
+  pull_request:
+    branches:
+      - dev
+  push:
+    branches:
+      - dev
+      - feature/**
+      - fix/**
+  schedule:
+    - cron: "43 10 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: isras-linux-platform-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ubuntu-22-native:
+    name: Ubuntu 22.04 native
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install declared Go toolchain
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Record platform evidence
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          printf 'runner=%s\n' 'ubuntu-22.04'
+          sed -n -E '/^(NAME|VERSION|ID|VERSION_ID|PRETTY_NAME)=/p' /etc/os-release
+          printf 'architecture=%s\n' "$(uname -m)"
+          go version
+          git --version
+
+      - name: Run ISRAS validation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          mkdir -p \
+            .local/bin \
+            .local/tools/bin \
+            .local/validation/logs
+
+          exec > >(tee .local/validation/logs/ubuntu-22-validation.log) 2>&1
+
+          printf '\nIRON SIGNAL · UBUNTU 22.04 NATIVE VALIDATION\n'
+          printf '%s\n' '────────────────────────────────────────'
+
+          printf '\nInstalling pinned govulncheck\n'
+          GOBIN="$PWD/.local/tools/bin" \
+            go install \
+            golang.org/x/vuln/cmd/govulncheck@v1.6.0
+
+          printf '\nBuilding repository validator\n'
+          go build \
+            -trimpath \
+            -o .local/bin/isras-validate \
+            ./cmd/isras-validate
+
+          chmod 0755 .local/bin/isras-validate
+
+          printf '\nRunning platform detection\n'
+          ./.local/bin/isras-validate system
+
+          printf '\nRunning Go validation\n'
+          ./.local/bin/isras-validate go
+
+          printf '\nRunning sensitive-value validation\n'
+          ./.local/bin/isras-validate secrets
+
+          printf '\nUBUNTU 22.04 NATIVE VALIDATION PASSED\n'
+
+      - name: Retain validation failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isras-ubuntu-22-validation-logs-${{ github.run_id }}
+          path: .local/validation/logs/*.log
+          if-no-files-found: warn
+          retention-days: 30
+
+  distribution-userland:
+    name: ${{ matrix.name }} userland
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: arch
+            name: Arch Linux
+            image: archlinux:base-devel
+            package_manager: pacman
+          - id: fedora-43
+            name: Fedora 43
+            image: fedora:43
+            package_manager: dnf
+          - id: fedora-44
+            name: Fedora 44
+            image: fedora:44
+            package_manager: dnf
+
+    container:
+      image: ${{ matrix.image }}
+
+    steps:
+      - name: Bootstrap distribution tools
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          case "${{ matrix.package_manager }}" in
+            pacman)
+              pacman -Syu --noconfirm --needed \
+                ca-certificates \
+                git \
+                gzip \
+                tar
+              ;;
+            dnf)
+              dnf -y upgrade --refresh
+              dnf -y install \
+                ca-certificates \
+                git \
+                gzip \
+                tar
+              dnf clean all
+              ;;
+            *)
+              printf 'Unsupported package manager: %s\n' \
+                '${{ matrix.package_manager }}' >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Check out exact source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install declared Go toolchain
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Record platform evidence
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          printf 'declared_image=%s\n' '${{ matrix.image }}'
+          sed -n -E '/^(NAME|VERSION|ID|VERSION_ID|PRETTY_NAME)=/p' /etc/os-release
+          printf 'architecture=%s\n' "$(uname -m)"
+          go version
+          git --version
+
+      - name: Run ISRAS validation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          mkdir -p \
+            .local/bin \
+            .local/tools/bin \
+            .local/validation/logs
+
+          exec > >(tee ".local/validation/logs/${{ matrix.id }}-validation.log") 2>&1
+
+          printf '\nIRON SIGNAL · %s USERLAND VALIDATION\n' '${{ matrix.name }}'
+          printf '%s\n' '────────────────────────────────────────'
+
+          printf '\nInstalling pinned govulncheck\n'
+          GOBIN="$PWD/.local/tools/bin" \
+            go install \
+            golang.org/x/vuln/cmd/govulncheck@v1.6.0
+
+          printf '\nBuilding repository validator\n'
+          go build \
+            -trimpath \
+            -o .local/bin/isras-validate \
+            ./cmd/isras-validate
+
+          chmod 0755 .local/bin/isras-validate
+
+          printf '\nRunning platform detection\n'
+          ./.local/bin/isras-validate system
+
+          printf '\nRunning Go validation\n'
+          ./.local/bin/isras-validate go
+
+          printf '\nRunning sensitive-value validation\n'
+          ./.local/bin/isras-validate secrets
+
+          printf '\n%s USERLAND VALIDATION PASSED\n' '${{ matrix.name }}'
+
+      - name: Retain validation failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isras-${{ matrix.id }}-validation-logs-${{ github.run_id }}
+          path: .local/validation/logs/*.log
+          if-no-files-found: warn
+          retention-days: 30

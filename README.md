@@ -43,8 +43,23 @@ The profile requires:
 - bounded redaction and allowlist workflows;
 - a local `*.log` for every failed check;
 - concise terminal dashboards with exact safe commands for the detected issue;
-- declared support for Arch Linux, supported Ubuntu Server LTS releases, and
-  supported Fedora Server releases unless a project declares a different scope.
+- evidence-qualified support for Arch Linux, selected supported Ubuntu Server
+  LTS release lines, and selected supported Fedora Server release lines unless a
+  project declares a different scope.
+
+### Platform validation evidence
+
+The active baseline continuously validates Ubuntu Server 22.04 LTS and 24.04
+LTS on native GitHub-hosted virtual machines. Arch Linux and Fedora Server 43
+and 44 are continuously validated in their official OCI userlands on a
+GitHub-hosted Linux runner.
+
+Container-userland evidence validates distribution packages, tools, shell,
+filesystem, and linked-userland behavior used by ISRAS. It does not establish
+native kernel, boot, systemd, SELinux-enforcement, firewall, hardware,
+deployment, recovery, or complete operational compatibility. The exact evidence
+classes and lifecycle rules are defined in
+[`standards/PLATFORM-SUPPORT.md`](standards/PLATFORM-SUPPORT.md).
 
 The earlier ISRAS v1, v2, and v3 development work is preserved through the
 archive branch, signed archive tag, and local Git bundle created by the restart
