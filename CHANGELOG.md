@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Replaced the stale hard-coded validator profile with committed version and
+  source identity metadata. The validator now reports reference versus
+  project-owned export ownership, exact export source commit, target module, and
+  current repository commit through a dedicated `version` command and dashboard
+  header.
 - Made project-validator export transactional: ordinary clones and linked
   worktrees are validated in an exact-commit scratch clone, deterministic module
   changes are applied and staged, existing requirements cannot disappear or

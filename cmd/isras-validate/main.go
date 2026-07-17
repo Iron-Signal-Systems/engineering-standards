@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,9 +18,8 @@ import (
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/repository"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/secrets"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/validation"
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity"
 )
-
-const profile = "ISRAS-SD 0.1.0-development"
 
 func main() {
 	os.Exit(run())
@@ -39,6 +39,11 @@ func run() int {
 		fmt.Fprintln(os.Stderr, "FAIL:", err)
 		return 2
 	}
+	validatorIdentity, err := validatoridentity.Load(identity.Root, identity.Commit)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "FAIL:", err)
+		return 2
+	}
 	command := canonicalCommand(identity.Root)
 	runner, err := validation.New(ctx, mode, command)
 	if err != nil {
@@ -51,23 +56,26 @@ func run() int {
 
 	switch args[0] {
 	case "all":
-		return render(runner.All(ctx))
+		return render(validatorIdentity.Header(), runner.All(ctx))
 	case "system":
-		return render(model.Summary{Checks: runner.System(ctx)})
+		return render(validatorIdentity.Header(), model.Summary{Checks: runner.System(ctx)})
 	case "repo", "repository":
-		return render(model.Summary{Checks: runner.Repository(ctx)})
+		return render(validatorIdentity.Header(), model.Summary{Checks: runner.Repository(ctx)})
 	case "go":
-		return runGo(ctx, runner, args[1:])
+		return runGo(ctx, runner, validatorIdentity.Header(), args[1:])
 	case "secrets":
-		return runSecrets(ctx, runner, args[1:])
+		return runSecrets(ctx, runner, validatorIdentity.Header(), args[1:])
 	case "fix":
 		return runFix(ctx, runner, args[1:])
+	case "version", "--version":
+		renderIdentity(os.Stdout, validatorIdentity)
+		return 0
 	case "help", "-h", "--help":
-		usage(command)
+		usage(command, validatorIdentity.Header())
 		return 0
 	default:
 		fmt.Fprintf(os.Stderr, "FAIL: unknown command %q\n\n", args[0])
-		usage(command)
+		usage(command, validatorIdentity.Header())
 		return 2
 	}
 }
@@ -89,9 +97,9 @@ func parseMode(args []string) ([]string, string, error) {
 	return out, mode, nil
 }
 
-func render(summary model.Summary) int {
+func render(header string, summary model.Summary) int {
 	printer := dashboard.New(os.Stdout)
-	printer.Header(profile)
+	printer.Header(header)
 	printer.Checks(summary.Checks)
 	printer.Footer(summary)
 	if summary.Failed() {
@@ -100,10 +108,24 @@ func render(summary model.Summary) int {
 	return 0
 }
 
-func runGo(ctx context.Context, runner *validation.Runner, args []string) int {
+func renderIdentity(writer io.Writer, identity validatoridentity.Identity) {
+	fmt.Fprintln(writer, "ISRAS VALIDATOR IDENTITY")
+	fmt.Fprintln(writer, "========================")
+	fmt.Fprintf(writer, "Profile:           %s\n", identity.Profile)
+	fmt.Fprintf(writer, "Standard version:  %s\n", identity.StandardVersion)
+	fmt.Fprintf(writer, "Ownership:         %s\n", identity.Ownership)
+	fmt.Fprintf(writer, "Source repository: %s\n", identity.SourceRepository)
+	fmt.Fprintf(writer, "Source commit:     %s\n", identity.SourceCommit)
+	if identity.TargetModule != "" {
+		fmt.Fprintf(writer, "Target module:     %s\n", identity.TargetModule)
+	}
+	fmt.Fprintf(writer, "Repository commit: %s\n", identity.RepositoryCommit)
+}
+
+func runGo(ctx context.Context, runner *validation.Runner, header string, args []string) int {
 	checks := runner.Go(ctx)
 	if len(args) == 0 {
-		return render(model.Summary{Checks: checks})
+		return render(header, model.Summary{Checks: checks})
 	}
 	name := ""
 	switch args[0] {
@@ -119,14 +141,14 @@ func runGo(ctx context.Context, runner *validation.Runner, args []string) int {
 	case "build":
 		name = "Build"
 	case "modules":
-		return render(model.Summary{Checks: filterChecks(checks, "Module consistency", "Module integrity")})
+		return render(header, model.Summary{Checks: filterChecks(checks, "Module consistency", "Module integrity")})
 	case "vulnerabilities":
 		name = "Known vulnerabilities"
 	default:
 		fmt.Fprintf(os.Stderr, "FAIL: unknown Go validation command %q\n", args[0])
 		return 2
 	}
-	return render(model.Summary{Checks: filterChecks(checks, name)})
+	return render(header, model.Summary{Checks: filterChecks(checks, name)})
 }
 
 func formattingDiff(ctx context.Context, runner *validation.Runner) int {
@@ -180,9 +202,9 @@ func runFix(ctx context.Context, runner *validation.Runner, args []string) int {
 	return 0
 }
 
-func runSecrets(ctx context.Context, runner *validation.Runner, args []string) int {
+func runSecrets(ctx context.Context, runner *validation.Runner, header string, args []string) int {
 	if len(args) == 0 {
-		return render(model.Summary{Checks: runner.Secrets(ctx)})
+		return render(header, model.Summary{Checks: runner.Secrets(ctx)})
 	}
 	if len(args) < 2 {
 		fmt.Fprintln(os.Stderr, "FAIL: secret action requires a finding ID")
@@ -369,7 +391,7 @@ func shellDisplay(value string) string {
 	return strings.ReplaceAll(value, "'", "'\\''")
 }
 
-func usage(command string) {
+func usage(command, header string) {
 	fmt.Printf(`%s — Iron Signal Repository Assurance validation
 
 Usage:
@@ -379,11 +401,12 @@ Usage:
   %s go [formatting|vet|tests|build|modules|vulnerabilities]
   %s go formatting --diff
   %s fix formatting
+  %s version
   %s secrets
   %s secrets inspect FINDING-ID
   %s secrets prepare-redaction FINDING-ID
   %s secrets apply-redaction FINDING-ID
   %s secrets prepare-allow FINDING-ID --reason 'bounded reason'
   %s secrets apply-allow FINDING-ID
-`, profile, command, command, command, command, command, command, command, command, command, command, command, command)
+`, header, command, command, command, command, command, command, command, command, command, command, command, command, command)
 }
