@@ -39,11 +39,14 @@ The stage requires:
 - complete commit-mode validation; and
 - clean-clone release-mode validation of the exact pushed commit.
 
-Before the expensive validation campaign begins, `check` inspects the derived
-local and remote release tag. An existing tag that identifies any commit other
-than the current candidate is a hard failure because release tag names are
-immutable. The command repeats the tag-identity inspection after validation so
-an intervening tag change cannot be silently accepted.
+Before the expensive validation campaign begins, `check` inspects the declared
+version and the derived local and remote release tag. A development declaration
+such as `0.1.1-development` fails before release validation because only a stable
+`MAJOR.MINOR.PATCH` value can define a release candidate. An existing tag that
+identifies any commit other than the current candidate is also a hard failure
+because release tag names are immutable. The command repeats tag-identity
+inspection after validation so an intervening tag change cannot be silently
+accepted.
 
 ### Tag
 
@@ -109,6 +112,12 @@ A stage may be rerun after interruption. Existing local tags, remote tags,
 release identity and required publication state. Conflicting state stops the
 workflow for investigation.
 
-A published version cannot be reused for later source. When `VERSION` derives a
-tag that already identifies a different commit, the workflow fails and directs
-the developer to advance `VERSION`, the changelog, and the release notes.
+A published version cannot be reused for later source. After publication, active
+development advances to a suffixed value such as `0.1.1-development`. That value
+records the next development cycle but cannot pass release workflow preflight.
+A later release-preparation change removes the suffix, finalizes the changelog
+and release notes, and establishes the stable candidate version.
+
+When `VERSION` derives a tag that already identifies a different commit, the
+workflow fails and directs the developer to advance `VERSION`, the changelog,
+and the release notes.

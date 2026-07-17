@@ -53,6 +53,17 @@ A self-validated candidate shall record:
 - warnings and known limitations;
 - status `SELF-VALIDATED`.
 
+## Version lifecycle
+
+After a stable release is published, active development shall advance `VERSION`
+to the next intended patch, minor, or major version with the
+`-development` suffix. A development version records repository state but is
+not a release candidate and shall be rejected by release automation.
+
+Release preparation is a separate reviewed change that removes the suffix,
+finalizes the matching changelog heading and release notes, and produces a
+stable `MAJOR.MINOR.PATCH` candidate.
+
 ## Release baseline
 
 A release shall additionally require:
