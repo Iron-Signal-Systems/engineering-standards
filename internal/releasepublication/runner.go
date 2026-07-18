@@ -19,8 +19,11 @@ import (
 )
 
 const (
-	maxCommandOutput = 4 * 1024 * 1024
-	maxFileOutput    = int64(512*1024*1024 + 1)
+	maxCommandOutput                    = 4 * 1024 * 1024
+	maxFileOutput                       = int64(512*1024*1024 + 1)
+	releaseAssetObservationAttempts     = 10
+	releaseAssetObservationInitialDelay = 250 * time.Millisecond
+	releaseAssetObservationMaximumDelay = 2 * time.Second
 )
 
 type CommandResult struct {
@@ -119,10 +122,16 @@ func (runner OSRunner) runReleaseAssetUpload(ctx context.Context, dir string, en
 	if result.Err != nil {
 		return result
 	}
-	for _, asset := range before.Assets {
-		if asset.Name == upload.AssetName {
-			return CommandResult{ExitCode: -1, Err: errors.New("release asset already exists; clobbering is denied")}
-		}
+	beforeAssets, result := runner.listReleaseAssetsForUpload(ctx, dir, environment, upload)
+	if result.Err != nil {
+		return result
+	}
+	observed, err := findReleaseAsset(beforeAssets, upload.AssetName)
+	if err != nil {
+		return CommandResult{ExitCode: -1, Err: err}
+	}
+	if observed != nil {
+		return CommandResult{ExitCode: -1, Err: errors.New("release asset already exists; clobbering is denied")}
 	}
 
 	uploadResult := runner.runCommand(
@@ -138,28 +147,15 @@ func (runner OSRunner) runReleaseAssetUpload(ctx context.Context, dir string, en
 		upload.Repository,
 	)
 
-	after, authoritative := runner.readReleaseForUpload(ctx, dir, environment, upload)
+	observed, authoritative := runner.waitForReleaseAsset(ctx, dir, environment, upload)
 	if authoritative.Err != nil {
 		if uploadResult.Err != nil {
 			return uploadResult
 		}
 		return authoritative
 	}
-	var observed *githubAsset
-	for index := range after.Assets {
-		if after.Assets[index].Name != upload.AssetName {
-			continue
-		}
-		if observed != nil {
-			return CommandResult{ExitCode: -1, Err: errors.New("release contains duplicate uploaded asset names")}
-		}
-		observed = &after.Assets[index]
-	}
 	if observed == nil {
-		if uploadResult.Err != nil {
-			return uploadResult
-		}
-		return CommandResult{ExitCode: -1, Err: errors.New("release asset upload completed without authoritative asset state")}
+		return CommandResult{ExitCode: -1, Err: errors.New("release asset observation returned no asset")}
 	}
 	data, err := json.Marshal(observed)
 	if err != nil {
@@ -182,6 +178,84 @@ func (runner OSRunner) readReleaseForUpload(ctx context.Context, dir string, env
 		return githubRelease{}, CommandResult{ExitCode: -1, Err: errors.New("authoritative GitHub Release changed during asset upload")}
 	}
 	return release, CommandResult{ExitCode: 0}
+}
+
+func (runner OSRunner) listReleaseAssetsForUpload(ctx context.Context, dir string, environment []string, upload releaseAssetUploadCommand) ([]githubAsset, CommandResult) {
+	endpoint := "repos/" + upload.Repository + "/releases/" + strconv.FormatInt(upload.ReleaseID, 10) + "/assets?per_page=100"
+	result := runner.runCommand(ctx, dir, environment, "gh", "api", "--method", "GET", endpoint)
+	if result.Err != nil {
+		return nil, result
+	}
+	var assets []githubAsset
+	if err := json.Unmarshal(result.Stdout, &assets); err != nil {
+		return nil, CommandResult{ExitCode: -1, Err: errors.New("parse authoritative GitHub release assets during upload")}
+	}
+	return assets, CommandResult{ExitCode: 0}
+}
+
+func (runner OSRunner) waitForReleaseAsset(ctx context.Context, dir string, environment []string, upload releaseAssetUploadCommand) (*githubAsset, CommandResult) {
+	delay := releaseAssetObservationInitialDelay
+	last := CommandResult{ExitCode: -1, Err: errors.New("release asset is not yet visible in authoritative state")}
+
+	for attempt := 0; attempt < releaseAssetObservationAttempts; attempt++ {
+		if _, result := runner.readReleaseForUpload(ctx, dir, environment, upload); result.Err != nil {
+			last = result
+		} else if assets, result := runner.listReleaseAssetsForUpload(ctx, dir, environment, upload); result.Err != nil {
+			last = result
+		} else {
+			observed, err := findReleaseAsset(assets, upload.AssetName)
+			if err != nil {
+				return nil, CommandResult{ExitCode: -1, Err: err}
+			}
+			if observed != nil && observed.State == "uploaded" {
+				return observed, CommandResult{ExitCode: 0}
+			}
+			if observed != nil {
+				last = CommandResult{ExitCode: -1, Err: errors.New("release asset is not yet in uploaded state")}
+			} else {
+				last = CommandResult{ExitCode: -1, Err: errors.New("release asset is not yet visible in authoritative state")}
+			}
+		}
+
+		if attempt+1 == releaseAssetObservationAttempts {
+			break
+		}
+		if err := sleepContext(ctx, delay); err != nil {
+			return nil, CommandResult{ExitCode: -1, Err: err}
+		}
+		if delay < releaseAssetObservationMaximumDelay {
+			delay *= 2
+			if delay > releaseAssetObservationMaximumDelay {
+				delay = releaseAssetObservationMaximumDelay
+			}
+		}
+	}
+	return nil, last
+}
+
+func findReleaseAsset(assets []githubAsset, name string) (*githubAsset, error) {
+	var observed *githubAsset
+	for index := range assets {
+		if assets[index].Name != name {
+			continue
+		}
+		if observed != nil {
+			return nil, errors.New("release contains duplicate uploaded asset names")
+		}
+		observed = &assets[index]
+	}
+	return observed, nil
+}
+
+func sleepContext(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func (OSRunner) RunToFile(ctx context.Context, dir string, environment []string, outputPath, name string, args ...string) CommandResult {

@@ -110,15 +110,18 @@ Publication uses a draft-first transaction:
    commit;
 2. verify that the new draft is empty, non-prerelease, and unpublished;
 3. upload each of the six declared assets without replacement or clobbering;
-4. verify every upload response against expected name, state, size, and GitHub
+4. poll the dedicated numeric release-assets endpoint with bounded backoff until
+   the single expected uploaded asset is authoritatively visible, without
+   retrying the upload write;
+5. verify the observed asset against expected name, state, size, and GitHub
    SHA-256 metadata;
-5. re-read the complete draft and reject missing, extra, duplicate, unavailable,
+6. re-read the complete draft and reject missing, extra, duplicate, unavailable,
    or altered assets;
-6. download every remote asset into a private bounded temporary directory;
-7. verify downloaded SHA-256, SHA-512, manifests, provenance, and exact inventory;
-8. revalidate the complete local source and artifact boundary;
-9. change only the verified draft state to published; and
-10. re-read, re-download, and reverify the published release and remote tag.
+7. download every remote asset into a private bounded temporary directory;
+8. verify downloaded SHA-256, SHA-512, manifests, provenance, and exact inventory;
+9. revalidate the complete local source and artifact boundary;
+10. change only the verified draft state to published; and
+11. re-read, re-download, and reverify the published release and remote tag.
 
 The command never uses an asset-clobber option. It never accepts a partial asset
 set as a release.
@@ -128,10 +131,13 @@ set as a release.
 GitHub API operations use the authenticated `gh` command. Publication does not
 read, display, or retain the authentication token itself. Release assets use the
 dedicated `gh release upload` transport rather than posting binary bytes through
-the ordinary REST API host. Asset clobbering is never enabled. Before and after
-each upload, the command rereads the exact numeric draft identity; an uncertain
-CLI result is accepted only when authoritative GitHub state exposes exactly one
-matching asset, which is then subjected to the normal size and digest checks.
+the ordinary REST API host. Asset clobbering is never enabled. Before each
+upload, the command rereads the exact numeric draft identity and its dedicated
+asset inventory. After issuing the upload exactly once, it polls the numeric
+release-assets endpoint with bounded exponential backoff until authoritative
+GitHub state exposes exactly one matching uploaded asset. An uncertain CLI
+result is accepted only under that same authoritative observation, after which
+the normal size and digest checks still apply.
 
 Captured command output is bounded and credential-shaped diagnostics are
 censored before they enter errors or evidence. Remote asset downloads are

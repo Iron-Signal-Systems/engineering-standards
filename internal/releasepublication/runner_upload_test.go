@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 )
 
-func TestOSRunnerUsesReleaseUploadTransport(t *testing.T) {
+func TestOSRunnerUsesReleaseUploadTransportAndWaitsForAuthoritativeState(t *testing.T) {
 	root := t.TempDir()
 	assetName := "SHA256SUMS"
 	assetPath := filepath.Join(root, assetName)
@@ -18,16 +19,37 @@ func TestOSRunnerUsesReleaseUploadTransport(t *testing.T) {
 	}
 	logPath := filepath.Join(root, "gh.log")
 	markerPath := filepath.Join(root, "uploaded")
+	countPath := filepath.Join(root, "asset-read-count")
 	ghPath := filepath.Join(root, "gh")
 	script := `#!/bin/sh
 set -eu
 printf '%s\n' "$*" >> "$GH_TEST_LOG"
 if [ "$1" = "api" ] && [ "$2" = "--method" ] && [ "$3" = "GET" ]; then
-  if [ -f "$GH_TEST_MARKER" ]; then
-    printf '%s\n' '{"id":77,"tag_name":"isras-v0.1.1","draft":true,"prerelease":false,"assets":[{"id":101,"name":"SHA256SUMS","state":"uploaded","size":8,"digest":"sha256:fixture"}]}'
-  else
-    printf '%s\n' '{"id":77,"tag_name":"isras-v0.1.1","draft":true,"prerelease":false,"assets":[]}'
-  fi
+  case "$4" in
+    */releases/77)
+      printf '%s\n' '{"id":77,"tag_name":"isras-v0.1.1","draft":true,"prerelease":false}'
+      ;;
+    */releases/77/assets\?per_page=100)
+      if [ ! -f "$GH_TEST_MARKER" ]; then
+        printf '%s\n' '[]'
+        exit 0
+      fi
+      count=0
+      if [ -f "$GH_TEST_COUNT" ]; then
+        count=$(cat "$GH_TEST_COUNT")
+      fi
+      count=$((count + 1))
+      printf '%s' "$count" > "$GH_TEST_COUNT"
+      if [ "$count" -lt 3 ]; then
+        printf '%s\n' '[]'
+      else
+        printf '%s\n' '[{"id":101,"name":"SHA256SUMS","state":"uploaded","size":8,"digest":"sha256:fixture"}]'
+      fi
+      ;;
+    *)
+      exit 93
+      ;;
+  esac
   exit 0
 fi
 if [ "$1" = "release" ] && [ "$2" = "upload" ]; then
@@ -46,6 +68,7 @@ exit 92
 	environment := append(os.Environ(),
 		"GH_TEST_LOG="+logPath,
 		"GH_TEST_MARKER="+markerPath,
+		"GH_TEST_COUNT="+countPath,
 	)
 	result := (OSRunner{}).Run(
 		context.Background(),
@@ -71,13 +94,24 @@ exit 92
 	if asset.ID != 101 || asset.Name != assetName || asset.State != "uploaded" {
 		t.Fatalf("unexpected authoritative asset: %#v", asset)
 	}
+	countData, err := os.ReadFile(countPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	count, err := strconv.Atoi(string(countData))
+	if err != nil || count != 3 {
+		t.Fatalf("expected three post-upload asset observations, got %q", countData)
+	}
 	logData, err := os.ReadFile(logPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 	logText := string(logData)
-	if !strings.Contains(logText, "release upload isras-v0.1.1 "+assetPath+" --repo Iron-Signal-Systems/engineering-standards") {
-		t.Fatalf("gh release upload was not used: %s", logText)
+	if strings.Count(logText, "release upload isras-v0.1.1 "+assetPath+" --repo Iron-Signal-Systems/engineering-standards") != 1 {
+		t.Fatalf("upload command was not issued exactly once: %s", logText)
+	}
+	if !strings.Contains(logText, "/releases/77/assets?per_page=100") {
+		t.Fatalf("dedicated release-assets endpoint was not used: %s", logText)
 	}
 	if strings.Contains(logText, "api --method POST") || strings.Contains(logText, "--clobber") {
 		t.Fatalf("unsafe upload transport was used: %s", logText)
@@ -92,15 +126,27 @@ func TestOSRunnerAcceptsAuthoritativeAssetAfterUncertainUploadFailure(t *testing
 		t.Fatal(err)
 	}
 	markerPath := filepath.Join(root, "uploaded")
+	logPath := filepath.Join(root, "gh.log")
 	ghPath := filepath.Join(root, "gh")
 	script := `#!/bin/sh
 set -eu
+printf '%s\n' "$*" >> "$GH_TEST_LOG"
 if [ "$1" = "api" ] && [ "$2" = "--method" ] && [ "$3" = "GET" ]; then
-  if [ -f "$GH_TEST_MARKER" ]; then
-    printf '%s\n' '{"id":77,"tag_name":"isras-v0.1.1","draft":true,"prerelease":false,"assets":[{"id":101,"name":"SHA256SUMS","state":"uploaded","size":8,"digest":"sha256:fixture"}]}'
-  else
-    printf '%s\n' '{"id":77,"tag_name":"isras-v0.1.1","draft":true,"prerelease":false,"assets":[]}'
-  fi
+  case "$4" in
+    */releases/77)
+      printf '%s\n' '{"id":77,"tag_name":"isras-v0.1.1","draft":true,"prerelease":false}'
+      ;;
+    */releases/77/assets\?per_page=100)
+      if [ -f "$GH_TEST_MARKER" ]; then
+        printf '%s\n' '[{"id":101,"name":"SHA256SUMS","state":"uploaded","size":8,"digest":"sha256:fixture"}]'
+      else
+        printf '%s\n' '[]'
+      fi
+      ;;
+    *)
+      exit 93
+      ;;
+  esac
   exit 0
 fi
 if [ "$1" = "release" ] && [ "$2" = "upload" ]; then
@@ -116,7 +162,10 @@ exit 92
 	result := (OSRunner{}).Run(
 		context.Background(),
 		root,
-		append(os.Environ(), "GH_TEST_MARKER="+markerPath),
+		append(os.Environ(),
+			"GH_TEST_LOG="+logPath,
+			"GH_TEST_MARKER="+markerPath,
+		),
 		"gh",
 		"api",
 		"--method",
@@ -129,6 +178,13 @@ exit 92
 	)
 	if result.Err != nil {
 		t.Fatalf("authoritatively observed upload was rejected: %v", result.Err)
+	}
+	logData, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(logData), "release upload ") != 1 {
+		t.Fatalf("uncertain upload was retried: %s", logData)
 	}
 }
 

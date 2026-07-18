@@ -8,6 +8,11 @@
   accepts an uncertain upload response only when authoritative GitHub state
   exposes exactly one matching asset for complete size and digest verification.
 
+- Added bounded post-upload observation through the dedicated numeric
+  release-assets endpoint. The publisher now tolerates delayed GitHub inventory
+  visibility while issuing each upload command at most once, preserving
+  fail-closed duplicate detection and exact asset verification.
+
 ## 0.1.1 — 2026-07-18
 
 - Corrected local release-tag discovery so the expected pre-tag state is
