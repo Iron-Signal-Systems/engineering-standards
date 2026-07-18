@@ -1,72 +1,227 @@
 package projectadoption
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/projectorigin"
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/projectpin"
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/releaseartifact"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/repository"
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity"
 )
 
-func TestCanonicalProjectOrigin(t *testing.T) {
-	for _, test := range []struct {
-		origin string
-		want   string
-	}{
-		{"git@github.com:Iron-Signal-Systems/iron-atlas.git", "github.com/Iron-Signal-Systems/iron-atlas"},
-		{"https://github.com/Iron-Signal-Systems/iron-atlas.git", "github.com/Iron-Signal-Systems/iron-atlas"},
-		{"ssh://git@github.com/Iron-Signal-Systems/iron-atlas.git", "github.com/Iron-Signal-Systems/iron-atlas"},
-	} {
-		got, err := canonicalProjectOrigin(test.origin)
-		if err != nil {
-			t.Fatalf("canonicalize %q: %v", test.origin, err)
-		}
-		if got != test.want {
-			t.Fatalf("canonicalize %q = %q, want %q", test.origin, got, test.want)
-		}
+func TestProjectAdoptionUsesSharedCanonicalOrigin(t *testing.T) {
+	got, err := projectorigin.Canonical("git@github.com:Iron-Signal-Systems/iron-atlas.git")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "github.com/Iron-Signal-Systems/iron-atlas" {
+		t.Fatalf("canonical origin = %q", got)
 	}
 }
 
-func TestCanonicalProjectOriginRejectsWrongBoundary(t *testing.T) {
-	for _, origin := range []string{
-		"",
-		"git@gitlab.com:Iron-Signal-Systems/iron-atlas.git",
-		"git@github.com:Other/iron-atlas.git",
-		"https://github.com/Iron-Signal-Systems/too/many.git",
-		"https://token@github.com/Iron-Signal-Systems/iron-atlas.git",
-		"file://github.com/Iron-Signal-Systems/iron-atlas.git",
-		"https://github.com/Iron-Signal-Systems/../iron-atlas.git",
-	} {
-		if _, err := canonicalProjectOrigin(origin); err == nil {
-			t.Fatalf("unsafe origin %q was accepted", origin)
-		}
+func TestInitializeRequiresExactReleaseValidatorBeforeNetwork(t *testing.T) {
+	called := false
+	_, err := initializeWithBootstrap(context.Background(), Request{
+		Root: "/does/not/matter", ReleaseTag: "isras-v0.1.2", GoDefaults: true,
+		Validator: validatoridentity.Identity{Metadata: validatoridentity.Metadata{
+			Profile: projectpin.Profile, StandardVersion: "0.1.2",
+			Ownership:        validatoridentity.OwnershipReference,
+			SourceRepository: projectpin.SourceRepository,
+		}},
+	}, func(context.Context, string) (releaseartifact.Bootstrap, error) {
+		called = true
+		return releaseartifact.Bootstrap{}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "release validator") {
+		t.Fatalf("authority error = %v", err)
+	}
+	if called {
+		t.Fatal("bootstrap network boundary ran before validator authority was established")
 	}
 }
 
-func TestValidateEvidenceDirectory(t *testing.T) {
-	for _, value := range []string{".local/isras", "validation/evidence"} {
-		if err := validateEvidenceDirectory(value); err != nil {
-			t.Fatalf("valid evidence directory %q rejected: %v", value, err)
-		}
+func TestInitializeTwiceIsActuallyIdempotentWithFreshReports(t *testing.T) {
+	root := initializeTestRepository(t)
+	call := 0
+	bootstrap := func(context.Context, string) (releaseartifact.Bootstrap, error) {
+		call++
+		return validBootstrap(time.Date(2026, 7, 18, 19, 0, call, 0, time.UTC)), nil
 	}
-	for _, value := range []string{"", ".", "..", "../outside", "/absolute", ".git/isras", `windows\path`} {
-		if err := validateEvidenceDirectory(value); err == nil {
-			t.Fatalf("invalid evidence directory %q accepted", value)
-		}
+	request := Request{
+		Root: root, ReleaseTag: "isras-v0.1.2", GoDefaults: true,
+		Validator: releaseValidatorIdentity(),
+	}
+	first, err := initializeWithBootstrap(context.Background(), request, bootstrap)
+	if err != nil {
+		t.Fatalf("first initialization: %v", err)
+	}
+	if !first.Changed {
+		t.Fatal("first initialization reported no change")
+	}
+	evidencePath := filepath.Join(root, filepath.FromSlash(AdoptionEvidencePath))
+	firstEvidence, err := os.ReadFile(evidencePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(firstEvidence, []byte("started_at")) || bytes.Contains(firstEvidence, []byte("finished_at")) {
+		t.Fatal("durable adoption evidence contains volatile timestamps")
+	}
+
+	second, err := initializeWithBootstrap(context.Background(), request, bootstrap)
+	if err != nil {
+		t.Fatalf("second initialization: %v", err)
+	}
+	if second.Changed {
+		t.Fatal("second initialization was not idempotent")
+	}
+	secondEvidence, err := os.ReadFile(evidencePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(firstEvidence, secondEvidence) {
+		t.Fatal("fresh verification report changed durable adoption evidence")
+	}
+	if call != 2 {
+		t.Fatalf("bootstrap calls = %d, want 2", call)
 	}
 }
 
-func TestCallerWorkflowPinsExactSourceCommit(t *testing.T) {
+func TestInitializeRejectsValidatorThatDoesNotMatchVerifiedRelease(t *testing.T) {
+	root := initializeTestRepository(t)
+	request := Request{
+		Root: root, ReleaseTag: "isras-v0.1.2", GoDefaults: true,
+		Validator: releaseValidatorIdentity(),
+	}
+	bootstrap := validBootstrap(time.Now().UTC())
+	bootstrap.Standard.SourceCommit = strings.Repeat("b", 40)
+	_, err := initializeWithBootstrap(context.Background(), request, func(context.Context, string) (releaseartifact.Bootstrap, error) {
+		return bootstrap, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "does not match") {
+		t.Fatalf("identity mismatch error = %v", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(root, ".isras")); !os.IsNotExist(statErr) {
+		t.Fatal("identity mismatch modified the target")
+	}
+}
+
+func TestValidateEvidenceBoundaryRejectsTrackedOrSymlinkedPath(t *testing.T) {
+	t.Run("tracked", func(t *testing.T) {
+		root := initializeTestRepository(t)
+		path := filepath.Join(root, ".local", "isras", "record.txt")
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte("tracked\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		runGit(t, root, "add", ".local/isras/record.txt")
+		runGit(t, root, "-c", "commit.gpgsign=false", "commit", "--quiet", "-m", "track evidence")
+		if err := validateEvidenceBoundary(context.Background(), root); err == nil || !strings.Contains(err.Error(), "tracked") {
+			t.Fatalf("tracked evidence error = %v", err)
+		}
+	})
+	t.Run("symlink", func(t *testing.T) {
+		root := initializeTestRepository(t)
+		if err := os.MkdirAll(filepath.Join(root, ".local"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Symlink(t.TempDir(), filepath.Join(root, ".local", "isras")); err != nil {
+			t.Fatal(err)
+		}
+		if err := validateEvidenceBoundary(context.Background(), root); err == nil || !strings.Contains(err.Error(), "unsafe") {
+			t.Fatalf("symlink evidence error = %v", err)
+		}
+	})
+}
+
+func releaseValidatorIdentity() validatoridentity.Identity {
 	commit := strings.Repeat("a", 40)
-	workflow := string(callerWorkflow(commit))
-	if !strings.Contains(workflow, "validate-project.yml@"+commit) {
-		t.Fatal("caller workflow does not pin the exact source commit")
+	return validatoridentity.Identity{
+		Metadata: validatoridentity.Metadata{
+			SchemaVersion: 1, Profile: projectpin.Profile, StandardVersion: "0.1.2",
+			Ownership:        validatoridentity.OwnershipReleaseArtifact,
+			SourceRepository: projectpin.SourceRepository, SourceCommit: commit,
+		},
+		ReleaseTag: "isras-v0.1.2", RepositoryCommit: commit,
 	}
-	if strings.Contains(workflow, "@dev") || strings.Contains(workflow, "@main") {
-		t.Fatal("caller workflow contains a floating branch")
+}
+
+func validBootstrap(now time.Time) releaseartifact.Bootstrap {
+	commit := strings.Repeat("a", 40)
+	standard := projectpin.Standard{
+		Profile: projectpin.Profile, Version: "0.1.2", ReleaseTag: "isras-v0.1.2",
+		SourceRepository: projectpin.SourceRepository, SourceCommit: commit,
+	}
+	specs := []struct{ name, kind, goos, arch string }{
+		{"SHA256SUMS", "sha256-manifest", "", ""},
+		{"SHA512SUMS", "sha512-manifest", "", ""},
+		{"isras-contracts.tar.gz", "contracts", "", ""},
+		{"isras-project-framework.tar.gz", "framework", "", ""},
+		{"isras-validator-linux-amd64", "validator", "linux", "amd64"},
+		{"provenance.json", "provenance", "", ""},
+	}
+	artifacts := make([]projectpin.Artifact, 0, len(specs))
+	results := make([]releaseartifact.ArtifactResult, 0, len(specs))
+	for index, spec := range specs {
+		d256 := strings.Repeat(string(rune('a'+index)), 64)
+		d512 := strings.Repeat(string(rune('a'+index)), 128)
+		artifacts = append(artifacts, projectpin.Artifact{
+			Kind: spec.kind, Name: spec.name, OS: spec.goos, Arch: spec.arch,
+			SHA256: d256, SHA512: d512,
+		})
+		results = append(results, releaseartifact.ArtifactResult{
+			Kind: spec.kind, Name: spec.name, OS: spec.goos, Arch: spec.arch,
+			Size: int64(100 + index), RemoteSize: int64(100 + index),
+			ExpectedSHA256: d256, ObservedSHA256: d256,
+			ExpectedSHA512: d512, ObservedSHA512: d512,
+			SHA256Status: releaseartifact.StatusPass, SHA512Status: releaseartifact.StatusPass,
+			SHA256Manifest: releaseartifact.StatusPass, SHA512Manifest: releaseartifact.StatusPass,
+			ProvenanceBinding: releaseartifact.StatusPass,
+		})
+	}
+	return releaseartifact.Bootstrap{
+		Standard: standard, Artifacts: artifacts,
+		Report: releaseartifact.Report{
+			SchemaVersion: 1, StartedAt: now, FinishedAt: now.Add(time.Second),
+			SourceMode: "github-release-bootstrap", SourceLocation: projectpin.SourceRepository + "@isras-v0.1.2",
+			ReleaseTag: "isras-v0.1.2", SourceCommit: commit,
+			ReleaseRecord: releaseartifact.StatusPass, SignedTag: releaseartifact.StatusPass,
+			AssetAcquisition: releaseartifact.StatusPass, AssetInventory: releaseartifact.StatusPass,
+			PinDigests: releaseartifact.StatusPass, SHA256Manifest: releaseartifact.StatusPass,
+			SHA512Manifest: releaseartifact.StatusPass, Provenance: releaseartifact.StatusPass,
+			ExecutionAuthorization: releaseartifact.AuthorizationGranted, Artifacts: results,
+		},
+	}
+}
+
+func TestGeneratedGoFormatCheckPropagatesGitFailure(t *testing.T) {
+	text := string(goFormatCheck())
+	if strings.Contains(text, "< <(git ls-files") {
+		t.Fatal("format checker still hides git ls-files failure in process substitution")
+	}
+	for _, required := range []string{"git ls-files -z", ">\"$list_file\"", "mapfile -d '' files <\"$list_file\""} {
+		if !strings.Contains(text, required) {
+			t.Fatalf("format checker is missing fail-closed boundary %q", required)
+		}
+	}
+	root := t.TempDir()
+	path := filepath.Join(root, "check-go-format")
+	if err := os.WriteFile(path, goFormatCheck(), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command(path)
+	command.Dir = root
+	if output, err := command.CombinedOutput(); err == nil {
+		t.Fatalf("format checker succeeded outside a Git repository:\n%s", output)
 	}
 }
 
@@ -232,7 +387,7 @@ func initializeTestRepository(t *testing.T) string {
 		t.Fatal(err)
 	}
 	runGit(t, root, "add", "README.md")
-	runGit(t, root, "commit", "--quiet", "-m", "test")
+	runGit(t, root, "-c", "commit.gpgsign=false", "commit", "--quiet", "-m", "test")
 	runGit(t, root, "remote", "add", "origin", "git@github.com:Iron-Signal-Systems/test-project.git")
 	return root
 }

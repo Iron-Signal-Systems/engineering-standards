@@ -12,9 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Check out consuming project
+      - name: Check out consuming project at the exact caller commit
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: target
           persist-credentials: false
 
@@ -32,7 +33,7 @@ jobs:
           go-version-file: standard/go.mod
           cache: false
 
-      - name: Build exact release-identity validator
+      - name: Build exact-source bootstrap verifier
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -53,27 +54,119 @@ jobs:
                 -X=github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity.releaseVersion=${version} \
                 -X=github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity.releaseTag=${release_tag} \
                 -X=github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity.releaseSourceCommit=${source_commit}" \
-              -o "$RUNNER_TEMP/isras-validate" \
+              -o "$RUNNER_TEMP/isras-bootstrap" \
               ./cmd/isras-validate
           )
-          "$RUNNER_TEMP/isras-validate" version
+          "$RUNNER_TEMP/isras-bootstrap" version
 
-      - name: Validate committed project pin
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          "$RUNNER_TEMP/isras-validate" \
-            --repo "$GITHUB_WORKSPACE/target" \
-            --mode commit \
-            project-pin validate
-
-      - name: Verify pinned release artifacts
+      - name: Bootstrap-validate committed pin and release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -Eeuo pipefail
-          "$RUNNER_TEMP/isras-validate" \
+          "$RUNNER_TEMP/isras-bootstrap" \
+            --repo "$GITHUB_WORKSPACE/target" \
+            --mode commit \
+            project-pin validate
+          "$RUNNER_TEMP/isras-bootstrap" \
+            --repo "$GITHUB_WORKSPACE/target" \
+            --mode commit \
+            project-pin verify-artifacts
+
+      - name: Acquire and digest-bind the published release validator
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          release_directory="$RUNNER_TEMP/isras-release"
+          mkdir -p "$release_directory"
+          mapfile -t values < <(
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          pin = json.loads(Path("target/.isras/project.json").read_text(encoding="utf-8"))
+          evidence = json.loads(Path("target/.isras/adoption-verification.json").read_text(encoding="utf-8"))
+          standard = pin["standard"]
+          if standard["source_repository"] != "github.com/Iron-Signal-Systems/engineering-standards":
+              raise SystemExit("unexpected standards source repository")
+          if evidence["release_tag"] != standard["release_tag"] or evidence["source_commit"] != standard["source_commit"]:
+              raise SystemExit("adoption evidence identity does not match the project pin")
+          validators = [
+              artifact for artifact in pin["artifacts"]
+              if artifact["kind"] == "validator"
+              and artifact.get("os") == "linux"
+              and artifact.get("arch") == "amd64"
+          ]
+          if len(validators) != 1:
+              raise SystemExit("pin must declare exactly one linux/amd64 validator")
+          artifact = validators[0]
+          evidence_matches = [item for item in evidence["artifacts"] if item["name"] == artifact["name"]]
+          if len(evidence_matches) != 1:
+              raise SystemExit("adoption evidence must contain exactly one matching validator")
+          recorded = evidence_matches[0]
+          if recorded["sha256"] != artifact["sha256"] or recorded["sha512"] != artifact["sha512"]:
+              raise SystemExit("adoption evidence validator digests do not match the project pin")
+          if recorded["size"] != recorded["remote_size"] or recorded["size"] <= 0:
+              raise SystemExit("adoption evidence validator size is invalid")
+          print(standard["release_tag"])
+          print(artifact["name"])
+          print(recorded["size"])
+          print(artifact["sha256"])
+          print(artifact["sha512"])
+          PY
+          )
+          test "${#values[@]}" -eq 5
+          release_tag="${values[0]}"
+          asset_name="${values[1]}"
+          expected_size="${values[2]}"
+          expected_sha256="${values[3]}"
+          expected_sha512="${values[4]}"
+          test "$asset_name" = "isras-validator-linux-amd64"
+          gh release download "$release_tag" \
+            --repo Iron-Signal-Systems/engineering-standards \
+            --dir "$release_directory" \
+            --pattern "$asset_name"
+          validator="$release_directory/$asset_name"
+          test -f "$validator"
+          test "$(stat -c '%s' "$validator")" = "$expected_size"
+          test "$(sha256sum "$validator" | awk '{print $1}')" = "$expected_sha256"
+          test "$(sha512sum "$validator" | awk '{print $1}')" = "$expected_sha512"
+          chmod 0755 "$validator"
+          printf 'ISRAS_RELEASE_VALIDATOR=%s\n' "$validator" >> "$GITHUB_ENV"
+
+      - name: Confirm published validator identity
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          "$ISRAS_RELEASE_VALIDATOR" version
+
+      - name: Validate repository and secret-protection boundaries
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          "$ISRAS_RELEASE_VALIDATOR" \
+            --repo "$GITHUB_WORKSPACE/target" \
+            --mode commit \
+            repo
+          "$ISRAS_RELEASE_VALIDATOR" \
+            --repo "$GITHUB_WORKSPACE/target" \
+            --mode commit \
+            secrets
+
+      - name: Revalidate pin and release with the published validator
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          "$ISRAS_RELEASE_VALIDATOR" \
+            --repo "$GITHUB_WORKSPACE/target" \
+            --mode commit \
+            project-pin validate
+          "$ISRAS_RELEASE_VALIDATOR" \
             --repo "$GITHUB_WORKSPACE/target" \
             --mode commit \
             project-pin verify-artifacts
@@ -94,8 +187,18 @@ jobs:
           )
           test "${#commands[@]}" -gt 0
           for command_name in "${commands[@]}"; do
-            "$RUNNER_TEMP/isras-validate" \
+            "$ISRAS_RELEASE_VALIDATOR" \
               --repo "$GITHUB_WORKSPACE/target" \
               --mode commit \
               project-command run "$command_name"
           done
+
+      - name: Retain ISRAS validation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: isras-evidence-${{ github.run_id }}
+          path: target/.local/isras
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30

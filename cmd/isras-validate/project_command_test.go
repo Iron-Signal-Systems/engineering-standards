@@ -63,7 +63,7 @@ func TestReleaseValidatorExecutesCommittedProjectCommandAgainstExplicitTarget(t 
 		}
 	}
 
-	matches, err := filepath.Glob(filepath.Join(target, ".local", "validation", "project-commands", "*", "execution.json"))
+	matches, err := filepath.Glob(filepath.Join(target, ".local", "isras", "project-commands", "*", "execution.json"))
 	if err != nil || len(matches) != 1 {
 		t.Fatalf("execution evidence matches=%v err=%v", matches, err)
 	}

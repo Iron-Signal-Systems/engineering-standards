@@ -477,7 +477,7 @@ Usage:
   %s [--repo PATH] secrets prepare-allow FINDING-ID --reason 'bounded reason'
   %s [--repo PATH] secrets apply-allow FINDING-ID
 `, header, command, command, command, command, command, command, command, command, command, command, command, command, command, command)
-	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin initialize --release isras-vMAJOR.MINOR.PATCH --go-defaults [--evidence-directory PATH]\n", command)
+	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin initialize --release isras-vMAJOR.MINOR.PATCH --go-defaults\n", command)
 	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin validate\n", command)
 	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin inspect\n", command)
 	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin verify-artifacts [--source-directory PATH]\n", command)

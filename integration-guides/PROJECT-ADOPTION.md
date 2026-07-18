@@ -114,10 +114,12 @@ isras-validator-linux-amd64 \
   --go-defaults
 ```
 
-Initialization verifies the signed release, source commit, exact six assets, both
-digests, manifests, provenance, and presence of the reusable hosted workflow
-before it modifies the target. It generates the complete project-owned adoption
-set and leaves reviewable changes without committing or pushing.
+Initialization is authorized only when the running executable is the exact
+linker-bound validator artifact from the requested release. It verifies the signed
+release, source commit, exact six assets, both digests, manifests, provenance, and
+reusable workflow before modifying the target. It fixes runtime evidence to
+untracked `.local/isras`, generates a stable project-owned adoption set, and
+leaves reviewable changes without committing or pushing.
 
 ## Existing project
 
@@ -137,7 +139,9 @@ execute the same ISRAS release identity and report the same target project
 boundary.
 
 CI may call an immutable reusable workflow from Engineering Standards, but that
-workflow must verify that its release identity corresponds to the project pin.
+workflow must verify its called-workflow identity, bootstrap-check the release,
+digest-bind and execute the published validator artifact, run repository and
+secret-protection checks, and retain `.local/isras` evidence.
 
 ## Upgrade
 

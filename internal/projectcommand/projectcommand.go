@@ -25,6 +25,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/projectorigin"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/projectpin"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/redact"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/repository"
@@ -372,7 +373,24 @@ func authorize(ctx context.Context, request Request) ([]string, error) {
 	if !reflect.DeepEqual(committedPin, request.Pin) {
 		return nil, errors.New("project command request does not match the committed project pin")
 	}
+	if err := requireUntrackedEvidenceBoundary(ctx, request.Root, request.Pin.Evidence.Directory); err != nil {
+		return nil, err
+	}
 	return append([]string(nil), arguments...), nil
+}
+
+func requireUntrackedEvidenceBoundary(ctx context.Context, root, evidenceDirectory string) error {
+	if evidenceDirectory != projectpin.RuntimeEvidenceDirectory {
+		return errors.New("project command evidence directory is not the fixed runtime boundary")
+	}
+	tracked, err := runGitOutput(ctx, root, "ls-files", "--", evidenceDirectory, evidenceDirectory+"/**")
+	if err != nil {
+		return errors.New("inspect project command evidence tracking state")
+	}
+	if strings.TrimSpace(tracked) != "" {
+		return errors.New("project command evidence directory must not contain tracked paths")
+	}
+	return nil
 }
 
 func resolveExecutable(ctx context.Context, root, declared string) (string, error) {
@@ -576,38 +594,11 @@ func runGitQuiet(ctx context.Context, root string, arguments ...string) error {
 }
 
 func canonicalRepository(origin string) (string, error) {
-	origin = strings.TrimSpace(origin)
-	if origin == "" || strings.ContainsAny(origin, "\x00\r\n") {
-		return "", errors.New("target repository origin is unavailable or invalid")
-	}
-	if strings.HasPrefix(origin, "git@github.com:") {
-		return canonicalRepositoryPath(strings.TrimPrefix(origin, "git@github.com:"))
-	}
-	parsed, err := url.Parse(origin)
-	if err != nil || parsed.Hostname() != "github.com" || parsed.Port() != "" || parsed.RawQuery != "" || parsed.Fragment != "" {
-		return "", errors.New("target repository origin is not a canonical GitHub URL")
-	}
-	if parsed.User != nil {
-		if _, hasPassword := parsed.User.Password(); hasPassword {
-			return "", errors.New("target repository origin must not contain credentials")
-		}
-		if parsed.Scheme != "ssh" || parsed.User.Username() != "git" {
-			return "", errors.New("target repository origin has an unexpected SSH user")
-		}
-	}
-	if parsed.Scheme != "ssh" && parsed.Scheme != "https" {
-		return "", errors.New("target repository origin uses an unsupported transport")
-	}
-	return canonicalRepositoryPath(strings.TrimPrefix(parsed.Path, "/"))
+	return projectorigin.Canonical(origin)
 }
 
 func canonicalRepositoryPath(value string) (string, error) {
-	value = strings.TrimSuffix(value, ".git")
-	parts := strings.Split(value, "/")
-	if len(parts) != 2 || parts[0] != "Iron-Signal-Systems" || parts[1] == "" || strings.ContainsAny(parts[1], "\\:@") {
-		return "", errors.New("target repository origin has an unexpected repository identity")
-	}
-	return "github.com/" + value, nil
+	return projectorigin.Canonical("git@github.com:" + value)
 }
 
 func sanitizeOrigin(origin string) string {

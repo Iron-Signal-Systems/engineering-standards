@@ -9,6 +9,7 @@ import (
 
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/projectadoption"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/validation"
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity"
 )
 
 func runProjectPinInitialize(ctx context.Context, runner *validation.Runner, args []string) int {
@@ -17,11 +18,20 @@ func runProjectPinInitialize(ctx context.Context, runner *validation.Runner, arg
 		fmt.Fprintln(os.Stderr, "FAIL: initialize project pin:", err)
 		return 2
 	}
+	validator, configured, identityErr := validatoridentity.Embedded()
+	if identityErr != nil {
+		fmt.Fprintln(os.Stderr, "FAIL: initialize project pin: load linker-bound release validator identity:", identityErr)
+		return 1
+	}
+	if !configured {
+		fmt.Fprintln(os.Stderr, "FAIL: initialize project pin: project initialization requires a linker-bound release validator")
+		return 1
+	}
 	result, initializeErr := projectadoption.Initialize(ctx, projectadoption.Request{
-		Root:              runner.Root,
-		ReleaseTag:        options.ReleaseTag,
-		EvidenceDirectory: options.EvidenceDirectory,
-		GoDefaults:        options.GoDefaults,
+		Root:       runner.Root,
+		ReleaseTag: options.ReleaseTag,
+		GoDefaults: options.GoDefaults,
+		Validator:  validator,
 	})
 	if result.Report.ReleaseTag != "" {
 		renderProjectArtifactVerification(os.Stdout, runner.Root, result.Report, "", "")
@@ -46,6 +56,7 @@ func runProjectPinInitialize(ctx context.Context, runner *validation.Runner, arg
 	fmt.Printf("Caller workflow:       %s\n", result.WorkflowPath)
 	fmt.Printf("Verification evidence: %s\n", result.EvidencePath)
 	fmt.Printf("Go format checker:     %s\n", result.FormatCheckPath)
+	fmt.Printf("Runtime evidence:      %s\n", projectadoption.DefaultEvidenceDirectory)
 	fmt.Println()
 	fmt.Println("Review the adoption change:")
 	fmt.Println(rootedShellCommand(runner.Root, "git diff -- .isras .github/workflows/isras-validation.yml"))
@@ -58,15 +69,13 @@ func runProjectPinInitialize(ctx context.Context, runner *validation.Runner, arg
 }
 
 type projectInitializationOptions struct {
-	ReleaseTag        string
-	EvidenceDirectory string
-	GoDefaults        bool
+	ReleaseTag string
+	GoDefaults bool
 }
 
 func parseProjectInitializationArgs(args []string) (projectInitializationOptions, error) {
 	var options projectInitializationOptions
 	releaseSeen := false
-	evidenceSeen := false
 	goDefaultsSeen := false
 	for index := 0; index < len(args); index++ {
 		switch args[index] {
@@ -77,13 +86,6 @@ func parseProjectInitializationArgs(args []string) (projectInitializationOptions
 			index++
 			options.ReleaseTag = args[index]
 			releaseSeen = true
-		case "--evidence-directory":
-			if evidenceSeen || index+1 >= len(args) {
-				return projectInitializationOptions{}, errors.New("--evidence-directory may be declared once with a value")
-			}
-			index++
-			options.EvidenceDirectory = args[index]
-			evidenceSeen = true
 		case "--go-defaults":
 			if goDefaultsSeen {
 				return projectInitializationOptions{}, errors.New("--go-defaults may be declared only once")
@@ -99,9 +101,6 @@ func parseProjectInitializationArgs(args []string) (projectInitializationOptions
 	}
 	if !options.GoDefaults {
 		return projectInitializationOptions{}, errors.New("project initialization requires explicit --go-defaults authorization")
-	}
-	if evidenceSeen && (strings.TrimSpace(options.EvidenceDirectory) == "" || strings.ContainsAny(options.EvidenceDirectory, "\x00\r\n")) {
-		return projectInitializationOptions{}, errors.New("--evidence-directory requires a valid bounded relative path")
 	}
 	return options, nil
 }

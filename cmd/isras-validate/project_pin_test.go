@@ -62,7 +62,7 @@ func TestRenderProjectPinReportsDeclarationWithoutVerificationClaim(t *testing.T
 			"test":  {"go", "test", "runtime-only-value"},
 			"build": {"go", "build", "./..."},
 		},
-		Evidence: projectpin.Evidence{Directory: ".local/validation"},
+		Evidence: projectpin.Evidence{Directory: projectpin.RuntimeEvidenceDirectory},
 	}
 
 	var output bytes.Buffer

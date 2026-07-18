@@ -74,9 +74,12 @@ A linker-bound accepted release validator may generate a first pin only through:
 isras-validator-linux-amd64 --repo /src/example-project project-pin initialize --release isras-v0.1.2 --go-defaults
 ```
 
-The command verifies the exact release and reusable workflow before writing,
-requires a clean canonical Iron Signal Systems target, publishes the complete
-adoption set without replacement, and leaves the changes uncommitted. See
+The command requires the exact linker-bound validator artifact for the selected
+release, verifies the release and reusable workflow before writing, and requires
+a clean canonical Iron Signal Systems target. Both the JSON Schema and Go parser
+require the evidence directory to equal untracked `.local/isras`; arbitrary
+exclusions are invalid. Initialization publishes the complete adoption set
+without replacement and leaves the changes uncommitted. See
 [`PROJECT-INITIALIZATION-AND-ADOPTION.md`](PROJECT-INITIALIZATION-AND-ADOPTION.md).
 
 ## Top-level fields
@@ -282,7 +285,7 @@ values and must be replaced from an accepted release manifest:
     "known_vulnerabilities": ["go", "run", "golang.org/x/vuln/cmd/govulncheck@v1.6.0", "./..."]
   },
   "evidence": {
-    "directory": ".local/validation"
+    "directory": ".local/isras"
   }
 }
 ```

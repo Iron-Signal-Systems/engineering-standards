@@ -63,7 +63,7 @@ func TestProducedArtifactsPassLocalVerifierWithoutExecutionAuthorization(t *test
 			"module_integrity":      {"go", "mod", "verify"},
 			"known_vulnerabilities": {"govulncheck", "./..."},
 		},
-		Evidence: projectpin.Evidence{Directory: ".local/validation"},
+		Evidence: projectpin.Evidence{Directory: projectpin.RuntimeEvidenceDirectory},
 	}
 	if _, err := projectpin.Parse(mustPinJSON(t, pin)); err != nil {
 		t.Fatalf("produced pin fixture is invalid: %v", err)

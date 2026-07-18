@@ -6,33 +6,31 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"os"
-	"path"
 	"path/filepath"
-	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/executil"
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/projectorigin"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/projectpin"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/releaseartifact"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/repository"
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity"
 )
-
-var projectRepositoryNamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$`)
 
 const (
 	CallerWorkflowPath       = ".github/workflows/isras-validation.yml"
 	AdoptionEvidencePath     = ".isras/adoption-verification.json"
 	FormatCheckPath          = ".isras/check-go-format"
-	DefaultEvidenceDirectory = ".local/isras"
+	DefaultEvidenceDirectory = projectpin.RuntimeEvidenceDirectory
 )
 
 type Request struct {
-	Root              string
-	ReleaseTag        string
-	EvidenceDirectory string
-	GoDefaults        bool
+	Root       string
+	ReleaseTag string
+	GoDefaults bool
+	Validator  validatoridentity.Identity
 }
 
 type Result struct {
@@ -47,14 +45,17 @@ type Result struct {
 	Report            releaseartifact.Report
 }
 
+type bootstrapRelease func(context.Context, string) (releaseartifact.Bootstrap, error)
+
 func Initialize(ctx context.Context, request Request) (Result, error) {
+	return initializeWithBootstrap(ctx, request, releaseartifact.BootstrapGitHub)
+}
+
+func initializeWithBootstrap(ctx context.Context, request Request, bootstrapRelease bootstrapRelease) (Result, error) {
 	if !request.GoDefaults {
 		return Result{}, errors.New("initialization requires the explicit --go-defaults authorization")
 	}
-	if request.EvidenceDirectory == "" {
-		request.EvidenceDirectory = DefaultEvidenceDirectory
-	}
-	if err := validateEvidenceDirectory(request.EvidenceDirectory); err != nil {
+	if err := authorizeRequestedReleaseValidator(request.Validator, request.ReleaseTag); err != nil {
 		return Result{}, err
 	}
 
@@ -62,15 +63,22 @@ func Initialize(ctx context.Context, request Request) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
-	projectRepository, err := canonicalProjectOrigin(identity.Origin)
+	projectRepository, err := projectorigin.Canonical(identity.Origin)
 	if err != nil {
 		return Result{}, err
 	}
+	if err := validateEvidenceBoundary(ctx, identity.Root); err != nil {
+		return Result{}, err
+	}
 
-	bootstrap, err := releaseartifact.BootstrapGitHub(ctx, request.ReleaseTag)
+	bootstrap, err := bootstrapRelease(ctx, request.ReleaseTag)
 	if err != nil {
 		return Result{ProjectRepository: projectRepository, ReleaseTag: request.ReleaseTag, Report: bootstrap.Report}, err
 	}
+	if err := authorizeVerifiedReleaseValidator(request.Validator, bootstrap.Standard); err != nil {
+		return Result{ProjectRepository: projectRepository, ReleaseTag: request.ReleaseTag, SourceCommit: bootstrap.Standard.SourceCommit, Report: bootstrap.Report}, err
+	}
+
 	pin := projectpin.Pin{
 		SchemaVersion: projectpin.SchemaVersion,
 		Project:       projectpin.Project{Repository: projectRepository},
@@ -83,18 +91,17 @@ func Initialize(ctx context.Context, request Request) (Result, error) {
 		},
 		Profiles: []string{"go"},
 		Commands: projectpin.DefaultGoCommands(),
-		Evidence: projectpin.Evidence{Directory: request.EvidenceDirectory},
+		Evidence: projectpin.Evidence{Directory: DefaultEvidenceDirectory},
 	}
 	pinData, err := projectpin.CanonicalJSON(pin)
 	if err != nil {
 		return Result{ProjectRepository: projectRepository, ReleaseTag: request.ReleaseTag, Report: bootstrap.Report}, err
 	}
 	workflowData := callerWorkflow(bootstrap.Standard.SourceCommit)
-	evidenceData, err := json.MarshalIndent(bootstrap.Report, "", "  ")
+	evidenceData, err := canonicalAdoptionEvidence(bootstrap)
 	if err != nil {
-		return Result{}, fmt.Errorf("encode adoption verification evidence: %w", err)
+		return Result{ProjectRepository: projectRepository, ReleaseTag: request.ReleaseTag, SourceCommit: bootstrap.Standard.SourceCommit, Report: bootstrap.Report}, err
 	}
-	evidenceData = append(evidenceData, '\n')
 
 	files := []installFile{
 		{Path: projectpin.MetadataPath, Data: pinData, Mode: 0o644},
@@ -119,55 +126,152 @@ func Initialize(ctx context.Context, request Request) (Result, error) {
 	}, nil
 }
 
-func canonicalProjectOrigin(origin string) (string, error) {
-	origin = strings.TrimSpace(origin)
-	if origin == "" {
-		return "", errors.New("target repository requires an origin remote")
+func authorizeRequestedReleaseValidator(identity validatoridentity.Identity, releaseTag string) error {
+	if identity.Ownership != validatoridentity.OwnershipReleaseArtifact {
+		return errors.New("project initialization requires a linker-bound release validator")
 	}
-	var repositoryPath string
-	if strings.HasPrefix(origin, "git@github.com:") {
-		repositoryPath = strings.TrimPrefix(origin, "git@github.com:")
-	} else {
-		parsed, err := url.Parse(origin)
-		if err != nil || !strings.EqualFold(parsed.Hostname(), "github.com") {
-			return "", errors.New("target origin must identify github.com")
-		}
-		scheme := strings.ToLower(parsed.Scheme)
-		switch scheme {
-		case "https", "ssh", "git":
-		default:
-			return "", errors.New("target origin uses an unsupported scheme")
-		}
-		if parsed.RawQuery != "" || parsed.Fragment != "" {
-			return "", errors.New("target origin must not contain a query or fragment")
-		}
-		if parsed.User != nil {
-			_, hasPassword := parsed.User.Password()
-			if scheme != "ssh" || parsed.User.Username() != "git" || hasPassword {
-				return "", errors.New("target origin contains unsupported credentials")
-			}
-		}
-		repositoryPath = strings.TrimPrefix(parsed.Path, "/")
+	if identity.Profile != projectpin.Profile || identity.SourceRepository != projectpin.SourceRepository {
+		return errors.New("release validator profile or source repository is invalid")
 	}
-	repositoryPath = strings.TrimSuffix(repositoryPath, ".git")
-	parts := strings.Split(repositoryPath, "/")
-	if len(parts) != 2 || parts[0] != "Iron-Signal-Systems" || !projectRepositoryNamePattern.MatchString(parts[1]) {
-		return "", errors.New("target origin must identify one Iron-Signal-Systems repository")
+	if identity.ReleaseTag != releaseTag || releaseTag != "isras-v"+identity.StandardVersion {
+		return errors.New("running release validator does not match the explicitly requested release")
 	}
-	return "github.com/" + repositoryPath, nil
-}
-
-func validateEvidenceDirectory(value string) error {
-	if value == "" || len(value) > 255 || strings.Contains(value, "\\") || strings.ContainsAny(value, "\x00\r\n\t") {
-		return errors.New("evidence directory must be a bounded relative slash-separated path")
-	}
-	if strings.HasPrefix(value, "/") || value == "." || value == ".." || path.Clean(value) != value || strings.HasPrefix(value, "../") {
-		return errors.New("evidence directory must remain inside the target repository")
-	}
-	if value == ".git" || strings.HasPrefix(value, ".git/") {
-		return errors.New("evidence directory must not be inside .git")
+	if identity.SourceCommit == "" || identity.RepositoryCommit != identity.SourceCommit {
+		return errors.New("running release validator has an inconsistent source identity")
 	}
 	return nil
+}
+
+func authorizeVerifiedReleaseValidator(identity validatoridentity.Identity, standard projectpin.Standard) error {
+	if identity.Profile != standard.Profile ||
+		identity.StandardVersion != standard.Version ||
+		identity.ReleaseTag != standard.ReleaseTag ||
+		identity.SourceRepository != standard.SourceRepository ||
+		identity.SourceCommit != standard.SourceCommit ||
+		identity.RepositoryCommit != standard.SourceCommit {
+		return errors.New("running release validator identity does not match the verified release")
+	}
+	return nil
+}
+
+func validateEvidenceBoundary(ctx context.Context, root string) error {
+	evidencePath := filepath.Join(root, filepath.FromSlash(DefaultEvidenceDirectory))
+	exists, err := inspectExistingSafeDirectory(root, evidencePath)
+	if err != nil {
+		return errors.New("fixed project evidence directory is unsafe")
+	}
+	if exists {
+		info, err := os.Lstat(evidencePath)
+		if err != nil || info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
+			return errors.New("fixed project evidence path must be an untracked regular directory")
+		}
+	}
+	tracked := executil.Run(ctx, root, "git", "ls-files", "--", DefaultEvidenceDirectory, DefaultEvidenceDirectory+"/**")
+	if tracked.Err != nil {
+		return errors.New("inspect fixed project evidence tracking state")
+	}
+	if strings.TrimSpace(tracked.Stdout) != "" {
+		return errors.New("fixed project evidence directory must not contain tracked paths")
+	}
+	return nil
+}
+
+type adoptionEvidence struct {
+	SchemaVersion    int                        `json:"schema_version"`
+	Profile          string                     `json:"profile"`
+	Version          string                     `json:"version"`
+	ReleaseTag       string                     `json:"release_tag"`
+	SourceRepository string                     `json:"source_repository"`
+	SourceCommit     string                     `json:"source_commit"`
+	Verification     adoptionVerification       `json:"verification"`
+	Artifacts        []adoptionArtifactEvidence `json:"artifacts"`
+}
+
+type adoptionVerification struct {
+	ReleaseRecord          string `json:"release_record"`
+	SignedTag              string `json:"signed_tag"`
+	AssetAcquisition       string `json:"asset_acquisition"`
+	AssetInventory         string `json:"asset_inventory"`
+	PinDigests             string `json:"pin_digests"`
+	SHA256Manifest         string `json:"sha256_manifest"`
+	SHA512Manifest         string `json:"sha512_manifest"`
+	Provenance             string `json:"provenance"`
+	ExecutionAuthorization string `json:"execution_authorization"`
+}
+
+type adoptionArtifactEvidence struct {
+	Kind              string `json:"kind"`
+	Name              string `json:"name"`
+	OS                string `json:"os,omitempty"`
+	Arch              string `json:"arch,omitempty"`
+	Size              int64  `json:"size"`
+	RemoteSize        int64  `json:"remote_size"`
+	SHA256            string `json:"sha256"`
+	SHA512            string `json:"sha512"`
+	SHA256Manifest    string `json:"sha256_manifest"`
+	SHA512Manifest    string `json:"sha512_manifest"`
+	ProvenanceBinding string `json:"provenance_binding"`
+}
+
+func canonicalAdoptionEvidence(bootstrap releaseartifact.Bootstrap) ([]byte, error) {
+	report := bootstrap.Report
+	for name, status := range map[string]string{
+		"release record":    report.ReleaseRecord,
+		"signed tag":        report.SignedTag,
+		"asset acquisition": report.AssetAcquisition,
+		"asset inventory":   report.AssetInventory,
+		"pin digests":       report.PinDigests,
+		"SHA-256 manifest":  report.SHA256Manifest,
+		"SHA-512 manifest":  report.SHA512Manifest,
+		"provenance":        report.Provenance,
+	} {
+		if status != releaseartifact.StatusPass {
+			return nil, fmt.Errorf("adoption evidence requires PASS %s verification", name)
+		}
+	}
+	if report.ExecutionAuthorization != releaseartifact.AuthorizationGranted {
+		return nil, errors.New("adoption evidence requires granted execution authorization")
+	}
+
+	artifacts := make([]adoptionArtifactEvidence, 0, len(report.Artifacts))
+	for _, artifact := range report.Artifacts {
+		if artifact.SHA256Status != releaseartifact.StatusPass || artifact.SHA512Status != releaseartifact.StatusPass {
+			return nil, fmt.Errorf("adoption evidence artifact %q is not fully verified", artifact.Name)
+		}
+		artifacts = append(artifacts, adoptionArtifactEvidence{
+			Kind: artifact.Kind, Name: artifact.Name, OS: artifact.OS, Arch: artifact.Arch,
+			Size: artifact.Size, RemoteSize: artifact.RemoteSize,
+			SHA256: artifact.ObservedSHA256, SHA512: artifact.ObservedSHA512,
+			SHA256Manifest: artifact.SHA256Manifest, SHA512Manifest: artifact.SHA512Manifest,
+			ProvenanceBinding: artifact.ProvenanceBinding,
+		})
+	}
+	sort.Slice(artifacts, func(i, j int) bool { return artifacts[i].Name < artifacts[j].Name })
+	evidence := adoptionEvidence{
+		SchemaVersion:    1,
+		Profile:          bootstrap.Standard.Profile,
+		Version:          bootstrap.Standard.Version,
+		ReleaseTag:       bootstrap.Standard.ReleaseTag,
+		SourceRepository: bootstrap.Standard.SourceRepository,
+		SourceCommit:     bootstrap.Standard.SourceCommit,
+		Verification: adoptionVerification{
+			ReleaseRecord:          report.ReleaseRecord,
+			SignedTag:              report.SignedTag,
+			AssetAcquisition:       report.AssetAcquisition,
+			AssetInventory:         report.AssetInventory,
+			PinDigests:             report.PinDigests,
+			SHA256Manifest:         report.SHA256Manifest,
+			SHA512Manifest:         report.SHA512Manifest,
+			Provenance:             report.Provenance,
+			ExecutionAuthorization: report.ExecutionAuthorization,
+		},
+		Artifacts: artifacts,
+	}
+	data, err := json.MarshalIndent(evidence, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("encode canonical adoption evidence: %w", err)
+	}
+	return append(data, '\n'), nil
 }
 
 func callerWorkflow(sourceCommit string) []byte {
@@ -194,7 +298,10 @@ func goFormatCheck() []byte {
 	return []byte(`#!/usr/bin/env bash
 set -Eeuo pipefail
 
-mapfile -d '' files < <(git ls-files -z -- '*.go')
+list_file="$(mktemp)"
+trap 'rm -f -- "$list_file"' EXIT
+git ls-files -z -- '*.go' >"$list_file"
+mapfile -d '' files <"$list_file"
 if ((${#files[@]} == 0)); then
   exit 0
 fi
@@ -236,81 +343,103 @@ func install(ctx context.Context, identity repository.Identity, files []installF
 
 	createdFiles := make([]string, 0, len(files))
 	createdDirectories := make([]string, 0, 3)
-	cleanup := func() {
-		for index := len(createdFiles) - 1; index >= 0; index-- {
-			parent := filepath.Dir(createdFiles[index])
-			_ = os.Remove(createdFiles[index])
-			_ = syncDirectory(parent)
-		}
-		for index := len(createdDirectories) - 1; index >= 0; index-- {
-			parent := filepath.Dir(createdDirectories[index])
-			_ = os.Remove(createdDirectories[index])
-			_ = syncDirectory(parent)
-		}
+	rollback := func(cause error) error {
+		return errors.Join(cause, cleanupCreated(createdFiles, createdDirectories))
 	}
 
 	for _, file := range files {
 		absolute, err := safeTargetPath(identity.Root, file.Path)
 		if err != nil {
-			cleanup()
-			return false, err
+			return false, rollback(err)
 		}
 		parent := filepath.Dir(absolute)
 		if err := ensureSafeDirectory(identity.Root, parent, &createdDirectories); err != nil {
-			cleanup()
-			return false, err
+			return false, rollback(err)
 		}
 		temporary, err := os.CreateTemp(parent, ".isras-adoption-*")
 		if err != nil {
-			cleanup()
-			return false, errors.New("create temporary ISRAS adoption file")
+			return false, rollback(errors.New("create temporary ISRAS adoption file"))
 		}
 		temporaryName := temporary.Name()
-		if file.Mode == 0 {
-			file.Mode = 0o644
+		discardTemporary := func(cause error) error {
+			closeErr := temporary.Close()
+			removeErr := os.Remove(temporaryName)
+			if errors.Is(removeErr, os.ErrNotExist) {
+				removeErr = nil
+			}
+			return errors.Join(cause, closeErr, removeErr, cleanupCreated(createdFiles, createdDirectories))
 		}
-		if err := temporary.Chmod(file.Mode); err != nil {
-			_ = temporary.Close()
-			_ = os.Remove(temporaryName)
-			cleanup()
-			return false, errors.New("set ISRAS adoption file permissions")
+
+		mode := file.Mode
+		if mode == 0 {
+			mode = 0o644
 		}
 		if _, err := temporary.Write(file.Data); err != nil {
-			_ = temporary.Close()
-			_ = os.Remove(temporaryName)
-			cleanup()
-			return false, errors.New("write ISRAS adoption file")
+			return false, discardTemporary(errors.New("write ISRAS adoption file"))
 		}
 		if err := temporary.Sync(); err != nil {
-			_ = temporary.Close()
-			_ = os.Remove(temporaryName)
-			cleanup()
-			return false, errors.New("synchronize ISRAS adoption file")
+			return false, discardTemporary(errors.New("synchronize private ISRAS adoption file"))
+		}
+		if err := temporary.Chmod(mode); err != nil {
+			return false, discardTemporary(errors.New("set ISRAS adoption file permissions"))
+		}
+		if err := temporary.Sync(); err != nil {
+			return false, discardTemporary(errors.New("synchronize final ISRAS adoption file metadata"))
 		}
 		if err := temporary.Close(); err != nil {
-			_ = os.Remove(temporaryName)
-			cleanup()
-			return false, errors.New("close ISRAS adoption file")
+			removeErr := os.Remove(temporaryName)
+			return false, errors.Join(errors.New("close ISRAS adoption file"), removeErr, cleanupCreated(createdFiles, createdDirectories))
 		}
 		if err := os.Link(temporaryName, absolute); err != nil {
-			_ = os.Remove(temporaryName)
-			cleanup()
-			return false, errors.New("publish ISRAS adoption file without replacement")
+			removeErr := os.Remove(temporaryName)
+			return false, errors.Join(errors.New("publish ISRAS adoption file without replacement"), removeErr, cleanupCreated(createdFiles, createdDirectories))
 		}
 		createdFiles = append(createdFiles, absolute)
 		if err := os.Remove(temporaryName); err != nil {
-			_ = os.Remove(absolute)
-			cleanup()
-			return false, errors.New("remove temporary ISRAS adoption file")
+			return false, rollback(errors.New("remove temporary ISRAS adoption file"))
 		}
 		if err := syncDirectory(parent); err != nil {
-			cleanup()
-			return false, err
+			return false, rollback(err)
+		}
+	}
+
+	if err := requireRepositoryIdentity(ctx, identity); err != nil {
+		return false, rollback(err)
+	}
+	for _, file := range files {
+		exact, exists, err := inspectTarget(identity.Root, file)
+		if err != nil || !exists || !exact {
+			if err == nil {
+				err = errors.New("published ISRAS adoption file failed final exact verification")
+			}
+			return false, rollback(err)
 		}
 	}
 	return true, nil
 }
 
+func cleanupCreated(createdFiles, createdDirectories []string) error {
+	var cleanupErrors []error
+	for index := len(createdFiles) - 1; index >= 0; index-- {
+		parent := filepath.Dir(createdFiles[index])
+		if err := os.Remove(createdFiles[index]); err != nil && !errors.Is(err, os.ErrNotExist) {
+			cleanupErrors = append(cleanupErrors, fmt.Errorf("remove published adoption file during rollback: %w", err))
+		}
+		if err := syncDirectory(parent); err != nil {
+			cleanupErrors = append(cleanupErrors, err)
+		}
+	}
+	for index := len(createdDirectories) - 1; index >= 0; index-- {
+		parent := filepath.Dir(createdDirectories[index])
+		if err := os.Remove(createdDirectories[index]); err != nil && !errors.Is(err, os.ErrNotExist) {
+			cleanupErrors = append(cleanupErrors, fmt.Errorf("remove adoption directory during rollback: %w", err))
+		}
+		if err := syncDirectory(parent); err != nil {
+			cleanupErrors = append(cleanupErrors, err)
+		}
+	}
+	return errors.Join(cleanupErrors...)
+}
 func ensureSafeDirectory(root, target string, created *[]string) error {
 	relative, err := filepath.Rel(root, target)
 	if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
@@ -443,13 +572,20 @@ func safeTargetPath(root, relative string) (string, error) {
 	return absolute, nil
 }
 
-func requireCleanRepository(ctx context.Context, identity repository.Identity) error {
+func requireRepositoryIdentity(ctx context.Context, identity repository.Identity) error {
 	current, err := repository.DiscoverFrom(ctx, identity.Root)
 	if err != nil {
-		return errors.New("rediscover target repository before adoption")
+		return errors.New("rediscover target repository during adoption")
 	}
 	if current.Root != identity.Root || current.Commit != identity.Commit || current.Origin != identity.Origin {
-		return errors.New("target repository identity changed during adoption preparation")
+		return errors.New("target repository identity changed during adoption")
+	}
+	return nil
+}
+
+func requireCleanRepository(ctx context.Context, identity repository.Identity) error {
+	if err := requireRepositoryIdentity(ctx, identity); err != nil {
+		return err
 	}
 	result := executil.Run(ctx, identity.Root, "git", "status", "--porcelain=v1", "--untracked-files=all")
 	if result.Err != nil {

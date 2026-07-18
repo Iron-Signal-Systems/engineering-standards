@@ -110,12 +110,13 @@ release selection:
 isras-validator-linux-amd64 --repo /path/to/project project-pin initialize --release isras-v0.1.2 --go-defaults
 ```
 
-Initialization resolves and verifies the immutable signed release, exact commit,
-six assets, both digests, manifests, provenance, and reusable workflow before
-publishing any target file. It prepares the complete project-owned adoption set,
-applies without replacement, validates canonical pin generation, and leaves the
-result uncommitted and unpushed for review. It never silently chooses a newer
-release. See
+Initialization requires the exact linker-bound validator artifact for the
+requested release, then resolves and verifies the immutable signed release, exact
+commit, six assets, both digests, manifests, provenance, and reusable workflow
+before publishing any target file. It fixes evidence to untracked `.local/isras`,
+prepares the complete project-owned adoption set, applies without replacement,
+validates canonical pin generation, and leaves the result uncommitted and
+unpushed for review. It never silently chooses a newer release. See
 [`PROJECT-INITIALIZATION-AND-ADOPTION.md`](PROJECT-INITIALIZATION-AND-ADOPTION.md).
 
 ## Existing-project adoption

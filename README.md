@@ -152,6 +152,9 @@ isras-validator-linux-amd64 \
 
 The initializer refuses `isras-v0.1.1` because that immutable release framework
 does not contain the reusable hosted workflow required by its own project pin.
+The running executable must itself be the exact linker-bound validator artifact
+from the requested release. Runtime evidence is fixed to untracked
+`.local/isras`; arbitrary evidence exclusions are not accepted.
 
 A linker-bound release validator also reports `version` and `help` outside any
 Git repository. After its release identity, target origin, and committed pin all
