@@ -126,7 +126,12 @@ set as a release.
 ## Bounded transport
 
 GitHub API operations use the authenticated `gh` command. Publication does not
-read, display, or retain the authentication token itself.
+read, display, or retain the authentication token itself. Release assets use the
+dedicated `gh release upload` transport rather than posting binary bytes through
+the ordinary REST API host. Asset clobbering is never enabled. Before and after
+each upload, the command rereads the exact numeric draft identity; an uncertain
+CLI result is accepted only when authoritative GitHub state exposes exactly one
+matching asset, which is then subjected to the normal size and digest checks.
 
 Captured command output is bounded and credential-shaped diagnostics are
 censored before they enter errors or evidence. Remote asset downloads are
@@ -186,6 +191,10 @@ This implementation is accepted only when tests prove:
 - build-evidence, manifest, provenance, validator, source, title, and notes drift
   fail closed;
 - upload inventory is exact and no asset is clobbered;
+- release assets use the dedicated upload transport rather than the ordinary REST
+  API host;
+- uncertain upload results require authoritative observation of exactly one
+  matching asset before the operation can continue;
 - remote metadata and downloaded bytes are both verified before publication;
 - altered remote bytes fail and an exact incomplete draft is removed safely;
 - unexpected or altered draft state denies automatic cleanup;

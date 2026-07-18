@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-No changes have been recorded after the `0.1.1` release boundary.
+- Corrected GitHub release-asset upload transport. The controlled publisher now
+  uses `gh release upload` for the dedicated release upload service, never uses
+  asset clobbering, rereads the exact draft by numeric release identity, and
+  accepts an uncertain upload response only when authoritative GitHub state
+  exposes exactly one matching asset for complete size and digest verification.
 
 ## 0.1.1 — 2026-07-18
 
