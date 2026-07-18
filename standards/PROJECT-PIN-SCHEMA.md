@@ -33,6 +33,7 @@ The reference validator exposes:
 Both commands are read-only. They load only the canonical `.isras/project.json`
 inside the current repository. They do not download artifacts, execute declared
 project commands, modify the project, update the pin, or select a newer release.
+Project initialization is a separate explicit command and authority boundary.
 
 `inspect` reports the pin as a declaration. It labels artifact counts and digests
 as declared values, explicitly states that artifact verification was not
@@ -64,6 +65,19 @@ not checked.
 
 See
 [`ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](ARTIFACT-ACQUISITION-AND-VERIFICATION.md).
+
+## Initialization command
+
+A linker-bound accepted release validator may generate a first pin only through:
+
+```bash
+isras-validator-linux-amd64 --repo /src/example-project project-pin initialize --release isras-v0.1.2 --go-defaults
+```
+
+The command verifies the exact release and reusable workflow before writing,
+requires a clean canonical Iron Signal Systems target, publishes the complete
+adoption set without replacement, and leaves the changes uncommitted. See
+[`PROJECT-INITIALIZATION-AND-ADOPTION.md`](PROJECT-INITIALIZATION-AND-ADOPTION.md).
 
 ## Top-level fields
 
@@ -259,13 +273,13 @@ values and must be replaced from an accepted release manifest:
   },
   "profiles": ["go"],
   "commands": {
-    "format_check": ["./tools/check-go-formatting.sh"],
+    "format_check": ["./.isras/check-go-format"],
     "static_analysis": ["go", "vet", "./..."],
     "test": ["go", "test", "./..."],
     "build": ["go", "build", "./..."],
     "module_consistency": ["go", "mod", "tidy", "-diff"],
     "module_integrity": ["go", "mod", "verify"],
-    "known_vulnerabilities": ["govulncheck", "./..."]
+    "known_vulnerabilities": ["go", "run", "golang.org/x/vuln/cmd/govulncheck@v1.6.0", "./..."]
   },
   "evidence": {
     "directory": ".local/validation"

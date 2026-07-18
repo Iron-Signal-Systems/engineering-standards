@@ -2,7 +2,23 @@
 
 ## Unreleased
 
-No changes have been recorded after the `0.1.1` release boundary.
+- Added fail-closed first project initialization from one explicitly selected,
+  fully verified ISRAS GitHub Release. The initializer discovers the exact signed
+  source identity and six artifact digests, requires the release framework to
+  contain its reusable hosted workflow, generates a canonical Go project pin,
+  leaves reviewable project-owned files without committing or pushing, and
+  refuses partial, conflicting, dirty, symlinked, or mode-drifted targets.
+
+- Added immutable reusable hosted validation. The called workflow checks out its
+  own exact workflow repository and SHA, builds a release-identity validator,
+  verifies the committed pin and published artifact set, and executes each
+  committed project command through the existing bounded command boundary using
+  read-only permissions and commit-pinned third-party actions.
+
+- Added atomic no-overwrite publication, idempotent exact re-execution, rollback
+  after mid-publication failure, a non-mutating project-owned Go format checker,
+  hostile path and origin tests, and synchronized initialization/adoption
+  documentation.
 
 ## 0.1.1 — 2026-07-18
 

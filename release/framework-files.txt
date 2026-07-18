@@ -1,3 +1,4 @@
+.github/workflows/validate-project.yml
 integration-guides/PROJECT-ADOPTION.md
 release/framework-files.txt
 schemas/isras-artifact-build-report-v1.schema.json
@@ -12,6 +13,7 @@ standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md
 standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md
 standards/PINNED-PROJECT-FRAMEWORK.md
 standards/PROJECT-COMMAND-EXECUTION.md
+standards/PROJECT-INITIALIZATION-AND-ADOPTION.md
 standards/PROJECT-PIN-SCHEMA.md
 standards/PROJECT-UPGRADE-CONTRACT.md
 standards/RELEASE-ARTIFACT-PRODUCTION.md

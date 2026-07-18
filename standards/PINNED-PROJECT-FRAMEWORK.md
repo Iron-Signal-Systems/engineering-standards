@@ -37,9 +37,10 @@ The pin identifies at least:
 - project-owned validation declaration;
 - compatibility or migration metadata required by the release.
 
-The v1 parser validates structure and identity only. It does not download
-artifacts, execute project commands, verify a remote release, or modify the
-project. Those authorities remain separate later implementation steps.
+The v1 parser validates structure and identity only. Artifact verification,
+project initialization, and command execution remain separately authorized
+boundaries. The initializer may generate a candidate pin only after it has
+verified the exact accepted release under the project-initialization contract.
 
 Human-readable version, immutable tag, exact commit, and artifact digest are all
 required. A floating branch, `latest`, mutable download URL without a digest, or
@@ -102,26 +103,20 @@ application architecture or source layout across every language.
 
 ## New-project initialization
 
-A future repository-owned command shall support an explicit release selection,
-conceptually:
+Once accepted and published, the `0.1.2` release validator supports an explicit
+release selection:
 
 ```text
-isras project init --release isras-v0.1.5 --target /path/to/project
+isras-validator-linux-amd64 --repo /path/to/project project-pin initialize --release isras-v0.1.2 --go-defaults
 ```
 
-Initialization shall:
-
-1. resolve the immutable release;
-2. verify its signed identity and exact commit;
-3. acquire release manifests and required artifacts;
-4. verify every artifact digest;
-5. inspect the target and selected profile;
-6. prepare a reviewable project-framework plan;
-7. apply only after explicit authorization;
-8. validate the resulting project boundary;
-9. stage or report changes without committing or pushing.
-
-It shall not silently choose a newer release when an exact release was requested.
+Initialization resolves and verifies the immutable signed release, exact commit,
+six assets, both digests, manifests, provenance, and reusable workflow before
+publishing any target file. It prepares the complete project-owned adoption set,
+applies without replacement, validates canonical pin generation, and leaves the
+result uncommitted and unpushed for review. It never silently chooses a newer
+release. See
+[`PROJECT-INITIALIZATION-AND-ADOPTION.md`](PROJECT-INITIALIZATION-AND-ADOPTION.md).
 
 ## Existing-project adoption
 
@@ -168,10 +163,8 @@ explicit initialization correction, pin repair, or upgrade.
 
 ## Current transition
 
-The existing source-export model is deprecated for new adoption because it copies
-validator implementation source and tests into the consuming repository. It
-remains present temporarily so its replacement can be implemented and validated
-without an unreviewed deletion.
-
-No project should perform a new source export while the pinned project framework
-is being implemented.
+The `0.1.2-development` boundary replaces new source-export adoption with verified
+release bootstrap, a canonical project pin, an immutable caller workflow, and a
+small project-owned format checker. The old source-export model remains
+deprecated and must not be used for new adoption. This replacement becomes
+authoritative only after publication of the accepted `isras-v0.1.2` release.

@@ -1,0 +1,101 @@
+name: ISRAS Reusable Project Validation
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate pinned project
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out consuming project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          path: target
+          persist-credentials: false
+
+      - name: Check out the exact called ISRAS workflow source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          path: standard
+          persist-credentials: false
+
+      - name: Configure pinned Go toolchain
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: standard/go.mod
+          cache: false
+
+      - name: Build exact release-identity validator
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          version="$(tr -d '[:space:]' < standard/VERSION)"
+          source_commit="${{ job.workflow_sha }}"
+          workflow_repository="${{ job.workflow_repository }}"
+          release_tag="isras-v${version}"
+          test "$workflow_repository" = "Iron-Signal-Systems/engineering-standards"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$source_commit" =~ ^[0-9a-f]{40}$ ]]
+          (
+            cd standard
+            go build \
+              -mod=readonly \
+              -trimpath \
+              -buildvcs=false \
+              -ldflags "-s -w -buildid= \
+                -X=github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity.releaseVersion=${version} \
+                -X=github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity.releaseTag=${release_tag} \
+                -X=github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity.releaseSourceCommit=${source_commit}" \
+              -o "$RUNNER_TEMP/isras-validate" \
+              ./cmd/isras-validate
+          )
+          "$RUNNER_TEMP/isras-validate" version
+
+      - name: Validate committed project pin
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          "$RUNNER_TEMP/isras-validate" \
+            --repo "$GITHUB_WORKSPACE/target" \
+            --mode commit \
+            project-pin validate
+
+      - name: Verify pinned release artifacts
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          "$RUNNER_TEMP/isras-validate" \
+            --repo "$GITHUB_WORKSPACE/target" \
+            --mode commit \
+            project-pin verify-artifacts
+
+      - name: Run every committed project command
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mapfile -t commands < <(
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          pin = json.loads(Path("target/.isras/project.json").read_text(encoding="utf-8"))
+          for name in sorted(pin["commands"]):
+              print(name)
+          PY
+          )
+          test "${#commands[@]}" -gt 0
+          for command_name in "${commands[@]}"; do
+            "$RUNNER_TEMP/isras-validate" \
+              --repo "$GITHUB_WORKSPACE/target" \
+              --mode commit \
+              project-command run "$command_name"
+          done

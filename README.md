@@ -24,20 +24,19 @@ versioned, validated, accepted, and maintained.
 
 ## Current implementation profile
 
-This source boundary declares `0.1.1`. Before publication it is a release
-candidate; after publication only the exact signed `isras-v0.1.1` tag and the
-verified six-asset GitHub Release establish the accepted release identity. A
-stable `VERSION` value, `dev`, or `main` alone is not publication authority.
-Projects must pin immutable release identity and artifact digests rather than a
-floating branch.
+This source boundary declares `0.1.2-development`. The accepted public
+release remains the exact signed `isras-v0.1.1` tag and its verified six-asset
+GitHub Release. A development version, `dev`, or `main` is never adoption or
+publication authority. Projects must pin immutable release identity and artifact
+digests rather than a floating branch.
 
-ISRAS `0.1.1` implements the pinned-project declaration, artifact verification,
-deterministic artifact production, external target selection, bounded declared
-command execution, and controlled release-publication boundaries. Complete
-project initialization, reusable hosted validation, upgrade application, and
-consuming-project adoption remain outside this release boundary. A consuming
-project must not be modified until initialization and adoption tooling pass their
-own acceptance gates.
+The `0.1.2-development` boundary adds fail-closed project initialization and
+immutable reusable hosted validation to the release, acquisition, external-target,
+and bounded command-execution foundation completed in `0.1.1`. No consuming
+project may pin this development boundary. Adoption becomes authorized only after
+the implementation passes its complete acceptance gates and is published as the
+exact signed `isras-v0.1.2` release with the verified six-asset set. Upgrade
+application remains outside this boundary.
 
 This repository implements the **ISRAS Solo Developer Baseline** as a practical
 baseline for a single developer while retaining truthful engineering discipline
@@ -101,6 +100,7 @@ See:
 - [`standards/GO-REFERENCE-PROFILE.md`](standards/GO-REFERENCE-PROFILE.md)
 - [`standards/PINNED-PROJECT-FRAMEWORK.md`](standards/PINNED-PROJECT-FRAMEWORK.md)
 - [`standards/PROJECT-PIN-SCHEMA.md`](standards/PROJECT-PIN-SCHEMA.md)
+- [`standards/PROJECT-INITIALIZATION-AND-ADOPTION.md`](standards/PROJECT-INITIALIZATION-AND-ADOPTION.md)
 - [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
 - [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](standards/RELEASE-ARTIFACT-PRODUCTION.md)
 - [`standards/RELEASE-PUBLICATION.md`](standards/RELEASE-PUBLICATION.md)
@@ -137,6 +137,21 @@ directory:
   --repo /src/example-project \
   project-pin validate
 ```
+
+After `isras-v0.1.2` is accepted and published, its linker-bound validator can
+initialize a clean Iron Signal Systems Go repository from the exact verified
+release without committing or pushing:
+
+```bash
+isras-validator-linux-amd64 \
+  --repo /src/example-project \
+  project-pin initialize \
+  --release isras-v0.1.2 \
+  --go-defaults
+```
+
+The initializer refuses `isras-v0.1.1` because that immutable release framework
+does not contain the reusable hosted workflow required by its own project pin.
 
 A linker-bound release validator also reports `version` and `help` outside any
 Git repository. After its release identity, target origin, and committed pin all

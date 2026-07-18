@@ -69,6 +69,8 @@ func runProjectPin(ctx context.Context, runner *validation.Runner, args []string
 	}
 
 	switch action {
+	case "initialize":
+		return runProjectPinInitialize(ctx, runner, args[1:])
 	case "validate", "inspect":
 		if len(args) > 1 {
 			fmt.Fprintf(os.Stderr, "FAIL: project-pin %s accepts no options\n", action)
@@ -475,6 +477,7 @@ Usage:
   %s [--repo PATH] secrets prepare-allow FINDING-ID --reason 'bounded reason'
   %s [--repo PATH] secrets apply-allow FINDING-ID
 `, header, command, command, command, command, command, command, command, command, command, command, command, command, command, command)
+	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin initialize --release isras-vMAJOR.MINOR.PATCH --go-defaults [--evidence-directory PATH]\n", command)
 	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin validate\n", command)
 	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin inspect\n", command)
 	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin verify-artifacts [--source-directory PATH]\n", command)
