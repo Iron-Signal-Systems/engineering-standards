@@ -185,9 +185,11 @@ total argument bytes. Empty arguments and NUL, carriage-return, or newline
 characters are rejected. The executable must be a single argument without
 whitespace.
 
-This step validates declarations only. It does not execute the commands or claim
-that they satisfy the project profile. Command execution and evidence capture are
-later acceptance boundaries.
+Declaration validation alone does not execute commands or claim that they satisfy
+the project profile. A linker-bound release validator may execute one exact
+committed declaration through `project-command run NAME` only after the separate
+authorization, runtime, repository-state, and evidence controls in
+[`PROJECT-COMMAND-EXECUTION.md`](PROJECT-COMMAND-EXECUTION.md) pass.
 
 ## Evidence location
 

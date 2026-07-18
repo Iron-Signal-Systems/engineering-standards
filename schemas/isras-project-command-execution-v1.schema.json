@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Iron-Signal-Systems/engineering-standards/schemas/isras-project-command-execution-v1.schema.json",
+  "title": "ISRAS Project Command Execution Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "authorization",
+    "status",
+    "mode",
+    "command_name",
+    "arguments",
+    "resolved_executable",
+    "working_directory",
+    "environment_names",
+    "timeout_seconds",
+    "output_limit_bytes_per_stream",
+    "started",
+    "finished",
+    "duration_milliseconds",
+    "exit_code",
+    "timed_out",
+    "output_limit_exceeded",
+    "repository_state_changed",
+    "validator",
+    "target",
+    "stdout",
+    "stderr"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "run_id": {
+      "type": "string",
+      "pattern": "^(?:[0-9a-f]{24}|fallback-[0-9]+)$"
+    },
+    "authorization": {"const": "GRANTED"},
+    "status": {"enum": ["PASS", "FAIL"]},
+    "failure": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "mode": {"enum": ["development", "commit", "release"]},
+    "command_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+    },
+    "arguments": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 64,
+      "items": {
+        "type": "string",
+        "maxLength": 4096,
+        "pattern": "^[^\\u0000\\r\\n]*$"
+      }
+    },
+    "resolved_executable": {
+      "type": "string",
+      "maxLength": 4096,
+      "pattern": "^(?:|/[^\\u0000\\r\\n]*)$"
+    },
+    "working_directory": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^/[^\\u0000\\r\\n]*$"
+    },
+    "environment_names": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,63}$"}
+    },
+    "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 86400},
+    "output_limit_bytes_per_stream": {"type": "integer", "minimum": 1024, "maximum": 16777216},
+    "started": {"type": "string", "format": "date-time"},
+    "finished": {"type": "string", "format": "date-time"},
+    "duration_milliseconds": {"type": "integer", "minimum": 0},
+    "exit_code": {"type": "integer", "minimum": -1, "maximum": 255},
+    "timed_out": {"type": "boolean"},
+    "output_limit_exceeded": {"type": "boolean"},
+    "repository_state_changed": {"type": "boolean"},
+    "validator": {"$ref": "#/$defs/validator"},
+    "target": {"$ref": "#/$defs/target"},
+    "stdout": {"$ref": "#/$defs/stream"},
+    "stderr": {"$ref": "#/$defs/stream"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "PASS"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "exit_code": {"const": 0},
+          "timed_out": {"const": false},
+          "output_limit_exceeded": {"const": false},
+          "repository_state_changed": {"const": false},
+          "resolved_executable": {"minLength": 1},
+          "environment_names": {"minItems": 1}
+        },
+        "not": {"required": ["failure"]}
+      },
+      "else": {"required": ["failure"]}
+    }
+  ],
+  "$defs": {
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "not": {"const": "0000000000000000000000000000000000000000"}
+    },
+    "digest256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "digest512": {"type": "string", "pattern": "^[0-9a-f]{128}$"},
+    "validator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile", "version", "release_tag", "source_repository", "source_commit"],
+      "properties": {
+        "profile": {"const": "ISRAS-SD"},
+        "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "release_tag": {"type": "string", "pattern": "^isras-v[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "source_repository": {"const": "github.com/Iron-Signal-Systems/engineering-standards"},
+        "source_commit": {"$ref": "#/$defs/commit"}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "root", "commit", "origin"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^github\\.com/Iron-Signal-Systems/[A-Za-z0-9][A-Za-z0-9._-]{0,99}$"
+        },
+        "root": {"type": "string", "pattern": "^/[^\\u0000\\r\\n]*$"},
+        "commit": {"$ref": "#/$defs/commit"},
+        "branch": {"type": "string", "maxLength": 1024, "pattern": "^[^\\u0000\\r\\n]*$"},
+        "origin": {"type": "string", "minLength": 1, "maxLength": 4096, "pattern": "^[^\\u0000\\r\\n]+$"}
+      }
+    },
+    "stream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "sha256", "sha512", "sanitized_output", "limit_exceeded", "redaction_boundary"],
+      "properties": {
+        "bytes": {"type": "integer", "minimum": 0, "maximum": 16777216},
+        "sha256": {"$ref": "#/$defs/digest256"},
+        "sha512": {"$ref": "#/$defs/digest512"},
+        "sanitized_output": {"type": "string", "maxLength": 16777216},
+        "limit_exceeded": {"type": "boolean"},
+        "redaction_boundary": {
+          "const": "credential-shaped values are redacted; raw output is not retained"
+        }
+      }
+    }
+  }
+}

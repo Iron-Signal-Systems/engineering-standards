@@ -85,6 +85,19 @@ isras-validator-linux-amd64 \
 Target selection does not change the caller's working directory and does not
 permit the project to replace the validator's embedded release identity.
 
+After exact release, origin, and committed-pin identity match, one declared
+project command may be executed by name:
+
+```bash
+isras-validator-linux-amd64 \
+  --repo /src/example-project \
+  project-command run test
+```
+
+Execution is governed by
+[`standards/PROJECT-COMMAND-EXECUTION.md`](../standards/PROJECT-COMMAND-EXECUTION.md).
+It does not treat a modified or staged pin as execution authority.
+
 ISRAS shall not ordinarily copy its Go validator source or tests into the
 project, and shall not add itself to the project's application dependency graph.
 
@@ -133,9 +146,11 @@ release-artifact acquisition and verification boundary are implemented. The
 repository can also produce the exact local validator, framework, contracts,
 provenance, and checksum-manifest bytes for a stable signed release. The validator
 can now select and isolate an explicit external target repository while preserving
-its independent release identity. Artifact publication, project command execution,
-initialization, reusable hosted validation, upgrade application, and complete
-consuming-project adoption are not yet implemented.
+its independent release identity. One exact command from an unchanged committed
+pin can also be executed with bounded runtime, environment, repository-state, and
+private-evidence controls. Artifact publication, initialization, reusable hosted
+validation, upgrade application, and complete consuming-project adoption are not
+yet implemented.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
 deprecated for new adoption. It must not be used to initialize another project.
@@ -153,4 +168,5 @@ has passed its own tests and acceptance gates.
 - [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](../standards/RELEASE-ARTIFACT-PRODUCTION.md)
 - [`standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](../standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md)
 - [`standards/EXTERNAL-TARGET-ROOT.md`](../standards/EXTERNAL-TARGET-ROOT.md)
+- [`standards/PROJECT-COMMAND-EXECUTION.md`](../standards/PROJECT-COMMAND-EXECUTION.md)
 - [`standards/PROJECT-UPGRADE-CONTRACT.md`](../standards/PROJECT-UPGRADE-CONTRACT.md)

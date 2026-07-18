@@ -478,4 +478,5 @@ Usage:
 	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin validate\n", command)
 	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin inspect\n", command)
 	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin verify-artifacts [--source-directory PATH]\n", command)
+	fmt.Fprintf(writer, "  %s [--repo PATH] project-command run NAME\n", command)
 }

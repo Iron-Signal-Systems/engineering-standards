@@ -60,8 +60,10 @@ Conceptual example:
 }
 ```
 
-The final schema and accepted commands are versioned release artifacts. This
-example establishes the design boundary; it is not yet a production schema.
+The schema and accepted commands are versioned release artifacts. The v1 project
+pin is authoritative for command declaration, and one exact committed command may
+be run through the separately governed
+[`PROJECT-COMMAND-EXECUTION.md`](PROJECT-COMMAND-EXECUTION.md) boundary.
 
 ## Toolchain identity
 

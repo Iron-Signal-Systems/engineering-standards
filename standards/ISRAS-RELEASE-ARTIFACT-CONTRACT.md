@@ -79,6 +79,14 @@ or the current directory. Target Git identity remains separate from validator
 identity. Linker-bound `version` and `help` do not require a target repository.
 See [`EXTERNAL-TARGET-ROOT.md`](EXTERNAL-TARGET-ROOT.md).
 
+A linker-bound release validator may execute one exact project-owned command only
+when its embedded identity matches the unchanged committed pin and the target
+origin matches the pin's project identity. Execution is direct argv invocation,
+uses a credential-minimized environment, enforces timeout and output budgets,
+rejects Git-visible repository-state drift, terminates Linux process descendants,
+and retains private redacted evidence. See
+[`PROJECT-COMMAND-EXECUTION.md`](PROJECT-COMMAND-EXECUTION.md).
+
 ## Framework artifact
 
 The project-framework artifact contains repository-level templates, schemas, and
@@ -176,4 +184,8 @@ The release artifact contract is not complete until tests prove:
 - altered artifacts fail verification;
 - floating references are rejected;
 - offline verified acquisition is distinguishable from online validation;
-- no consuming project's runtime dependency graph is modified by validator use.
+- no consuming project's runtime dependency graph is modified by validator use;
+- command execution is denied on release, pin, origin, commit, executable, or
+  evidence-boundary drift;
+- command timeout, output overflow, background descendants, nonzero exit, and
+  repository-state mutation fail closed with private redacted evidence.
