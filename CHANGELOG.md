@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added fail-closed execution of one exact command declared by a consuming
+  project's committed pin. A linker-bound release validator now requires exact
+  validator, pin, target-origin, and target-commit identity; invokes argv without
+  implicit shell interpretation; uses a credential-minimized isolated
+  environment; bounds time, output, and Linux process descendants; rejects
+  repository-state drift; and retains private redacted JSON and text evidence.
+
 - Added explicit external target-repository selection through global `--repo`
   handling. Validator release identity is now independent from target Git identity;
   linker-bound `version` and `help` run outside Git; target discovery rejects

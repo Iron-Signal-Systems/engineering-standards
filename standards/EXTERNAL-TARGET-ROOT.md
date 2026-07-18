@@ -122,6 +122,8 @@ Acceptance tests must prove:
 ## Assurance boundary
 
 External target selection establishes only where read-only or separately named
-validator operations act. It does not authorize artifact execution, project
-command execution, initialization, upgrade application, commit, push, merge,
-tag creation, release publication, or deployment.
+validator operations act. It does not by itself authorize artifact execution,
+project command execution, initialization, upgrade application, commit, push,
+merge, tag creation, release publication, or deployment. The separately named
+`project-command run NAME` boundary is governed by
+[`PROJECT-COMMAND-EXECUTION.md`](PROJECT-COMMAND-EXECUTION.md).

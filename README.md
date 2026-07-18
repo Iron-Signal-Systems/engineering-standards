@@ -92,6 +92,7 @@ See:
 - [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](standards/RELEASE-ARTIFACT-PRODUCTION.md)
 - [`standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md)
 - [`standards/EXTERNAL-TARGET-ROOT.md`](standards/EXTERNAL-TARGET-ROOT.md)
+- [`standards/PROJECT-COMMAND-EXECUTION.md`](standards/PROJECT-COMMAND-EXECUTION.md)
 - [`standards/PROJECT-UPGRADE-CONTRACT.md`](standards/PROJECT-UPGRADE-CONTRACT.md)
 
 ## Quick start
@@ -124,7 +125,17 @@ directory:
 ```
 
 A linker-bound release validator also reports `version` and `help` outside any
-Git repository.
+Git repository. After its release identity, target origin, and committed pin all
+match, it may run one exact project-owned validation command:
+
+```bash
+isras-validator-linux-amd64 \
+  --repo /src/example-project \
+  project-command run test
+```
+
+Command execution uses no implicit shell, inherits only a bounded environment,
+and retains private redacted evidence below the pin's evidence directory.
 
 Build and run clean-clone release validation after the exact signed commit has
 been pushed to its remote branch:
