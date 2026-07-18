@@ -144,6 +144,20 @@ The deterministic producer and its exact source-list, archive-normalization,
 atomic-output, and private-evidence rules are defined in
 [`RELEASE-ARTIFACT-PRODUCTION.md`](RELEASE-ARTIFACT-PRODUCTION.md).
 
+## Publication boundary
+
+The exact produced bytes are published only through the separately named,
+draft-first boundary in [`RELEASE-PUBLICATION.md`](RELEASE-PUBLICATION.md).
+Publication requires the existing GitHub-verified annotated tag, refuses every
+preexisting release, uploads exactly the six declared assets without clobbering,
+re-downloads and verifies remote bytes before and after publication, and retains
+private evidence conforming to
+`schemas/isras-release-publication-v1.schema.json`.
+
+Publication does not create or push a tag, move `main`, rebuild an artifact, or
+modify a consuming project. The legacy release-workflow publication entry point
+is disabled so it cannot create an assetless or otherwise unverified release.
+
 ## Reusable workflow boundary
 
 A reusable GitHub workflow may provide hosted execution for projects. A project
@@ -178,6 +192,9 @@ bytes, digest, release identity, and provenance remain verifiable.
 The release artifact contract is not complete until tests prove:
 
 - every published byte is covered by required manifests;
+- publication refuses an existing draft or release and never clobbers an asset;
+- remote asset metadata and downloaded bytes are verified before and after publication;
+- only the exact incomplete draft created by the current run may be removed automatically;
 - validator identity matches the release;
 - framework and contracts match the release;
 - local and hosted consumption use the same pin;

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added controlled draft-first publication of the exact six-file deterministic
+  ISRAS release artifact set. The separately named publication command requires
+  a clean signed source, exact remote branch, GitHub-verified annotated tag,
+  private artifact-build evidence, manifests, provenance, and embedded validator
+  identity; rejects every preexisting release; uploads without clobbering;
+  re-downloads and verifies remote bytes before and after publication; safely
+  removes only its exact incomplete draft; retains private JSON and text
+  evidence; and never creates or pushes a tag, moves a branch, or modifies a
+  consuming project. The legacy `isras-release publish` entry point is disabled.
+
 - Added fail-closed execution of one exact command declared by a consuming
   project's committed pin. A linker-bound release validator now requires exact
   validator, pin, target-origin, and target-commit identity; invokes argv without

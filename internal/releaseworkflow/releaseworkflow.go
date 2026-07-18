@@ -237,8 +237,10 @@ func applyDefaults(opts *Options) {
 
 func validateAction(action Action) error {
 	switch action {
-	case ActionCheck, ActionTag, ActionPublish:
+	case ActionCheck, ActionTag:
 		return nil
+	case ActionPublish:
+		return errors.New("legacy release publication is disabled; use isras-release-publication publish")
 	default:
 		return fmt.Errorf("unsupported action %q", action)
 	}

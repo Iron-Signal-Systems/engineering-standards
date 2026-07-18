@@ -105,10 +105,14 @@ make a release claim.
 
 The staged `isras-release` command defined in
 [`RELEASE-WORKFLOW-AUTOMATION.md`](RELEASE-WORKFLOW-AUTOMATION.md) applies the
-release controls through typed Go code. `check` performs validation without
-changing refs, `tag --confirm` creates or verifies only the signed local tag, and
-`publish --confirm` verifies and performs the bounded remote publication steps.
+source and local-tag controls through typed Go code. `check` performs validation
+without changing refs, and `tag --confirm` creates or verifies only the signed
+local tag. Its legacy publication entry point is disabled.
 
-The automation does not weaken the exact-source, signing, clean-clone,
-release-note, platform, recovery, or truthful-assurance requirements in this
-standard.
+The separately named command defined in
+[`RELEASE-PUBLICATION.md`](RELEASE-PUBLICATION.md) publishes only after the exact
+remote signed tag and deterministic six-file artifact set are independently
+verified. It does not create or push a tag or move a branch.
+
+Neither automation weakens the exact-source, signing, clean-clone, release-note,
+platform, recovery, or truthful-assurance requirements in this standard.
