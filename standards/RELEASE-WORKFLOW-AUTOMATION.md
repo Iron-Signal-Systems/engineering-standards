@@ -40,13 +40,15 @@ The stage requires:
 - clean-clone release-mode validation of the exact pushed commit.
 
 Before the expensive validation campaign begins, `check` inspects the declared
-version and the derived local and remote release tag. A development declaration
-such as `0.1.1-development` fails before release validation because only a stable
-`MAJOR.MINOR.PATCH` value can define a release candidate. An existing tag that
-identifies any commit other than the current candidate is also a hard failure
-because release tag names are immutable. The command repeats tag-identity
-inspection after validation so an intervening tag change cannot be silently
-accepted.
+version and the derived local and remote release tag. The absence of both tags is
+the expected pre-tag state. Local inspection uses read-only ref enumeration and
+distinguishes an absent ref from an existing ref, malformed output, or a Git
+execution failure. A development declaration such as `0.1.1-development` fails
+before release validation because only a stable `MAJOR.MINOR.PATCH` value can
+define a release candidate. An existing tag that identifies any commit other
+than the current candidate is also a hard failure because release tag names are
+immutable. The command repeats tag-identity inspection after validation so an
+intervening tag change cannot be silently accepted.
 
 ### Tag
 

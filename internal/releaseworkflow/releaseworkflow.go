@@ -447,20 +447,49 @@ func validateTagIdentity(local, remote remoteTag, expectedCommit, tag string) er
 	return nil
 }
 
-func (e *engine) inspectTag() (remoteTag, remoteTag, error) {
-	local := remoteTag{}
-	object, err := e.captureAllowExit(1, "git", "show-ref", "--verify", "--hash", "refs/tags/"+e.result.Tag)
+func (e *engine) inspectLocalTag() (remoteTag, error) {
+	ref := "refs/tags/" + e.result.Tag
+	output, err := e.capture(
+		"git",
+		"for-each-ref",
+		"--format=%(objectname)",
+		"--count=2",
+		ref,
+	)
 	if err != nil {
-		return local, remoteTag{}, fmt.Errorf("inspect local release tag: %w", err)
+		return remoteTag{}, fmt.Errorf("inspect local release tag: %w", err)
 	}
-	if object != "" {
-		local.Exists = true
-		local.ObjectSHA = object
+
+	lines := nonEmptyLines(output)
+	switch len(lines) {
+	case 0:
+		return remoteTag{}, nil
+	case 1:
+		local := remoteTag{
+			Exists:    true,
+			ObjectSHA: lines[0],
+		}
 		target, err := e.capture("git", "rev-list", "-n", "1", e.result.Tag)
 		if err != nil {
-			return local, remoteTag{}, fmt.Errorf("resolve local release tag target: %w", err)
+			return local, fmt.Errorf("resolve local release tag target: %w", err)
+		}
+		if target == "" {
+			return local, fmt.Errorf("local release tag %s resolved to an empty target", e.result.Tag)
 		}
 		local.CommitSHA = target
+		return local, nil
+	default:
+		return remoteTag{}, fmt.Errorf(
+			"local release tag lookup returned %d entries, expected at most one",
+			len(lines),
+		)
+	}
+}
+
+func (e *engine) inspectTag() (remoteTag, remoteTag, error) {
+	local, err := e.inspectLocalTag()
+	if err != nil {
+		return local, remoteTag{}, err
 	}
 
 	var remote remoteTag
