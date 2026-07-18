@@ -159,11 +159,22 @@ func TestLinkedReleaseIdentityDoesNotReadTargetMetadata(t *testing.T) {
 	if identity.SourceCommit != testSourceCommit {
 		t.Fatalf("source commit = %q", identity.SourceCommit)
 	}
-	if identity.RepositoryCommit != testRepositoryCommit {
+	if identity.RepositoryCommit != testSourceCommit {
 		t.Fatalf("repository commit = %q", identity.RepositoryCommit)
 	}
 	if identity.Header() != "ISRAS-SD 0.1.1 [release artifact]" {
 		t.Fatalf("unexpected header: %s", identity.Header())
+	}
+}
+
+func TestEmbeddedReleaseIdentityRequiresNoTargetRepository(t *testing.T) {
+	configureLinkedRelease(t, "0.1.1", "isras-v0.1.1", testSourceCommit)
+	identity, configured, err := Embedded()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !configured || identity.RepositoryCommit != testSourceCommit {
+		t.Fatalf("embedded identity = %#v, configured=%t", identity, configured)
 	}
 }
 

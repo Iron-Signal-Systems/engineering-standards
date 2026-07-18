@@ -74,7 +74,16 @@ A repository containing a candidate pin can run:
 ```
 
 These commands are read-only and do not acquire artifacts or execute the declared
-project commands.
+project commands. The external validator may be launched from another directory:
+
+```bash
+isras-validator-linux-amd64 \
+  --repo /src/example-project \
+  project-pin validate
+```
+
+Target selection does not change the caller's working directory and does not
+permit the project to replace the validator's embedded release identity.
 
 ISRAS shall not ordinarily copy its Go validator source or tests into the
 project, and shall not add itself to the project's application dependency graph.
@@ -122,10 +131,11 @@ The pinned project framework is the accepted architectural direction for the
 `0.1.1-development` cycle. The strict v1 pin schema, read-only parser, and
 release-artifact acquisition and verification boundary are implemented. The
 repository can also produce the exact local validator, framework, contracts,
-provenance, and checksum-manifest bytes for a stable signed release. Artifact
-publication, project command execution, initialization, reusable hosted
-validation, upgrade application, and consuming-project adoption are not yet
-implemented.
+provenance, and checksum-manifest bytes for a stable signed release. The validator
+can now select and isolate an explicit external target repository while preserving
+its independent release identity. Artifact publication, project command execution,
+initialization, reusable hosted validation, upgrade application, and complete
+consuming-project adoption are not yet implemented.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
 deprecated for new adoption. It must not be used to initialize another project.
@@ -142,4 +152,5 @@ has passed its own tests and acceptance gates.
 - [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](../standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
 - [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](../standards/RELEASE-ARTIFACT-PRODUCTION.md)
 - [`standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](../standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md)
+- [`standards/EXTERNAL-TARGET-ROOT.md`](../standards/EXTERNAL-TARGET-ROOT.md)
 - [`standards/PROJECT-UPGRADE-CONTRACT.md`](../standards/PROJECT-UPGRADE-CONTRACT.md)

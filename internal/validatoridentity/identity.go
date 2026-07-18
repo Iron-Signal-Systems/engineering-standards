@@ -47,12 +47,16 @@ type Identity struct {
 	RepositoryCommit string
 }
 
+func Embedded() (Identity, bool, error) {
+	return linkedReleaseIdentity()
+}
+
 func Load(root, repositoryCommit string) (Identity, error) {
+	if identity, configured, err := Embedded(); configured || err != nil {
+		return identity, err
+	}
 	if !commitPattern.MatchString(repositoryCommit) {
 		return Identity{}, fmt.Errorf("invalid repository commit identity %q", repositoryCommit)
-	}
-	if identity, configured, err := linkedReleaseIdentity(repositoryCommit); configured || err != nil {
-		return identity, err
 	}
 
 	path := filepath.Join(root, filepath.FromSlash(MetadataPath))
@@ -81,7 +85,7 @@ func Load(root, repositoryCommit string) (Identity, error) {
 	return identity, nil
 }
 
-func linkedReleaseIdentity(repositoryCommit string) (Identity, bool, error) {
+func linkedReleaseIdentity() (Identity, bool, error) {
 	configured := releaseVersion != "" || releaseTag != "" || releaseSourceCommit != ""
 	if !configured {
 		return Identity{}, false, nil
@@ -105,7 +109,7 @@ func linkedReleaseIdentity(repositoryCommit string) (Identity, bool, error) {
 			SourceCommit:     releaseSourceCommit,
 		},
 		ReleaseTag:       releaseTag,
-		RepositoryCommit: repositoryCommit,
+		RepositoryCommit: releaseSourceCommit,
 	}, true, nil
 }
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,7 +16,6 @@ import (
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/failurelog"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/model"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/projectpin"
-	"github.com/Iron-Signal-Systems/engineering-standards/internal/repository"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/secrets"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/validation"
 	"github.com/Iron-Signal-Systems/engineering-standards/internal/validatoridentity"
@@ -28,77 +26,12 @@ func main() {
 }
 
 func run() int {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
-	defer cancel()
-
-	args, mode, err := parseMode(os.Args[1:])
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "FAIL:", err)
-		return 2
-	}
-	identity, err := repository.Discover(ctx)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "FAIL:", err)
-		return 2
-	}
-	validatorIdentity, err := validatoridentity.Load(identity.Root, identity.Commit)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "FAIL:", err)
-		return 2
-	}
-	command := canonicalCommand(identity.Root)
-	runner, err := validation.New(ctx, mode, command)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "FAIL:", err)
-		return 2
-	}
-	if len(args) == 0 {
-		args = []string{"all"}
-	}
-
-	switch args[0] {
-	case "all":
-		return render(validatorIdentity.Header(), runner.All(ctx))
-	case "system":
-		return render(validatorIdentity.Header(), model.Summary{Checks: runner.System(ctx)})
-	case "repo", "repository":
-		return render(validatorIdentity.Header(), model.Summary{Checks: runner.Repository(ctx)})
-	case "project-pin":
-		return runProjectPin(ctx, runner, args[1:])
-	case "go":
-		return runGo(ctx, runner, validatorIdentity.Header(), args[1:])
-	case "secrets":
-		return runSecrets(ctx, runner, validatorIdentity.Header(), args[1:])
-	case "fix":
-		return runFix(ctx, runner, args[1:])
-	case "version", "--version":
-		renderIdentity(os.Stdout, validatorIdentity)
-		return 0
-	case "help", "-h", "--help":
-		usage(command, validatorIdentity.Header())
-		return 0
-	default:
-		fmt.Fprintf(os.Stderr, "FAIL: unknown command %q\n\n", args[0])
-		usage(command, validatorIdentity.Header())
-		return 2
-	}
+	return runTargetAware(os.Args[1:])
 }
 
 func parseMode(args []string) ([]string, string, error) {
-	mode := "development"
-	out := make([]string, 0, len(args))
-	for i := 0; i < len(args); i++ {
-		if args[i] == "--mode" {
-			if i+1 >= len(args) {
-				return nil, "", errors.New("--mode requires development, commit, or release")
-			}
-			mode = args[i+1]
-			i++
-			continue
-		}
-		out = append(out, args[i])
-	}
-	return out, mode, nil
+	parsed, options, err := parseGlobalOptions(args)
+	return parsed, options.Mode, err
 }
 
 func render(header string, summary model.Summary) int {
@@ -302,7 +235,7 @@ func runFix(ctx context.Context, runner *validation.Runner, args []string) int {
 	}
 	fmt.Printf("Canonical formatting applied to %d Go file(s).\n\n", len(files))
 	fmt.Println("Review the working-tree changes:")
-	fmt.Println("  git diff -- '*.go'")
+	fmt.Println(rootedShellCommand(runner.Root, "git diff -- '*.go'"))
 	fmt.Println()
 	fmt.Println("Rerun formatting validation:")
 	fmt.Println("  " + runner.Command + " go formatting")
@@ -346,7 +279,7 @@ func runSecrets(ctx context.Context, runner *validation.Runner, header string, a
 		fmt.Printf("Source modified: no\n")
 		fmt.Printf("Local plan:      %s\n\n", relative(runner.Root, path))
 		fmt.Println("[READ ONLY] Review the non-secret plan metadata:")
-		fmt.Printf("  cat '%s'\n\n", relative(runner.Root, path))
+		fmt.Printf("%s\n\n", rootedShellCommand(runner.Root, "cat "+shellQuote(relative(runner.Root, path))))
 		fmt.Println("[MODIFIES WORKING TREE] Apply the prepared plan:")
 		fmt.Printf("  %s secrets apply-redaction %s\n", runner.Command, id)
 		return 0
@@ -362,7 +295,7 @@ func runSecrets(ctx context.Context, runner *validation.Runner, header string, a
 		fmt.Println("Detected value: [REDACTED]")
 		fmt.Println()
 		fmt.Println("[READ ONLY] Review the source change:")
-		fmt.Printf("  git diff -- '%s'\n\n", shellDisplay(finding.Path))
+		fmt.Printf("%s\n\n", rootedShellCommand(runner.Root, "git diff -- "+shellQuote(finding.Path)))
 		fmt.Println("Rerun secret validation:")
 		fmt.Printf("  %s secrets\n", runner.Command)
 		return 0
@@ -381,7 +314,7 @@ func runSecrets(ctx context.Context, runner *validation.Runner, header string, a
 		fmt.Printf("Tracked modified: no\n")
 		fmt.Printf("Local proposal:   %s\n\n", relative(runner.Root, path))
 		fmt.Println("[READ ONLY] Review the proposal:")
-		fmt.Printf("  cat '%s'\n\n", relative(runner.Root, path))
+		fmt.Printf("%s\n\n", rootedShellCommand(runner.Root, "cat "+shellQuote(relative(runner.Root, path))))
 		fmt.Println("[MODIFIES TRACKED ALLOWLIST] Apply the reviewed proposal:")
 		fmt.Printf("  %s secrets apply-allow %s\n", runner.Command, id)
 		return 0
@@ -394,7 +327,7 @@ func runSecrets(ctx context.Context, runner *validation.Runner, header string, a
 		fmt.Println("=================")
 		fmt.Printf("Tracked file: %s\n\n", relative(runner.Root, path))
 		fmt.Println("[READ ONLY] Review the tracked exception:")
-		fmt.Printf("  git diff -- '%s'\n\n", relative(runner.Root, path))
+		fmt.Printf("%s\n\n", rootedShellCommand(runner.Root, "git diff -- "+shellQuote(relative(runner.Root, path))))
 		fmt.Println("Rerun secret validation:")
 		fmt.Printf("  %s secrets\n", runner.Command)
 		return 0
@@ -476,14 +409,27 @@ func optionValue(args []string, option string) (string, error) {
 }
 
 func canonicalCommand(root string) string {
-	local := filepath.Join(root, ".local", "bin", "isras-validate")
-	if info, err := os.Stat(local); err == nil && !info.IsDir() {
-		return "./.local/bin/isras-validate"
+	return canonicalCommandForTarget(root, false)
+}
+
+func canonicalCommandForTarget(root string, includeRepository bool) string {
+	command := ""
+	if executable, err := os.Executable(); err == nil && executable != "" && !strings.Contains(filepath.ToSlash(executable), "/go-build") {
+		if absolute, absErr := filepath.Abs(executable); absErr == nil {
+			command = shellQuote(filepath.Clean(absolute))
+		}
 	}
-	if path, err := exec.LookPath(os.Args[0]); err == nil && !strings.Contains(path, "go-build") {
-		return os.Args[0]
+	if command == "" {
+		if path, err := exec.LookPath(os.Args[0]); err == nil && !strings.Contains(path, "go-build") {
+			command = shellQuote(path)
+		} else {
+			command = "go run ./cmd/isras-validate"
+		}
 	}
-	return "go run ./cmd/isras-validate"
+	if includeRepository {
+		command += " --repo " + shellQuote(root)
+	}
+	return command
 }
 
 func relative(root, path string) string {
@@ -498,25 +444,38 @@ func shellDisplay(value string) string {
 	return strings.ReplaceAll(value, "'", "'\\''")
 }
 
-func usage(command, header string) {
-	fmt.Printf(`%s — Iron Signal Repository Assurance validation
+func shellQuote(value string) string {
+	return "'" + shellDisplay(value) + "'"
+}
+
+func rootedShellCommand(root, command string) string {
+	return "cd -- " + shellQuote(root) + "\n" + command
+}
+
+func usage(writer io.Writer, command, header string) {
+	fmt.Fprintf(writer, `%s — Iron Signal Repository Assurance validation
+
+Global options:
+  --repo PATH                         explicit target repository directory
+  --mode development|commit|release  validation strictness
 
 Usage:
-  %s all [--mode development|commit|release]
-  %s system
-  %s repo
-  %s go [formatting|vet|tests|build|modules|vulnerabilities]
-  %s go formatting --diff
-  %s fix formatting
+  %s [--repo PATH] all [--mode development|commit|release]
+  %s [--repo PATH] system
+  %s [--repo PATH] repo
+  %s [--repo PATH] go [formatting|vet|tests|build|modules|vulnerabilities]
+  %s [--repo PATH] go formatting --diff
+  %s [--repo PATH] fix formatting
   %s version
-  %s secrets
-  %s secrets inspect FINDING-ID
-  %s secrets prepare-redaction FINDING-ID
-  %s secrets apply-redaction FINDING-ID
-  %s secrets prepare-allow FINDING-ID --reason 'bounded reason'
-  %s secrets apply-allow FINDING-ID
-`, header, command, command, command, command, command, command, command, command, command, command, command, command, command)
-	fmt.Printf("  %s project-pin validate\n", command)
-	fmt.Printf("  %s project-pin inspect\n", command)
-	fmt.Printf("  %s project-pin verify-artifacts [--source-directory PATH]\n", command)
+  %s help
+  %s [--repo PATH] secrets
+  %s [--repo PATH] secrets inspect FINDING-ID
+  %s [--repo PATH] secrets prepare-redaction FINDING-ID
+  %s [--repo PATH] secrets apply-redaction FINDING-ID
+  %s [--repo PATH] secrets prepare-allow FINDING-ID --reason 'bounded reason'
+  %s [--repo PATH] secrets apply-allow FINDING-ID
+`, header, command, command, command, command, command, command, command, command, command, command, command, command, command, command)
+	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin validate\n", command)
+	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin inspect\n", command)
+	fmt.Fprintf(writer, "  %s [--repo PATH] project-pin verify-artifacts [--source-directory PATH]\n", command)
 }

@@ -80,7 +80,10 @@ file cannot claim release-artifact ownership.
 
 The producer executes only the binary's read-only `version` command and requires
 its reported identity to match the signed source boundary before packaging
-continues. It does not validate a consuming project in this step.
+continues. The command requires no target repository. The produced binary later
+selects a consuming repository through the explicit boundary defined in
+[`EXTERNAL-TARGET-ROOT.md`](EXTERNAL-TARGET-ROOT.md). It does not validate a
+consuming project during artifact production.
 
 ## Deterministic archives
 
