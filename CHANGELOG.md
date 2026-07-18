@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added explicit external target-repository selection through global `--repo`
+  handling. Validator release identity is now independent from target Git identity;
+  linker-bound `version` and `help` run outside Git; target discovery rejects
+  missing, non-directory, non-Git, and symbolic-link paths; all execution and
+  evidence remain rooted in one canonical target without process-wide `chdir`;
+  and regression tests prove cross-repository isolation.
+
 - Added deterministic release-artifact production from an exact signed source
   commit and annotated release tag. The producer embeds immutable release
   identity into the external validator, builds normalized framework and contract

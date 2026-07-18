@@ -91,6 +91,7 @@ See:
 - [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
 - [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](standards/RELEASE-ARTIFACT-PRODUCTION.md)
 - [`standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md)
+- [`standards/EXTERNAL-TARGET-ROOT.md`](standards/EXTERNAL-TARGET-ROOT.md)
 - [`standards/PROJECT-UPGRADE-CONTRACT.md`](standards/PROJECT-UPGRADE-CONTRACT.md)
 
 ## Quick start
@@ -112,6 +113,18 @@ Run commit validation after committing the exact candidate:
 ```bash
 ./.local/bin/isras-validate all --mode commit
 ```
+
+Validate an explicitly selected repository without changing the caller's working
+directory:
+
+```bash
+./.local/bin/isras-validate \
+  --repo /src/example-project \
+  project-pin validate
+```
+
+A linker-bound release validator also reports `version` and `help` outside any
+Git repository.
 
 Build and run clean-clone release validation after the exact signed commit has
 been pushed to its remote branch:

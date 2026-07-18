@@ -74,6 +74,11 @@ commit, and release-artifact ownership through linker-bound values. It does not
 trust a consuming repository to supply release identity through the deprecated
 copied validator-identity file.
 
+The release validator selects a target through an explicit global `--repo` option
+or the current directory. Target Git identity remains separate from validator
+identity. Linker-bound `version` and `help` do not require a target repository.
+See [`EXTERNAL-TARGET-ROOT.md`](EXTERNAL-TARGET-ROOT.md).
+
 ## Framework artifact
 
 The project-framework artifact contains repository-level templates, schemas, and

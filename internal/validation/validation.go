@@ -3,6 +3,7 @@ package validation
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -30,6 +31,13 @@ func New(ctx context.Context, mode, command string) (*Runner, error) {
 	identity, err := repository.Discover(ctx)
 	if err != nil {
 		return nil, err
+	}
+	return NewForIdentity(mode, command, identity)
+}
+
+func NewForIdentity(mode, command string, identity repository.Identity) (*Runner, error) {
+	if identity.Root == "" || identity.Commit == "" {
+		return nil, errors.New("target repository identity is incomplete")
 	}
 	if mode == "" {
 		mode = "development"
@@ -66,7 +74,7 @@ func (r *Runner) System(ctx context.Context) []model.Check {
 	if status == model.Warn {
 		check.Actions = []model.Action{{
 			Label: "READ ONLY", Description: "Review the declared platform scope:",
-			Command: "sed -n '1,220p' standards/PLATFORM-SUPPORT.md",
+			Command: r.rooted("sed -n '1,220p' standards/PLATFORM-SUPPORT.md"),
 		}}
 	}
 	return []model.Check{
@@ -89,7 +97,7 @@ func (r *Runner) Repository(ctx context.Context) []model.Check {
 	}
 	origin := model.Check{Section: "REPOSITORY", Name: "Origin transport", Status: originStatus, Detail: originDetail}
 	if originStatus != model.Pass {
-		origin.Actions = []model.Action{{Label: "READ ONLY", Description: "Review the configured origin:", Command: "git remote -v"}}
+		origin.Actions = []model.Action{{Label: "READ ONLY", Description: "Review the configured origin:", Command: r.rooted("git remote -v")}}
 		if originStatus == model.Fail {
 			origin.LogPath = r.simpleFailure("origin transport", "an SSH origin URL", originDetail, origin.Actions)
 		}
@@ -111,7 +119,7 @@ func (r *Runner) Repository(ctx context.Context) []model.Check {
 		}
 		check := model.Check{Section: "REPOSITORY", Name: "Working tree", Status: status, Detail: detail}
 		if dirty {
-			check.Actions = []model.Action{{Label: "READ ONLY", Description: "Review every pending path:", Command: "git status --short\ngit diff\ngit diff --cached"}}
+			check.Actions = []model.Action{{Label: "READ ONLY", Description: "Review every pending path:", Command: r.rooted("git status --short\ngit diff\ngit diff --cached")}}
 			if status == model.Fail {
 				check.LogPath = r.simpleFailure("working tree", "a clean exact commit", detail, check.Actions)
 			}
@@ -148,18 +156,18 @@ func (r *Runner) Go(ctx context.Context) []model.Check {
 	}
 
 	checks = append(checks, r.goCommand(ctx, "Static analysis", "go vet ./...", "go", []string{"vet", "./..."},
-		[]model.Action{{Label: "READ ONLY", Description: "Rerun static analysis with direct output:", Command: "go vet ./..."}}))
+		[]model.Action{{Label: "READ ONLY", Description: "Rerun static analysis with direct output:", Command: r.rooted("go vet ./...")}}))
 	checks = append(checks, r.goCommand(ctx, "Package tests", "go test -count=1 ./...", "go", []string{"test", "-count=1", "./..."},
-		[]model.Action{{Label: "READ ONLY", Description: "Rerun all tests with verbose output:", Command: "go test -count=1 -v ./..."}}))
+		[]model.Action{{Label: "READ ONLY", Description: "Rerun all tests with verbose output:", Command: r.rooted("go test -count=1 -v ./...")}}))
 	checks = append(checks, r.goCommand(ctx, "Build", "go build ./...", "go", []string{"build", "./..."},
-		[]model.Action{{Label: "READ ONLY", Description: "Rerun the complete build:", Command: "go build ./..."}}))
+		[]model.Action{{Label: "READ ONLY", Description: "Rerun the complete build:", Command: r.rooted("go build ./...")}}))
 	checks = append(checks, r.goCommand(ctx, "Module consistency", "go mod tidy -diff", "go", []string{"mod", "tidy", "-diff"},
 		[]model.Action{
-			{Label: "READ ONLY", Description: "Display the required module changes:", Command: "go mod tidy -diff"},
-			{Label: "MODIFIES WORKING TREE", Description: "Apply reviewed module corrections:", Command: "go mod tidy\ngit diff -- go.mod go.sum"},
+			{Label: "READ ONLY", Description: "Display the required module changes:", Command: r.rooted("go mod tidy -diff")},
+			{Label: "MODIFIES WORKING TREE", Description: "Apply reviewed module corrections:", Command: r.rooted("go mod tidy\ngit diff -- go.mod go.sum")},
 		}))
 	checks = append(checks, r.goCommand(ctx, "Module integrity", "go mod verify", "go", []string{"mod", "verify"},
-		[]model.Action{{Label: "READ ONLY", Description: "Rerun module-cache verification:", Command: "go mod verify"}}))
+		[]model.Action{{Label: "READ ONLY", Description: "Rerun module-cache verification:", Command: r.rooted("go mod verify")}}))
 	checks = append(checks, r.vulnerabilityCheck(ctx))
 	return checks
 }
@@ -181,7 +189,7 @@ func (r *Runner) Secrets(ctx context.Context) []model.Check {
 		return checks
 	}
 	for _, finding := range result.Findings {
-		actions := secretActions(r.Command, finding)
+		actions := secretActionsForRoot(r.Command, r.Root, finding)
 		detail := fmt.Sprintf("%s · %s:%d · %s · %s", finding.ID, finding.Path, finding.Line, finding.Rule, valueOr(finding.Source, "working-tree"))
 		check := model.Check{Section: "SECRET PROTECTION", Name: "Possible sensitive value", Status: model.Fail, Detail: detail, Actions: actions}
 		check.LogPath = r.simpleFailure("secret "+finding.ID, "no unresolved sensitive-value findings", detail+" · detected value [REDACTED]", actions)
@@ -221,9 +229,9 @@ func (r *Runner) vulnerabilityCheck(ctx context.Context) model.Check {
 		actions := []model.Action{{
 			Label:       "NETWORK ACCESS — INSTALLS PINNED TOOL",
 			Description: "Install the repository-declared govulncheck version into local tooling:",
-			Command:     fmt.Sprintf("mkdir -p .local/tools/bin\nGOBIN=\"$PWD/.local/tools/bin\" go install golang.org/x/vuln/cmd/govulncheck@%s", version),
+			Command:     r.rooted(fmt.Sprintf("mkdir -p .local/tools/bin\nGOBIN=\"$PWD/.local/tools/bin\" go install golang.org/x/vuln/cmd/govulncheck@%s", version)),
 		}, {
-			Label: "READ ONLY", Description: "Verify the installed binary's embedded module version:", Command: "go version -m .local/tools/bin/govulncheck",
+			Label: "READ ONLY", Description: "Verify the installed binary's embedded module version:", Command: r.rooted("go version -m .local/tools/bin/govulncheck"),
 		}, {
 			Label: "READ ONLY", Description: "Rerun vulnerability validation:", Command: r.Command + " go vulnerabilities",
 		}}
@@ -234,8 +242,8 @@ func (r *Runner) vulnerabilityCheck(ctx context.Context) model.Check {
 	result := executil.Run(ctx, r.Root, tool, "./...")
 	if result.Err != nil {
 		actions := []model.Action{
-			{Label: "READ ONLY", Description: "Rerun the bounded vulnerability report:", Command: shellPath(tool) + " ./..."},
-			{Label: "READ ONLY", Description: "Review available module updates before selecting a version:", Command: "go list -m -u all"},
+			{Label: "READ ONLY", Description: "Rerun the bounded vulnerability report:", Command: r.rooted(shellPath(tool) + " ./...")},
+			{Label: "READ ONLY", Description: "Review available module updates before selecting a version:", Command: r.rooted("go list -m -u all")},
 			{Label: "READ ONLY", Description: "Rerun vulnerability validation after remediation:", Command: r.Command + " go vulnerabilities"},
 		}
 		return r.commandFailure("Known vulnerabilities", "GO SOURCE", result,
@@ -359,6 +367,10 @@ func vulnerabilityToolDetail(required, observed string) string {
 }
 
 func secretActions(command string, finding secrets.Finding) []model.Action {
+	return secretActionsForRoot(command, "", finding)
+}
+
+func secretActionsForRoot(command, root string, finding secrets.Finding) []model.Action {
 	actions := []model.Action{{
 		Label: "READ ONLY", Description: "Inspect finding metadata without displaying the detected value:",
 		Command: command + " secrets inspect " + finding.ID,
@@ -367,10 +379,10 @@ func secretActions(command string, finding secrets.Finding) []model.Action {
 		path := shellPath(finding.Path)
 		actions = append(actions, model.Action{
 			Label: "READ ONLY", Description: "Confirm the affected path is staged without displaying its content:",
-			Command: "git status --short -- " + path,
+			Command: rootedValidationCommand(root, "git status --short -- "+path),
 		}, model.Action{
 			Label: "MODIFIES INDEX", Description: "Unstage the affected path before correcting and restaging it:",
-			Command: "git restore --staged -- " + path,
+			Command: rootedValidationCommand(root, "git restore --staged -- "+path),
 		})
 	}
 	if finding.Redactable {
@@ -395,6 +407,17 @@ func secretActions(command string, finding secrets.Finding) []model.Action {
 		Label: "READ ONLY", Description: "Rerun secret validation:", Command: command + " secrets",
 	})
 	return actions
+}
+
+func (r *Runner) rooted(command string) string {
+	return rootedValidationCommand(r.Root, command)
+}
+
+func rootedValidationCommand(root, command string) string {
+	if root == "" {
+		return command
+	}
+	return "cd -- " + shellLiteral(root) + "\n" + command
 }
 
 func actionStrings(actions []model.Action) []string {
@@ -442,6 +465,10 @@ func short(value string) string {
 		return value[:12]
 	}
 	return valueOr(value, "unavailable")
+}
+
+func shellLiteral(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
 
 func shellPath(value string) string {
