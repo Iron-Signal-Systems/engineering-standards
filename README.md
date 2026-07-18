@@ -90,6 +90,7 @@ See:
 - [`standards/PROJECT-PIN-SCHEMA.md`](standards/PROJECT-PIN-SCHEMA.md)
 - [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
 - [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](standards/RELEASE-ARTIFACT-PRODUCTION.md)
+- [`standards/RELEASE-PUBLICATION.md`](standards/RELEASE-PUBLICATION.md)
 - [`standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md)
 - [`standards/EXTERNAL-TARGET-ROOT.md`](standards/EXTERNAL-TARGET-ROOT.md)
 - [`standards/PROJECT-COMMAND-EXECUTION.md`](standards/PROJECT-COMMAND-EXECUTION.md)
@@ -151,16 +152,16 @@ Build the staged repository-owned release workflow command:
 ./tools/build-release-command.sh
 ```
 
-Run its three deliberately separated stages:
+Run its two deliberately separated source and tag stages:
 
 ```bash
 ./.local/bin/isras-release check
 ./.local/bin/isras-release tag --confirm
-./.local/bin/isras-release publish --confirm
 ```
 
 The `check` stage changes no Git refs. The `tag` stage creates only the signed
-local tag. The `publish` stage performs the explicitly confirmed remote writes.
+local tag. The legacy `isras-release publish` entry point is disabled so release
+assets cannot bypass the controlled publication verifier.
 
 Build the local release-artifact producer:
 
@@ -173,6 +174,20 @@ It creates validator, framework, contracts, provenance, and checksum-manifest
 bytes under `.local/releases/` without publishing them. See
 [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](standards/RELEASE-ARTIFACT-PRODUCTION.md)
 for the explicit provenance inputs and production command.
+
+Build and run the separately named publication preflight after the exact tag has
+been pushed and the deterministic artifacts have been reviewed:
+
+```bash
+./tools/build-release-publication.sh
+./.local/bin/isras-release-publication check --version 0.1.1
+```
+
+Only an explicitly reviewed `publish --confirm` invocation may create the draft,
+upload the six assets, re-download and verify the remote bytes, and publish the
+release. The publication command never creates or pushes a tag and never moves
+`main`. See
+[`standards/RELEASE-PUBLICATION.md`](standards/RELEASE-PUBLICATION.md).
 
 Run only the secret scanner:
 
@@ -201,5 +216,6 @@ See:
 - [`standards/RELEASES-AND-SIGNING.md`](standards/RELEASES-AND-SIGNING.md)
 - [`standards/CLEAN-CLONE-RELEASE-VALIDATION.md`](standards/CLEAN-CLONE-RELEASE-VALIDATION.md)
 - [`standards/RELEASE-WORKFLOW-AUTOMATION.md`](standards/RELEASE-WORKFLOW-AUTOMATION.md)
+- [`standards/RELEASE-PUBLICATION.md`](standards/RELEASE-PUBLICATION.md)
 - [`docs/archive/README.md`](docs/archive/README.md)
 - [`integration-guides/PROJECT-ADOPTION.md`](integration-guides/PROJECT-ADOPTION.md)

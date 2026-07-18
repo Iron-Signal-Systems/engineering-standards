@@ -142,6 +142,19 @@ digest. Evidence files use mode `0600`; containing directories use mode `0700`.
 If evidence cannot be written, the produced output directory is removed and the
 operation fails.
 
+## Publication handoff
+
+The producer's exact artifact directory and private `artifact-build.json` report
+are the only accepted local inputs to the publication boundary. Publication
+recomputes all sizes and digests, revalidates both manifests and provenance, and
+re-executes the validator's read-only identity command before any GitHub Release
+is created.
+
+Artifact production does not imply publication authority. The separate
+[`RELEASE-PUBLICATION.md`](RELEASE-PUBLICATION.md) contract requires the remote
+signed tag, release absence, explicit confirmation, draft-first upload, remote
+byte verification, and final publication evidence.
+
 ## Rebuild and reproducibility claim
 
 The producer removes the Go build identifier, disables VCS auto-embedding, uses

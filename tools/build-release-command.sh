@@ -21,5 +21,5 @@ printf 'Read-only candidate check:\n'
 printf '  %s check\n' "$repo_root/.local/bin/isras-release"
 printf 'Signed local tag stage:\n'
 printf '  %s tag --confirm\n' "$repo_root/.local/bin/isras-release"
-printf 'Remote publication stage:\n'
-printf '  %s publish --confirm\n' "$repo_root/.local/bin/isras-release"
+printf 'Remote publication is intentionally disabled in this command.\n'
+printf 'Build and use tools/build-release-publication.sh after the signed tag is pushed.\n'

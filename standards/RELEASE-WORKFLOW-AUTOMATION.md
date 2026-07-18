@@ -2,9 +2,9 @@
 
 ## Purpose
 
-The repository-owned `isras-release` command performs the repetitive release
-checks and publication mechanics through typed Go code rather than pasted shell
-fragments. It does not replace the release policy, signed-source requirements,
+The repository-owned `isras-release` command performs repeatable release-source
+checks and local signed-tag preparation through typed Go code rather than pasted
+shell fragments. It does not replace release policy, signed-source requirements,
 or clean-clone validation. It applies those controls consistently and retains a
 local workflow log.
 
@@ -16,7 +16,7 @@ The command is built from committed source:
 
 ## Staged authority
 
-The workflow is deliberately split into three stages.
+The workflow is deliberately split into two stages.
 
 ### Check
 
@@ -55,41 +55,49 @@ accepted.
 ```
 
 `tag` repeats the complete candidate checks and then creates or verifies the
-signed annotated local `isras-vMAJOR.MINOR.PATCH` tag. It does not push the tag
-or change a remote branch.
+signed annotated local `isras-vMAJOR.MINOR.PATCH` tag. It does not push the tag,
+change a remote branch, create a GitHub Release, or upload an asset.
 
 The explicit `--confirm` flag is required because the stage changes a local Git
 ref. An existing tag is accepted only when it is annotated, has a valid local
 signature, and resolves to the exact tested commit.
 
-### Publish
+## Publication handoff
+
+The legacy command form below is disabled:
 
 ```bash
 ./.local/bin/isras-release publish --confirm
 ```
 
-`publish` repeats the complete checks and requires the signed local tag created
-by the prior stage. It then:
+It returns a failure directing the operator to the separately named publication
+command. This prevents the earlier workflow from creating an assetless release,
+pushing a tag during publication, moving `main`, or bypassing deterministic
+artifact verification.
 
-1. pushes the exact annotated tag when it is not already present;
-2. verifies that the remote tag object and peeled commit exactly match the local
-   tag and tested commit;
-3. fast-forwards remote `main` to the tested release commit without force;
-4. creates or verifies the non-draft, non-prerelease GitHub Release using the
-   committed release notes; and
-5. proves the final remote state.
+After the signed annotated tag has been deliberately pushed through a separately
+reviewed Git operation and the deterministic release artifacts have been
+produced, publication uses:
 
-The explicit `--confirm` flag is required because the stage performs remote
-writes. `publish` refuses to rewrite a divergent `main` branch.
+```bash
+./tools/build-release-publication.sh
+./.local/bin/isras-release-publication check --version MAJOR.MINOR.PATCH
+./.local/bin/isras-release-publication publish --version MAJOR.MINOR.PATCH --confirm
+```
 
-## GitHub CLI boundary
+The complete remote-tag, artifact, draft, upload, remote-byte verification,
+cleanup, and publication rules are defined in
+[`RELEASE-PUBLICATION.md`](RELEASE-PUBLICATION.md).
 
-Git repository transport remains governed by the configured Git remote, such as
-SSH. GitHub Release publication uses the authenticated `gh` command because it
-is a GitHub API operation rather than Git repository transport.
+## Git transport boundary
 
-The command checks `gh auth status` before attempting publication. It never asks
-for, displays, or stores an authentication token itself.
+The `isras-release` source and tag stages may read the configured Git remote. The
+local tag stage does not push it. Any push of the accepted annotated tag remains
+a separately reviewed Git write before publication preflight can pass.
+
+GitHub Release publication uses authenticated `gh` API operations only in the
+separately named publication command. Neither command asks for, displays, or
+stores an authentication token itself.
 
 ## Output censoring boundary
 
@@ -115,14 +123,14 @@ blocks shall be suppressed across write boundaries rather than handled as
 independent lines.
 
 An incomplete output line is bounded to 64 KiB and captured subprocess output is
-bounded to 1 MiB. Content exceeding those limits is discarded or truncated with
-an explicit marker rather than emitted without complete censoring context.
+bounded. Content exceeding the relevant limit is discarded or truncated with an
+explicit marker rather than emitted without complete censoring context.
 Censoring does not change a command's exit status or convert a failed release
 stage into a pass.
 
 ## Failure behavior
 
-Every invocation writes a private local log under:
+Every source or tag invocation writes a private local log under:
 
 ```text
 .local/validation/releases/release-workflow-*.log
@@ -130,16 +138,16 @@ Every invocation writes a private local log under:
 
 A failed stage exits only the `isras-release` child process. It cannot terminate
 the developer's interactive shell. Read-only network operations are retried in a
-bounded manner. Remote writes are not blindly retried; after an uncertain push,
-the command reads the authoritative remote state and accepts success only when
-the exact expected object is proven.
+bounded manner. The command performs no remote write.
+
+Publication evidence and draft cleanup behavior are separate and are defined in
+`RELEASE-PUBLICATION.md`.
 
 ## Idempotence
 
-A stage may be rerun after interruption. Existing local tags, remote tags,
-`main`, and GitHub Releases are accepted only when they exactly match the tested
-release identity and required publication state. Conflicting state stops the
-workflow for investigation.
+`check` and `tag` may be rerun after interruption. Existing local and remote tags
+are accepted only when they exactly match the tested release identity. Conflicting
+state stops the workflow for investigation.
 
 A published version cannot be reused for later source. After publication, active
 development advances to a suffixed value such as `0.1.1-development`. That value

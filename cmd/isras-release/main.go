@@ -35,8 +35,12 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) (code i
 	}
 
 	action := releaseworkflow.Action(args[1])
+	if action == releaseworkflow.ActionPublish {
+		fmt.Fprintln(safeErr, "FAIL: legacy release publication is disabled; use isras-release-publication publish")
+		return 2
+	}
 	switch action {
-	case releaseworkflow.ActionCheck, releaseworkflow.ActionTag, releaseworkflow.ActionPublish:
+	case releaseworkflow.ActionCheck, releaseworkflow.ActionTag:
 	default:
 		fmt.Fprintf(safeErr, "FAIL: unsupported action %q\n\n", args[1])
 		usage(safeErr)
@@ -121,11 +125,11 @@ func runWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) (code i
 }
 
 func usage(writer io.Writer) {
-	fmt.Fprintln(writer, "Usage: isras-release <check|tag|publish> [options]")
+	fmt.Fprintln(writer, "Usage: isras-release <check|tag> [options]")
 	fmt.Fprintln(writer)
 	fmt.Fprintln(writer, "  check     validate the exact pushed release candidate without changing refs")
 	fmt.Fprintln(writer, "  tag       run checks, then create or verify the signed local tag (--confirm)")
-	fmt.Fprintln(writer, "  publish   run checks, push/verify the tag, fast-forward main, and publish GitHub Release (--confirm)")
+	fmt.Fprintln(writer, "  publication is handled only by the separately named isras-release-publication command")
 }
 
 func relative(root, path string) string {

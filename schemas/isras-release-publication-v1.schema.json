@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Iron-Signal-Systems/engineering-standards/schemas/isras-release-publication-v1.schema.json",
+  "title": "ISRAS Release Publication Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "started_at",
+    "finished_at",
+    "action",
+    "repository_root",
+    "source_repository",
+    "source_commit",
+    "version",
+    "release_tag",
+    "github_repository",
+    "artifact_directory",
+    "build_evidence",
+    "notes_file",
+    "title",
+    "local_verification",
+    "remote_tag",
+    "release_absence",
+    "draft_creation",
+    "asset_upload",
+    "draft_verification",
+    "publication",
+    "final_verification",
+    "cleanup",
+    "evidence_json",
+    "evidence_text",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "started_at": {"type": "string", "format": "date-time"},
+    "finished_at": {"type": "string", "format": "date-time"},
+    "action": {"enum": ["check", "publish"]},
+    "repository_root": {"type": "string", "minLength": 1},
+    "source_repository": {"const": "github.com/Iron-Signal-Systems/engineering-standards"},
+    "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "release_tag": {"type": "string", "pattern": "^isras-v[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "github_repository": {"const": "Iron-Signal-Systems/engineering-standards"},
+    "artifact_directory": {"type": "string", "minLength": 1},
+    "build_evidence": {"type": "string", "minLength": 1},
+    "notes_file": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1, "maxLength": 512},
+    "local_verification": {"$ref": "#/$defs/status"},
+    "remote_tag": {"$ref": "#/$defs/status"},
+    "release_absence": {"$ref": "#/$defs/status"},
+    "draft_creation": {"$ref": "#/$defs/status"},
+    "asset_upload": {"$ref": "#/$defs/status"},
+    "draft_verification": {"$ref": "#/$defs/status"},
+    "publication": {"$ref": "#/$defs/status"},
+    "final_verification": {"$ref": "#/$defs/status"},
+    "cleanup": {"$ref": "#/$defs/status"},
+    "release_id": {"type": "integer", "minimum": 1},
+    "release_url": {"type": "string", "format": "uri", "pattern": "^https://github\\.com/"},
+    "evidence_json": {"type": "string", "minLength": 1},
+    "evidence_text": {"type": "string", "minLength": 1},
+    "failure": {"type": "string", "minLength": 1, "maxLength": 4120},
+    "artifacts": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {"$ref": "#/$defs/artifact"}
+    }
+  },
+  "$defs": {
+    "status": {
+      "enum": ["PASS", "FAIL", "NOT PERFORMED"]
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "name",
+        "size",
+        "sha256",
+        "sha512",
+        "upload_status",
+        "download_status"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "validator",
+            "framework",
+            "contracts",
+            "provenance",
+            "sha256-manifest",
+            "sha512-manifest"
+          ]
+        },
+        "name": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+        "size": {"type": "integer", "minimum": 1, "maximum": 536870912},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "sha512": {"type": "string", "pattern": "^[0-9a-f]{128}$"},
+        "remote_asset_id": {"type": "integer", "minimum": 1},
+        "remote_size": {"type": "integer", "minimum": 1, "maximum": 536870912},
+        "remote_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "upload_status": {"$ref": "#/$defs/status"},
+        "download_status": {"$ref": "#/$defs/status"}
+      }
+    }
+  }
+}

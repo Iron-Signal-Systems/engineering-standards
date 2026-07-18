@@ -148,9 +148,10 @@ provenance, and checksum-manifest bytes for a stable signed release. The validat
 can now select and isolate an explicit external target repository while preserving
 its independent release identity. One exact command from an unchanged committed
 pin can also be executed with bounded runtime, environment, repository-state, and
-private-evidence controls. Artifact publication, initialization, reusable hosted
-validation, upgrade application, and complete consuming-project adoption are not
-yet implemented.
+private-evidence controls. The exact six-file artifact set can now be published
+through a draft-first, remote-byte-verified, fail-closed publication boundary.
+Project initialization, reusable hosted validation, upgrade application, and
+complete consuming-project adoption are not yet implemented.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
 deprecated for new adoption. It must not be used to initialize another project.
@@ -166,6 +167,7 @@ has passed its own tests and acceptance gates.
 - [`standards/PROJECT-PIN-SCHEMA.md`](../standards/PROJECT-PIN-SCHEMA.md)
 - [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](../standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
 - [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](../standards/RELEASE-ARTIFACT-PRODUCTION.md)
+- [`standards/RELEASE-PUBLICATION.md`](../standards/RELEASE-PUBLICATION.md)
 - [`standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md`](../standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md)
 - [`standards/EXTERNAL-TARGET-ROOT.md`](../standards/EXTERNAL-TARGET-ROOT.md)
 - [`standards/PROJECT-COMMAND-EXECUTION.md`](../standards/PROJECT-COMMAND-EXECUTION.md)

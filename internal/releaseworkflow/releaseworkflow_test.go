@@ -146,3 +146,10 @@ func TestSanitizeOriginRedactsEmbeddedCredentials(t *testing.T) {
 		t.Fatalf("redaction marker missing: %q", got)
 	}
 }
+
+func TestValidateActionRejectsLegacyPublish(t *testing.T) {
+	err := validateAction(ActionPublish)
+	if err == nil || !strings.Contains(err.Error(), "legacy release publication is disabled") {
+		t.Fatalf("legacy publication action was not disabled: %v", err)
+	}
+}
