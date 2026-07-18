@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile": "ISRAS-SD",
-  "standard_version": "0.1.1-development",
+  "standard_version": "0.1.1",
   "ownership": "reference-repository",
   "source_repository": "github.com/Iron-Signal-Systems/engineering-standards"
 }

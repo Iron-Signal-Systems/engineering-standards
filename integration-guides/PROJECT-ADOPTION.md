@@ -140,18 +140,17 @@ A newer release being available is information, not modification authority.
 
 ## Current implementation status
 
-The pinned project framework is the accepted architectural direction for the
-`0.1.1-development` cycle. The strict v1 pin schema, read-only parser, and
-release-artifact acquisition and verification boundary are implemented. The
-repository can also produce the exact local validator, framework, contracts,
-provenance, and checksum-manifest bytes for a stable signed release. The validator
-can now select and isolate an explicit external target repository while preserving
-its independent release identity. One exact command from an unchanged committed
-pin can also be executed with bounded runtime, environment, repository-state, and
-private-evidence controls. The exact six-file artifact set can now be published
-through a draft-first, remote-byte-verified, fail-closed publication boundary.
+ISRAS `0.1.1` establishes the pinned-project declaration and release-consumption
+foundation. The strict v1 pin schema, read-only parser, artifact acquisition and
+verification, deterministic six-file artifact production, external target
+selection, bounded declared-command execution, and draft-first remote-byte-
+verified publication boundary are implemented.
+
 Project initialization, reusable hosted validation, upgrade application, and
-complete consuming-project adoption are not yet implemented.
+complete consuming-project adoption are not implemented in `0.1.1`. Publishing
+`isras-v0.1.1` therefore does not by itself authorize modification of a consuming
+project. The initialization and adoption boundary must pass its own hostile tests
+and acceptance gates first.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
 deprecated for new adoption. It must not be used to initialize another project.
