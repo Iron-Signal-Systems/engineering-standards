@@ -491,7 +491,7 @@ func runGit(t *testing.T, root string, arguments ...string) {
 
 func gitOutput(t *testing.T, root string, arguments ...string) string {
 	t.Helper()
-	command := exec.Command("git", arguments...)
+	command := exec.Command("git", append([]string{"-c", "commit.gpgsign=false", "-c", "tag.gpgSign=false"}, arguments...)...)
 	command.Dir = root
 	output, err := command.CombinedOutput()
 	if err != nil {

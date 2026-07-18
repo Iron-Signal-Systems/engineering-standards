@@ -393,7 +393,7 @@ func fixedNow() time.Time {
 
 func runGit(t *testing.T, root string, args ...string) string {
 	t.Helper()
-	result := (OSRunner{}).Run(context.Background(), root, nil, "git", args...)
+	result := (OSRunner{}).Run(context.Background(), root, nil, "git", append([]string{"-c", "commit.gpgsign=false", "-c", "tag.gpgSign=false"}, args...)...)
 	if result.Err != nil {
 		t.Fatalf("git %v: %v: %s", args, result.Err, result.Stderr)
 	}

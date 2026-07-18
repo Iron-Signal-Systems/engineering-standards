@@ -112,7 +112,7 @@ func runReleaseWorkflowGit(t *testing.T, root string, args ...string) {
 
 func runReleaseWorkflowGitOutput(t *testing.T, root string, args ...string) string {
 	t.Helper()
-	cmd := exec.Command("git", args...)
+	cmd := exec.Command("git", append([]string{"-c", "commit.gpgsign=false", "-c", "tag.gpgSign=false"}, args...)...)
 	cmd.Dir = root
 	output, err := cmd.CombinedOutput()
 	if err != nil {

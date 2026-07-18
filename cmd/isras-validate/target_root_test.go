@@ -174,7 +174,7 @@ func runValidator(t *testing.T, binary, directory string, arguments ...string) s
 
 func runTargetGit(t *testing.T, directory string, arguments ...string) {
 	t.Helper()
-	command := exec.Command("git", arguments...)
+	command := exec.Command("git", append([]string{"-c", "commit.gpgsign=false", "-c", "tag.gpgSign=false"}, arguments...)...)
 	command.Dir = directory
 	output, err := command.CombinedOutput()
 	if err != nil {
