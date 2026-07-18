@@ -1,8 +1,14 @@
 package releaseworkflow
 
 import (
+	"context"
+	"io"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/Iron-Signal-Systems/engineering-standards/internal/redact"
 )
 
 func TestStableVersionPattern(t *testing.T) {
@@ -41,6 +47,78 @@ func TestParseGitHubRepositoryRejectsUnsupportedHost(t *testing.T) {
 	if _, err := parseGitHubRepository("git@example.invalid:org/repo.git"); err == nil {
 		t.Fatal("unsupported remote host was accepted")
 	}
+}
+
+func TestInspectLocalTagAcceptsMissingTag(t *testing.T) {
+	root := t.TempDir()
+	runReleaseWorkflowGit(t, root, "init", "--quiet")
+
+	e := newReleaseWorkflowTestEngine(root, "isras-v0.1.1")
+	local, err := e.inspectLocalTag()
+	if err != nil {
+		t.Fatalf("inspect missing local tag: %v", err)
+	}
+	if local.Exists || local.ObjectSHA != "" || local.CommitSHA != "" {
+		t.Fatalf("missing local tag was reported as existing: %#v", local)
+	}
+}
+
+func TestInspectLocalTagFindsExistingAnnotatedTag(t *testing.T) {
+	root := t.TempDir()
+	runReleaseWorkflowGit(t, root, "init", "--quiet")
+	runReleaseWorkflowGit(t, root, "config", "user.name", "ISRAS Test")
+	runReleaseWorkflowGit(t, root, "config", "user.email", "isras-test@example.invalid")
+	runReleaseWorkflowGit(t, root, "commit", "--allow-empty", "--quiet", "-m", "test source")
+	runReleaseWorkflowGit(t, root, "tag", "-a", "isras-v0.1.1", "-m", "test tag")
+
+	e := newReleaseWorkflowTestEngine(root, "isras-v0.1.1")
+	local, err := e.inspectLocalTag()
+	if err != nil {
+		t.Fatalf("inspect existing local tag: %v", err)
+	}
+	if !local.Exists {
+		t.Fatal("existing local tag was reported as missing")
+	}
+	wantObject := runReleaseWorkflowGitOutput(t, root, "rev-parse", "refs/tags/isras-v0.1.1")
+	wantCommit := runReleaseWorkflowGitOutput(t, root, "rev-parse", "HEAD")
+	if local.ObjectSHA != wantObject || local.CommitSHA != wantCommit {
+		t.Fatalf("unexpected local tag identity: got %#v, want object %s commit %s", local, wantObject, wantCommit)
+	}
+}
+
+func TestInspectLocalTagRejectsGitExecutionFailure(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "missing-repository")
+	e := newReleaseWorkflowTestEngine(root, "isras-v0.1.1")
+	if _, err := e.inspectLocalTag(); err == nil {
+		t.Fatal("Git execution failure was accepted as a missing local tag")
+	}
+}
+
+func newReleaseWorkflowTestEngine(root, tag string) *engine {
+	return &engine{
+		ctx: context.Background(),
+		result: Result{
+			RepositoryRoot: root,
+			Tag:            tag,
+		},
+		log: redact.NewWriter(io.Discard),
+	}
+}
+
+func runReleaseWorkflowGit(t *testing.T, root string, args ...string) {
+	t.Helper()
+	_ = runReleaseWorkflowGitOutput(t, root, args...)
+}
+
+func runReleaseWorkflowGitOutput(t *testing.T, root string, args ...string) string {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = root
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("git %s failed: %v\n%s", strings.Join(args, " "), err, output)
+	}
+	return strings.TrimSpace(string(output))
 }
 
 func TestParseRemoteTagAcceptsAnnotatedTag(t *testing.T) {

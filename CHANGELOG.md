@@ -6,6 +6,12 @@ No changes have been recorded after the `0.1.1` release boundary.
 
 ## 0.1.1 — 2026-07-18
 
+- Corrected local release-tag discovery so the expected pre-tag state is
+  accepted across supported Git versions without permitting command failures or
+  ambiguous output. The workflow now uses read-only ref enumeration to
+  distinguish an absent tag from an existing tag and from a failed Git
+  inspection.
+
 - Added the ISRAS Engineering Standards emblem as a repository documentation
   asset and rendered it in the README. The emblem is branding source only and
   is not part of the exact six-file downloadable release artifact set.
