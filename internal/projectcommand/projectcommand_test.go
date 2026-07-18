@@ -214,16 +214,74 @@ func TestExecuteTerminatesBackgroundDescendants(t *testing.T) {
 	}
 	deadline := time.Now().Add(2 * time.Second)
 	for {
-		err = syscall.Kill(pid, 0)
-		if errors.Is(err, syscall.ESRCH) {
+		terminated, detail := processTerminated(pid)
+		if terminated {
 			break
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("background process %d survived project command completion: %v", pid, err)
+			t.Fatalf("background process %d survived project command completion: %s", pid, detail)
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
 	assertEvidence(t, result)
+}
+
+func processTerminated(pid int) (bool, string) {
+	err := syscall.Kill(pid, 0)
+	if errors.Is(err, syscall.ESRCH) {
+		return true, "process no longer exists"
+	}
+	if err != nil {
+		return false, "process probe failed: " + err.Error()
+	}
+
+	stat, err := os.ReadFile(filepath.Join("/proc", strconv.Itoa(pid), "stat"))
+	if errors.Is(err, os.ErrNotExist) {
+		return true, "process no longer exists"
+	}
+	if err != nil {
+		return false, "process exists; state unavailable: " + err.Error()
+	}
+
+	closingParen := strings.LastIndexByte(string(stat), ')')
+	if closingParen < 0 || closingParen+2 >= len(stat) {
+		return false, "process exists; malformed /proc state"
+	}
+	state := stat[closingParen+2]
+	if state == 'Z' {
+		return true, "process is a terminated zombie awaiting init reaping"
+	}
+	return false, "process state=" + string(state)
+}
+
+func TestProcessTerminatedAcceptsZombie(t *testing.T) {
+	command := exec.Command("/bin/sh", "-c", "exit 0")
+	if err := command.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = command.Wait() }()
+
+	pid := command.Process.Pid
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		stat, err := os.ReadFile(filepath.Join("/proc", strconv.Itoa(pid), "stat"))
+		if err != nil {
+			t.Fatalf("read child state: %v", err)
+		}
+		closingParen := strings.LastIndexByte(string(stat), ')')
+		if closingParen >= 0 && closingParen+2 < len(stat) && stat[closingParen+2] == 'Z' {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("child process %d did not enter zombie state", pid)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	terminated, detail := processTerminated(pid)
+	if !terminated || !strings.Contains(detail, "zombie") {
+		t.Fatalf("zombie process was not recognized as terminated: terminated=%v detail=%q", terminated, detail)
+	}
 }
 
 func TestExecuteRejectsSymlinkedEvidenceDirectory(t *testing.T) {
