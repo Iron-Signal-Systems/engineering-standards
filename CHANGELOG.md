@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+No changes have been recorded after the `0.1.1` release boundary.
+
+## 0.1.1 — 2026-07-18
+
+- Added the ISRAS Engineering Standards emblem as a repository documentation
+  asset and rendered it in the README. The emblem is branding source only and
+  is not part of the exact six-file downloadable release artifact set.
+
 - Added controlled draft-first publication of the exact six-file deterministic
   ISRAS release artifact set. The separately named publication command requires
   a clean signed source, exact remote branch, GitHub-verified annotated tag,
@@ -90,11 +98,14 @@
   scheduled validation, exact merged-`dev` validation, and explicit documentation
   distinguishing native evidence from container-userland evidence.
 - Started the `0.1.1-development` cycle after publishing and freezing
-  `isras-v0.1.0`; active `dev` work is now explicitly non-release source.
+  `isras-v0.1.0`; active development remained explicitly non-release source until
+  this release-preparation boundary.
 - Corrected `isras-release check` so an existing local or remote release tag
   bound to a different commit fails before the expensive validation campaign;
   tag identity is checked again after validation to detect intervening changes.
-- Added the repository-owned `isras-release` Go command with separated `check`, `tag`, and `publish` authority stages, retained local logs, bounded read retries, exact tag verification, safe `main` fast-forwarding, and GitHub Release publication through authenticated `gh`.
+- Added the repository-owned `isras-release` Go command with separated `check`
+  and `tag` authority stages, retained local logs, bounded read retries, exact tag
+  verification, and a separately controlled publication handoff.
 
 ## 0.1.0 — 2026-07-17
 
@@ -104,11 +115,11 @@
   baseline.
 - Preserved the complete long-term ISRAS vision and terminology.
 - Added a standard-library-first Go validation dashboard.
-- Added Go formatting, vet, test, build, module-tidy, module-integrity, and
+- Added Go formatting, vet, tests, builds, module-tidy, module-integrity, and
   `govulncheck` checks.
 - Added repository-owned secret detection with censored output, deterministic
   finding identifiers, redaction plans, and bounded allowlist proposals.
-- Required a local `*.log` for every failed validation check.
+- Required a local `*.log` for every validation failure.
 - Required exact, context-specific remediation commands in terminal output.
 - Declared Arch Linux as the primary development platform, with supported
   Ubuntu Server LTS and Fedora Server releases as default server targets.

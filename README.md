@@ -2,10 +2,14 @@
 
 > **Built on purpose. Backed by discipline. Engineered to endure.**
 
+<p align="center">
+  <img src="docs/assets/isras-emblem.png" alt="ISRAS Engineering Standards emblem for Iron Signal Systems" width="720">
+</p>
+
 ## ISRAS vision
 
 **ISRAS** stands for the **Iron Signal Repository Assurance Standard**. It is
-the organization-wide Iron Signal Systems standard governing repository
+an organization-wide Iron Signal Systems standard governing repository
 reproducibility, validation, historical verification, change control, evidence,
 acceptance, release, deployment verification, recovery, long-term
 maintainability, engineering-standard inheritance, phase compliance, and
@@ -20,11 +24,20 @@ versioned, validated, accepted, and maintained.
 
 ## Current implementation profile
 
-The active `dev` branch declares `0.1.1-development`. The stable published
-baseline remains `0.1.0` on `main` and under the signed `isras-v0.1.0` tag.
-Development versions are intentionally ineligible for release publication until
-a deliberate release-preparation change replaces the suffix with a stable
-`MAJOR.MINOR.PATCH` value and finalizes matching release artifacts.
+This source boundary declares `0.1.1`. Before publication it is a release
+candidate; after publication only the exact signed `isras-v0.1.1` tag and the
+verified six-asset GitHub Release establish the accepted release identity. A
+stable `VERSION` value, `dev`, or `main` alone is not publication authority.
+Projects must pin immutable release identity and artifact digests rather than a
+floating branch.
+
+ISRAS `0.1.1` implements the pinned-project declaration, artifact verification,
+deterministic artifact production, external target selection, bounded declared
+command execution, and controlled release-publication boundaries. Complete
+project initialization, reusable hosted validation, upgrade application, and
+consuming-project adoption remain outside this release boundary. A consuming
+project must not be modified until initialization and adoption tooling pass their
+own acceptance gates.
 
 This repository implements the **ISRAS Solo Developer Baseline** as a practical
 baseline for a single developer while retaining truthful engineering discipline
@@ -218,4 +231,3 @@ See:
 - [`standards/RELEASE-WORKFLOW-AUTOMATION.md`](standards/RELEASE-WORKFLOW-AUTOMATION.md)
 - [`standards/RELEASE-PUBLICATION.md`](standards/RELEASE-PUBLICATION.md)
 - [`docs/archive/README.md`](docs/archive/README.md)
-- [`integration-guides/PROJECT-ADOPTION.md`](integration-guides/PROJECT-ADOPTION.md)
