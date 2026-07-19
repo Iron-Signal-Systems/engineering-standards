@@ -2,7 +2,20 @@
 
 ## Unreleased
 
-No changes have been recorded after the `0.1.2` release boundary.
+- Added release-bound hosted SSH signer trust sourced from the exact pinned
+  Engineering Standards commit. The reusable workflow now verifies tracked trust
+  bytes and their digest, configures a private target-local allowed-signers file,
+  binds the verified principal and fingerprint to the commit committer identity,
+  and rejects missing, altered, wrong-key, and wrong-principal trust.
+
+- Retained both `.local/isras` and `.local/validation` from reusable hosted runs so
+  repository-signature failure logs survive skipped later steps.
+
+- Corrected GitHub Release asset upload transport to use `uploads.github.com` and
+  added regression coverage requiring all six upload calls to use that host.
+
+- Recorded that published `0.1.2` remains immutable but cannot establish formal
+  consuming-project adoption when its required hosted validation fails.
 
 ## 0.1.2 — 2026-07-18
 

@@ -152,18 +152,18 @@ A newer release being available is information, not modification authority.
 
 ## Current implementation status
 
-ISRAS `0.1.2` implements first Go-project initialization and reusable hosted
-validation on top of the accepted `0.1.1` release-consumption foundation. It
-verifies an exact accepted release before target publication, generates the
-canonical pin and caller workflow, installs a non-mutating format checker and
-verification evidence, refuses unsafe or conflicting targets, and proves
-idempotence and rollback through hostile tests.
+ISRAS `0.1.2` is published as an immutable signed release and implements first
+Go-project initialization plus reusable hosted validation. A real clean-runner
+consumer execution established that its hosted workflow omitted SSH signer-trust
+bootstrap before repository validation and retained `.local/isras` but not the
+validator's `.local/validation` failure logs.
 
-This stable source is a release candidate, not adoption authority by itself.
-Consuming-project adoption becomes authorized only after the exact candidate is
-published as the signed `isras-v0.1.2` tag with the verified six-asset release
-set. Upgrade application and migration of partial prior adoption remain outside
-this boundary.
+Accordingly, local initialization and release verification may succeed, but a
+failed required hosted run is not formal adoption. The project must preserve or
+revert its candidate according to its own acceptance process and wait for a new
+signed ISRAS release containing the hosted-trust correction. Unreleased source
+now binds signer trust to the exact called Engineering Standards commit, rejects
+wrong keys and principals, and retains both evidence trees.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
 deprecated and must not be used for new adoption.
@@ -172,6 +172,7 @@ deprecated and must not be used for new adoption.
 
 - [`standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md`](../standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md)
 - [`standards/GO-REFERENCE-PROFILE.md`](../standards/GO-REFERENCE-PROFILE.md)
+- [`standards/HOSTED-SSH-SIGNER-TRUST.md`](../standards/HOSTED-SSH-SIGNER-TRUST.md)
 - [`standards/PINNED-PROJECT-FRAMEWORK.md`](../standards/PINNED-PROJECT-FRAMEWORK.md)
 - [`standards/PROJECT-PIN-SCHEMA.md`](../standards/PROJECT-PIN-SCHEMA.md)
 - [`standards/PROJECT-INITIALIZATION-AND-ADOPTION.md`](../standards/PROJECT-INITIALIZATION-AND-ADOPTION.md)

@@ -602,7 +602,7 @@ func (publisher Publisher) uploadAssets(ctx context.Context, boundary sourceBoun
 	for _, artifact := range artifacts {
 		path := filepath.Join(boundary.Artifacts, artifact.Name)
 		endpoint := "repos/" + boundary.GitHubRepository + "/releases/" + strconv.FormatInt(result.ReleaseID, 10) + "/assets?name=" + url.QueryEscape(artifact.Name)
-		command := publisher.Runner.Run(ctx, boundary.Root, nil, "gh", "api", "--method", "POST", "-H", "Content-Type: application/octet-stream", "--input", path, endpoint)
+		command := publisher.Runner.Run(ctx, boundary.Root, nil, "gh", "api", "--hostname", "uploads.github.com", "--method", "POST", "-H", "Content-Type: application/octet-stream", "--input", path, endpoint)
 		if command.Err != nil {
 			return commandFailure("upload release asset "+artifact.Name, command)
 		}

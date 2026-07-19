@@ -24,20 +24,18 @@ versioned, validated, accepted, and maintained.
 
 ## Current implementation profile
 
-This source boundary declares `0.1.2`. Before publication it is a release
-candidate; after publication only the exact signed `isras-v0.1.2` tag and its
-verified six-asset GitHub Release establish accepted release identity. A stable
-`VERSION` value, `dev`, or `main` alone is never adoption or publication
-authority. Projects must pin immutable release identity and artifact digests
-rather than a floating branch.
+The exact signed `isras-v0.1.2` tag and verified six-asset GitHub Release are
+published and immutable. A stable `VERSION` value, `dev`, or `main` alone is never
+adoption or publication authority; projects pin immutable release identity and
+artifact digests rather than a floating branch.
 
-ISRAS `0.1.2` adds fail-closed project initialization and immutable reusable
-hosted validation to the release, acquisition, external-target, and bounded
-command-execution foundation completed in `0.1.1`. Clean Go-project adoption
-becomes authorized only after this exact candidate passes release validation and
-is published as the signed `isras-v0.1.2` release with the verified six-asset set.
-Upgrade application and migration of partial prior adoption remain outside this
-release boundary.
+A real consuming-project hosted run found that the `0.1.2` reusable workflow did
+not establish SSH allowed-signers trust on a clean runner and did not retain the
+validator's `.local/validation` failure log. Therefore `0.1.2` remains a valid
+published release but a failed hosted run cannot establish formal project
+adoption. Unreleased source adds release-bound signer trust, full failure-evidence
+retention, and regression coverage. Those changes require a new signed release
+before a consuming project may use them as adoption authority.
 
 This repository implements the **ISRAS Solo Developer Baseline** as a practical
 baseline for a single developer while retaining truthful engineering discipline
@@ -99,6 +97,7 @@ See:
 
 - [`standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md`](standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md)
 - [`standards/GO-REFERENCE-PROFILE.md`](standards/GO-REFERENCE-PROFILE.md)
+- [`standards/HOSTED-SSH-SIGNER-TRUST.md`](standards/HOSTED-SSH-SIGNER-TRUST.md)
 - [`standards/PINNED-PROJECT-FRAMEWORK.md`](standards/PINNED-PROJECT-FRAMEWORK.md)
 - [`standards/PROJECT-PIN-SCHEMA.md`](standards/PROJECT-PIN-SCHEMA.md)
 - [`standards/PROJECT-INITIALIZATION-AND-ADOPTION.md`](standards/PROJECT-INITIALIZATION-AND-ADOPTION.md)

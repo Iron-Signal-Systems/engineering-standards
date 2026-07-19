@@ -9,6 +9,7 @@ schemas/isras-release-publication-v1.schema.json
 standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md
 standards/EXTERNAL-TARGET-ROOT.md
 standards/GO-REFERENCE-PROFILE.md
+standards/HOSTED-SSH-SIGNER-TRUST.md
 standards/ISRAS-CORE-AND-LANGUAGE-PROFILES.md
 standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md
 standards/PINNED-PROJECT-FRAMEWORK.md
@@ -18,3 +19,7 @@ standards/PROJECT-PIN-SCHEMA.md
 standards/PROJECT-UPGRADE-CONTRACT.md
 standards/RELEASE-ARTIFACT-PRODUCTION.md
 standards/RELEASE-PUBLICATION.md
+tools/configure-hosted-ssh-signing-trust.sh
+trust/ssh/iron-signal-systems.allowed-signers
+trust/ssh/iron-signal-systems.allowed-signers.sha256
+trust/ssh/manifest.json

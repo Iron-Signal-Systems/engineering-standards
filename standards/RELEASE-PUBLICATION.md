@@ -132,6 +132,11 @@ Captured command output is bounded and credential-shaped diagnostics are
 censored before they enter errors or evidence. Remote asset downloads are
 bounded to the maximum accepted release-asset size before they are hashed.
 
+Release-asset byte uploads shall use GitHub's release upload service at
+`uploads.github.com`. The normal `api.github.com` release-record endpoint is not
+an asset-byte upload endpoint. Tests must assert the upload hostname for every
+declared asset so a mocked endpoint cannot conceal a production-host mismatch.
+
 ## Failure and cleanup
 
 After the command creates a draft, any failure before publication triggers
@@ -192,4 +197,4 @@ This implementation is accepted only when tests prove:
 - source and artifacts are revalidated before and after publication;
 - final published bytes and remote tag match the accepted source;
 - private evidence is complete and censored; and
-- no tag, branch, consuming project, or Iron Atlas repository is modified.
+- no tag, branch, consuming project, or other repository is modified.
