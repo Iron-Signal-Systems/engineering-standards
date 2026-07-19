@@ -24,19 +24,20 @@ versioned, validated, accepted, and maintained.
 
 ## Current implementation profile
 
-This source boundary declares `0.1.2-development`. The accepted public
-release remains the exact signed `isras-v0.1.1` tag and its verified six-asset
-GitHub Release. A development version, `dev`, or `main` is never adoption or
-publication authority. Projects must pin immutable release identity and artifact
-digests rather than a floating branch.
+This source boundary declares `0.1.2`. Before publication it is a release
+candidate; after publication only the exact signed `isras-v0.1.2` tag and its
+verified six-asset GitHub Release establish accepted release identity. A stable
+`VERSION` value, `dev`, or `main` alone is never adoption or publication
+authority. Projects must pin immutable release identity and artifact digests
+rather than a floating branch.
 
-The `0.1.2-development` boundary adds fail-closed project initialization and
-immutable reusable hosted validation to the release, acquisition, external-target,
-and bounded command-execution foundation completed in `0.1.1`. No consuming
-project may pin this development boundary. Adoption becomes authorized only after
-the implementation passes its complete acceptance gates and is published as the
-exact signed `isras-v0.1.2` release with the verified six-asset set. Upgrade
-application remains outside this boundary.
+ISRAS `0.1.2` adds fail-closed project initialization and immutable reusable
+hosted validation to the release, acquisition, external-target, and bounded
+command-execution foundation completed in `0.1.1`. Clean Go-project adoption
+becomes authorized only after this exact candidate passes release validation and
+is published as the signed `isras-v0.1.2` release with the verified six-asset set.
+Upgrade application and migration of partial prior adoption remain outside this
+release boundary.
 
 This repository implements the **ISRAS Solo Developer Baseline** as a practical
 baseline for a single developer while retaining truthful engineering discipline

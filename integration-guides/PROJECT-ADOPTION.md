@@ -152,18 +152,18 @@ A newer release being available is information, not modification authority.
 
 ## Current implementation status
 
-The `0.1.2-development` boundary implements first Go-project initialization and
-reusable hosted validation on top of the accepted `0.1.1` release-consumption
-foundation. It verifies an exact accepted release before target publication,
-generates the canonical pin and caller workflow, installs a non-mutating format
-checker and verification evidence, refuses unsafe or conflicting targets, and
-proves idempotence and rollback through hostile tests.
+ISRAS `0.1.2` implements first Go-project initialization and reusable hosted
+validation on top of the accepted `0.1.1` release-consumption foundation. It
+verifies an exact accepted release before target publication, generates the
+canonical pin and caller workflow, installs a non-mutating format checker and
+verification evidence, refuses unsafe or conflicting targets, and proves
+idempotence and rollback through hostile tests.
 
-This development branch is not adoption authority. Consuming-project adoption
-becomes authorized only when this boundary passes acceptance and is published as
-the exact signed `isras-v0.1.2` tag with the verified six-asset release set.
-Upgrade application and migration of partial prior adoption remain outside this
-boundary.
+This stable source is a release candidate, not adoption authority by itself.
+Consuming-project adoption becomes authorized only after the exact candidate is
+published as the signed `isras-v0.1.2` tag with the verified six-asset release
+set. Upgrade application and migration of partial prior adoption remain outside
+this boundary.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
 deprecated and must not be used for new adoption.
