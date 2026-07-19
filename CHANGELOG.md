@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes have been recorded after the `0.1.2` release boundary.
+
+## 0.1.2 — 2026-07-18
+
 - Added fail-closed first project initialization from one explicitly selected,
   fully verified ISRAS GitHub Release. Initialization now requires the exact
   linker-bound validator artifact for that release before network or target
@@ -21,7 +25,6 @@
   after mid-publication failure, a non-mutating project-owned Go format checker,
   hostile path and origin tests, and synchronized initialization/adoption
   documentation.
-
 ## 0.1.1 — 2026-07-18
 
 - Corrected local release-tag discovery so the expected pre-tag state is
