@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes have been recorded after the `0.1.3` release boundary.
+
+## 0.1.3 — 2026-07-19
+
 - Added release-bound hosted SSH signer trust sourced from the exact pinned
   Engineering Standards commit. The reusable workflow now verifies tracked trust
   bytes and their digest, configures a private target-local allowed-signers file,

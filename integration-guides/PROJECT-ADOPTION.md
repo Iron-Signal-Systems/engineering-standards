@@ -103,14 +103,14 @@ project, and shall not add itself to the project's application dependency graph.
 
 ## New project
 
-The accepted `0.1.2` release validator initializes one explicitly selected
-release with:
+After publication, the accepted `0.1.3` release validator initializes one
+explicitly selected release with:
 
 ```bash
 isras-validator-linux-amd64 \
   --repo /src/example-project \
   project-pin initialize \
-  --release isras-v0.1.2 \
+  --release isras-v0.1.3 \
   --go-defaults
 ```
 
@@ -139,9 +139,10 @@ execute the same ISRAS release identity and report the same target project
 boundary.
 
 CI may call an immutable reusable workflow from Engineering Standards, but that
-workflow must verify its called-workflow identity, bootstrap-check the release,
-digest-bind and execute the published validator artifact, run repository and
-secret-protection checks, and retain `.local/isras` evidence.
+workflow must verify its called-workflow identity, establish release-bound SSH
+signer trust, bootstrap-check the release, digest-bind and execute the published
+validator artifact, run repository and secret-protection checks, and retain both
+`.local/isras` and `.local/validation` evidence.
 
 ## Upgrade
 
@@ -152,18 +153,19 @@ A newer release being available is information, not modification authority.
 
 ## Current implementation status
 
-ISRAS `0.1.2` is published as an immutable signed release and implements first
-Go-project initialization plus reusable hosted validation. A real clean-runner
-consumer execution established that its hosted workflow omitted SSH signer-trust
-bootstrap before repository validation and retained `.local/isras` but not the
-validator's `.local/validation` failure logs.
+ISRAS `0.1.2` remains an immutable published release, but its reusable workflow
+does not establish SSH signer trust on a clean runner and does not retain the
+validator's `.local/validation` failure logs. A failed required hosted run under
+that release is not formal project adoption.
 
-Accordingly, local initialization and release verification may succeed, but a
-failed required hosted run is not formal adoption. The project must preserve or
-revert its candidate according to its own acceptance process and wait for a new
-signed ISRAS release containing the hosted-trust correction. Unreleased source
-now binds signer trust to the exact called Engineering Standards commit, rejects
-wrong keys and principals, and retains both evidence trees.
+ISRAS `0.1.3` is the release candidate that corrects those defects. It binds
+hosted SSH trust to the exact called Engineering Standards commit, rejects
+missing, altered, wrong-key, and wrong-principal trust, retains both evidence
+trees, and corrects release-asset upload transport.
+
+This source candidate is not adoption authority by itself. A consuming project
+may pin `isras-v0.1.3` only after the exact signed tag and verified six-asset
+release are published and its required hosted validation passes.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
 deprecated and must not be used for new adoption.
