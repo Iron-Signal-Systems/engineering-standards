@@ -142,8 +142,8 @@ func TestParseRejectsControlCharactersInArguments(t *testing.T) {
 
 func TestParseRejectsUnsafeEvidencePath(t *testing.T) {
 	pin := validPin()
-	pin.Evidence.Directory = "../validation"
-	requirePinError(t, pin, "invalid evidence directory")
+	pin.Evidence.Directory = ".isras"
+	requirePinError(t, pin, "evidence directory must be")
 }
 
 func TestParseErrorsDoNotEchoUntrustedFieldValues(t *testing.T) {
@@ -162,7 +162,7 @@ func TestParseErrorsDoNotEchoUntrustedFieldValues(t *testing.T) {
 func TestParseRejectsOversizedEvidencePath(t *testing.T) {
 	pin := validPin()
 	pin.Evidence.Directory = strings.Repeat("a", maxRelativePathBytes+1)
-	requirePinError(t, pin, "evidence directory exceeds")
+	requirePinError(t, pin, "evidence directory must be")
 }
 
 func TestParseRejectsOversizedPin(t *testing.T) {
@@ -200,7 +200,7 @@ func validPin() Pin {
 			"module_integrity":      {"go", "mod", "verify"},
 			"known_vulnerabilities": {"govulncheck", "./..."},
 		},
-		Evidence: Evidence{Directory: ".local/validation"},
+		Evidence: Evidence{Directory: RuntimeEvidenceDirectory},
 	}
 }
 

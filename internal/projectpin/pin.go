@@ -15,19 +15,20 @@ import (
 )
 
 const (
-	MetadataPath           = ".isras/project.json"
-	SchemaVersion          = 1
-	Profile                = "ISRAS-SD"
-	SourceRepository       = "github.com/Iron-Signal-Systems/engineering-standards"
-	ReusableWorkflowPath   = ".github/workflows/validate-project.yml"
-	MaxFileSize            = 256 * 1024
-	maxArtifacts           = 32
-	maxProfiles            = 8
-	maxCommands            = 64
-	maxArgumentsPerCommand = 64
-	maxArgumentBytes       = 4096
-	maxTotalCommandBytes   = 64 * 1024
-	maxRelativePathBytes   = 255
+	MetadataPath             = ".isras/project.json"
+	SchemaVersion            = 1
+	Profile                  = "ISRAS-SD"
+	SourceRepository         = "github.com/Iron-Signal-Systems/engineering-standards"
+	ReusableWorkflowPath     = ".github/workflows/validate-project.yml"
+	RuntimeEvidenceDirectory = ".local/isras"
+	MaxFileSize              = 256 * 1024
+	maxArtifacts             = 32
+	maxProfiles              = 8
+	maxCommands              = 64
+	maxArgumentsPerCommand   = 64
+	maxArgumentBytes         = 4096
+	maxTotalCommandBytes     = 64 * 1024
+	maxRelativePathBytes     = 255
 )
 
 var (
@@ -286,8 +287,8 @@ func validate(pin Pin) error {
 	if err := validateCommands(pin.Commands, pin.Profiles); err != nil {
 		return err
 	}
-	if err := validateRelativePath("evidence directory", pin.Evidence.Directory); err != nil {
-		return err
+	if pin.Evidence.Directory != RuntimeEvidenceDirectory {
+		return fmt.Errorf("project pin evidence directory must be %q", RuntimeEvidenceDirectory)
 	}
 	return nil
 }

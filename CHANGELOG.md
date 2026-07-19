@@ -2,7 +2,25 @@
 
 ## Unreleased
 
-No changes have been recorded after the `0.1.1` release boundary.
+- Added fail-closed first project initialization from one explicitly selected,
+  fully verified ISRAS GitHub Release. Initialization now requires the exact
+  linker-bound validator artifact for that release before network or target
+  authority is granted, uses one shared canonical origin parser, fixes runtime
+  evidence to untracked `.local/isras`, generates stable timestamp-independent
+  adoption evidence, and refuses partial, conflicting, dirty, symlinked, tracked,
+  or mode-drifted targets.
+
+- Added immutable reusable hosted validation. The called workflow checks out its
+  own exact workflow repository and SHA, bootstrap-verifies the committed pin and
+  release, downloads and digest-binds the published validator artifact, runs core
+  repository and secret-protection checks, executes every committed project
+  command, and retains validation evidence using read-only permissions and
+  commit-pinned third-party actions.
+
+- Added atomic no-overwrite publication, idempotent exact re-execution, rollback
+  after mid-publication failure, a non-mutating project-owned Go format checker,
+  hostile path and origin tests, and synchronized initialization/adoption
+  documentation.
 
 ## 0.1.1 — 2026-07-18
 

@@ -176,7 +176,7 @@ func buildFixture(t *testing.T) (string, projectpin.Pin) {
 			"module_integrity":      {"go", "mod", "verify"},
 			"known_vulnerabilities": {"govulncheck", "./..."},
 		},
-		Evidence: projectpin.Evidence{Directory: ".local/validation"},
+		Evidence: projectpin.Evidence{Directory: projectpin.RuntimeEvidenceDirectory},
 	}
 
 	pin.Artifacts = []projectpin.Artifact{

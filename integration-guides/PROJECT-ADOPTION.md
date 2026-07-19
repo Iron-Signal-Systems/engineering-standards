@@ -57,11 +57,11 @@ The intended project boundary includes:
 
 ```text
 .isras/project.json
-tools/isras
+.isras/adoption-verification.json
+.isras/check-go-format
+.github/workflows/isras-validation.yml
 project-owned documentation
-project-owned command declarations
 project-owned bounded exceptions
-CI integration pinned to an immutable workflow commit
 ```
 
 The first committed project-pin contract is
@@ -103,21 +103,31 @@ project, and shall not add itself to the project's application dependency graph.
 
 ## New project
 
-New-project initialization will:
+The accepted `0.1.2` release validator initializes one explicitly selected
+release with:
 
-1. require an exact accepted release;
-2. verify the signed tag, source commit, manifests, and artifacts;
-3. select applicable profiles;
-4. prepare the repository framework;
-5. preserve project authority over application design;
-6. validate the initialized result;
-7. leave reviewable changes without committing or pushing.
+```bash
+isras-validator-linux-amd64 \
+  --repo /src/example-project \
+  project-pin initialize \
+  --release isras-v0.1.2 \
+  --go-defaults
+```
+
+Initialization is authorized only when the running executable is the exact
+linker-bound validator artifact from the requested release. It verifies the signed
+release, source commit, exact six assets, both digests, manifests, provenance, and
+reusable workflow before modifying the target. It fixes runtime evidence to
+untracked `.local/isras`, generates a stable project-owned adoption set, and
+leaves reviewable changes without committing or pushing.
 
 ## Existing project
 
-Existing-project adoption begins with an inventory. It maps existing project
-artifacts to the pinned release and prepares only the missing or incompatible
-framework changes.
+The first implementation supports a clean established Go repository that has no
+prior ISRAS adoption paths. It preserves application source and layout. Partial,
+conflicting, or hand-authored adoption state is refused rather than merged or
+overwritten. Inventory-driven migration of such state is a later explicit
+boundary.
 
 Adoption is not permission to reorganize working application source merely to
 match a reference layout.
@@ -129,7 +139,9 @@ execute the same ISRAS release identity and report the same target project
 boundary.
 
 CI may call an immutable reusable workflow from Engineering Standards, but that
-workflow must verify that its release identity corresponds to the project pin.
+workflow must verify its called-workflow identity, bootstrap-check the release,
+digest-bind and execute the published validator artifact, run repository and
+secret-protection checks, and retain `.local/isras` evidence.
 
 ## Upgrade
 
@@ -140,23 +152,21 @@ A newer release being available is information, not modification authority.
 
 ## Current implementation status
 
-ISRAS `0.1.1` establishes the pinned-project declaration and release-consumption
-foundation. The strict v1 pin schema, read-only parser, artifact acquisition and
-verification, deterministic six-file artifact production, external target
-selection, bounded declared-command execution, and draft-first remote-byte-
-verified publication boundary are implemented.
+The `0.1.2-development` boundary implements first Go-project initialization and
+reusable hosted validation on top of the accepted `0.1.1` release-consumption
+foundation. It verifies an exact accepted release before target publication,
+generates the canonical pin and caller workflow, installs a non-mutating format
+checker and verification evidence, refuses unsafe or conflicting targets, and
+proves idempotence and rollback through hostile tests.
 
-Project initialization, reusable hosted validation, upgrade application, and
-complete consuming-project adoption are not implemented in `0.1.1`. Publishing
-`isras-v0.1.1` therefore does not by itself authorize modification of a consuming
-project. The initialization and adoption boundary must pass its own hostile tests
-and acceptance gates first.
+This development branch is not adoption authority. Consuming-project adoption
+becomes authorized only when this boundary passes acceptance and is published as
+the exact signed `isras-v0.1.2` tag with the verified six-asset release set.
+Upgrade application and migration of partial prior adoption remain outside this
+boundary.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
-deprecated for new adoption. It must not be used to initialize another project.
-
-No consuming project should be modified until the complete replacement boundary
-has passed its own tests and acceptance gates.
+deprecated and must not be used for new adoption.
 
 ## Related contracts
 
@@ -164,6 +174,7 @@ has passed its own tests and acceptance gates.
 - [`standards/GO-REFERENCE-PROFILE.md`](../standards/GO-REFERENCE-PROFILE.md)
 - [`standards/PINNED-PROJECT-FRAMEWORK.md`](../standards/PINNED-PROJECT-FRAMEWORK.md)
 - [`standards/PROJECT-PIN-SCHEMA.md`](../standards/PROJECT-PIN-SCHEMA.md)
+- [`standards/PROJECT-INITIALIZATION-AND-ADOPTION.md`](../standards/PROJECT-INITIALIZATION-AND-ADOPTION.md)
 - [`standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md`](../standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md)
 - [`standards/RELEASE-ARTIFACT-PRODUCTION.md`](../standards/RELEASE-ARTIFACT-PRODUCTION.md)
 - [`standards/RELEASE-PUBLICATION.md`](../standards/RELEASE-PUBLICATION.md)

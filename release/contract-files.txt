@@ -7,5 +7,6 @@ schemas/isras-release-publication-v1.schema.json
 standards/ARTIFACT-ACQUISITION-AND-VERIFICATION.md
 standards/ISRAS-RELEASE-ARTIFACT-CONTRACT.md
 standards/PROJECT-COMMAND-EXECUTION.md
+standards/PROJECT-INITIALIZATION-AND-ADOPTION.md
 standards/PROJECT-PIN-SCHEMA.md
 standards/RELEASE-PUBLICATION.md

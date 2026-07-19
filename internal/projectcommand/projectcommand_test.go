@@ -107,6 +107,28 @@ func TestExecuteRejectsOriginMismatch(t *testing.T) {
 	}
 }
 
+func TestExecuteRejectsTrackedEvidenceDirectory(t *testing.T) {
+	fixture := newFixture(t, "tracked-evidence", "#!/bin/sh\nexit 0\n")
+	fixture.commit(t, "baseline")
+	path := filepath.Join(fixture.root, ".local", "isras", "tracked.txt")
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte("tracked\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, fixture.root, "add", "-f", ".local/isras/tracked.txt")
+	runGit(t, fixture.root, "-c", "commit.gpgsign=false", "commit", "-q", "-m", "track runtime evidence")
+
+	result, err := Execute(context.Background(), fixture.request(t, "test"))
+	if err == nil || !strings.Contains(err.Error(), "must not contain tracked paths") {
+		t.Fatalf("expected tracked-evidence denial, got result=%+v err=%v", result, err)
+	}
+	if result.Authorization != "DENIED" || result.Status != "DENIED" {
+		t.Fatalf("unexpected denial result: %+v", result)
+	}
+}
+
 func TestExecuteRejectsOpaqueShellCommandString(t *testing.T) {
 	fixture := newFixture(t, "shell-string", "#!/bin/sh\nexit 0\n")
 	fixture.setCommand(t, "test", []string{"sh", "-c", "printf unsafe"})
@@ -431,7 +453,7 @@ func validPin(repositoryName string) projectpin.Pin {
 		Workflow: projectpin.Workflow{Repository: projectpin.SourceRepository, Path: projectpin.ReusableWorkflowPath, Commit: testSourceCommit},
 		Profiles: []string{"go"},
 		Commands: commands,
-		Evidence: projectpin.Evidence{Directory: ".local/validation"},
+		Evidence: projectpin.Evidence{Directory: projectpin.RuntimeEvidenceDirectory},
 	}
 }
 
@@ -469,7 +491,7 @@ func runGit(t *testing.T, root string, arguments ...string) {
 
 func gitOutput(t *testing.T, root string, arguments ...string) string {
 	t.Helper()
-	command := exec.Command("git", arguments...)
+	command := exec.Command("git", append([]string{"-c", "commit.gpgsign=false", "-c", "tag.gpgSign=false"}, arguments...)...)
 	command.Dir = root
 	output, err := command.CombinedOutput()
 	if err != nil {
