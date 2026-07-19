@@ -52,7 +52,8 @@ Both `check` and `publish` require:
 - a matching immutable `isras-vMAJOR.MINOR.PATCH` identity;
 - matching committed changelog and release-note content;
 - a credential-free canonical GitHub origin; and
-- no preexisting GitHub Release for the selected tag.
+- no preexisting draft or published GitHub Release for the selected tag,
+  established through a complete paginated release inventory.
 
 A release name is never reused. An existing draft or published release is a hard
 failure and is not edited, replaced, or deleted by a new invocation.
@@ -132,10 +133,13 @@ Captured command output is bounded and credential-shaped diagnostics are
 censored before they enter errors or evidence. Remote asset downloads are
 bounded to the maximum accepted release-asset size before they are hashed.
 
-Release-asset byte uploads shall use GitHub's release upload service at
-`uploads.github.com`. The normal `api.github.com` release-record endpoint is not
-an asset-byte upload endpoint. Tests must assert the upload hostname for every
-declared asset so a mocked endpoint cannot conceal a production-host mismatch.
+Release-asset byte uploads use the authenticated GitHub CLI
+`gh release upload` command without `--clobber`. The CLI resolves the selected
+draft and its GitHub-provided upload URL, which uses the `uploads.github.com`
+release-upload service. Publication re-reads the exact draft by release ID after
+every upload and verifies the expected name, state, size, and SHA-256 digest.
+Tests must reject the defective `gh api --hostname uploads.github.com` invocation,
+which derives the invalid host `api.uploads.github.com`.
 
 ## Failure and cleanup
 
@@ -147,7 +151,11 @@ cleanup only when GitHub still proves that the release is:
 - still unpublished and non-prerelease; and
 - empty or containing only an unaltered subset of the six declared assets.
 
-Only that exact draft may be deleted automatically. The Git tag is never deleted.
+Only that exact draft may be deleted automatically. Cleanup reads the draft by
+its exact release ID, verifies the complete identity and allowed asset subset,
+deletes that ID, and requires an authenticated ID-based absence check afterward.
+A tag-based public release lookup is not cleanup evidence because it may not
+expose drafts. The Git tag is never deleted.
 A published release, a differently identified draft, or a draft containing an
 unknown or altered asset is preserved for investigation rather than removed.
 

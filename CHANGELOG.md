@@ -2,7 +2,25 @@
 
 ## Unreleased
 
-No changes have been recorded after the `0.1.3` release boundary.
+No changes have been recorded after the `0.1.4` release boundary.
+
+## 0.1.4 — 2026-07-19
+
+- Repaired release-asset publication to use the authenticated GitHub CLI release
+  uploader without clobbering, followed by an exact release-ID re-read and remote
+  metadata verification after every asset.
+- Replaced tag-only release discovery with a complete paginated release inventory
+  that includes drafts, preventing an existing draft from being misclassified as
+  release absence.
+- Repaired failed-publication cleanup to inspect, delete, and verify the exact
+  draft by release ID. Cleanup can no longer report success merely because the
+  public tag lookup cannot see a draft.
+- Added regression coverage for draft-aware absence checks, exact ID-based cleanup,
+  no-clobber release uploads, and rejection of the defective
+  `api.uploads.github.com` transport path.
+- Recorded `isras-v0.1.3` as an immutable signed but unpublished and non-adoptable
+  tag. Its failed empty draft was independently verified and deleted before this
+  repair candidate was prepared.
 
 ## 0.1.3 — 2026-07-19
 
@@ -15,8 +33,10 @@ No changes have been recorded after the `0.1.3` release boundary.
 - Retained both `.local/isras` and `.local/validation` from reusable hosted runs so
   repository-signature failure logs survive skipped later steps.
 
-- Corrected GitHub Release asset upload transport to use `uploads.github.com` and
-  added regression coverage requiring all six upload calls to use that host.
+- Attempted to correct GitHub Release asset upload transport. Formal
+  publication later exposed an invalid `gh api --hostname uploads.github.com`
+  invocation and a draft-cleanup lookup that could not observe drafts. The signed
+  `isras-v0.1.3` tag was therefore not published and is not adoption authority.
 
 - Recorded that published `0.1.2` remains immutable but cannot establish formal
   consuming-project adoption when its required hosted validation fails.
