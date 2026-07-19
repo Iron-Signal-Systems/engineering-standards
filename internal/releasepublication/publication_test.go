@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -98,11 +97,17 @@ func TestPublishUploadsAndReverifiesExactAssets(t *testing.T) {
 		if strings.Contains(call, "git push") || strings.Contains(call, "git tag") || strings.Contains(call, "refs/heads/main") {
 			t.Fatalf("publisher crossed the ref-mutation boundary: %s", call)
 		}
-		if strings.Contains(call, "/assets?name=") {
+		if strings.Contains(call, "gh release upload ") {
 			uploadCalls++
-			if !strings.Contains(call, "gh api --hostname uploads.github.com --method POST") {
-				t.Fatalf("release asset upload did not use uploads.github.com: %s", call)
+			if strings.Contains(call, "--clobber") {
+				t.Fatalf("release asset upload used clobber: %s", call)
 			}
+			if !strings.Contains(call, "--repo Iron-Signal-Systems/engineering-standards") {
+				t.Fatalf("release asset upload lacked the exact repository: %s", call)
+			}
+		}
+		if strings.Contains(call, "api.uploads.github.com") || strings.Contains(call, "--hostname uploads.github.com") {
+			t.Fatalf("publisher used the defective upload-host invocation: %s", call)
 		}
 	}
 	if uploadCalls != 6 {
@@ -125,6 +130,15 @@ func TestPublishCleansExactDraftAfterUploadFailure(t *testing.T) {
 	if result.Cleanup != StatusPass {
 		t.Fatalf("cleanup was not recorded as passing: %#v", result)
 	}
+	idReads := 0
+	for _, call := range fixture.runner.calls {
+		if strings.Contains(call, "gh api --method GET repos/Iron-Signal-Systems/engineering-standards/releases/77") {
+			idReads++
+		}
+	}
+	if idReads < 2 {
+		t.Fatalf("cleanup did not verify the draft by exact release ID before and after deletion: %v", fixture.runner.calls)
+	}
 }
 
 func TestPublishRejectsExistingRelease(t *testing.T) {
@@ -138,6 +152,15 @@ func TestPublishRejectsExistingRelease(t *testing.T) {
 	}
 	if fixture.runner.release == nil || fixture.runner.release.ID != 55 {
 		t.Fatal("preexisting release was modified")
+	}
+	foundDraftAwareList := false
+	for _, call := range fixture.runner.calls {
+		if strings.Contains(call, "gh api --method GET --paginate --slurp repos/Iron-Signal-Systems/engineering-standards/releases?per_page=100") {
+			foundDraftAwareList = true
+		}
+	}
+	if !foundDraftAwareList {
+		t.Fatalf("preexisting draft detection did not use the draft-aware paginated release list: %v", fixture.runner.calls)
 	}
 }
 
@@ -304,6 +327,9 @@ func (runner *fakeRunner) Run(ctx context.Context, dir string, environment []str
 	if name != "gh" {
 		return runner.base.Run(ctx, dir, environment, name, args...)
 	}
+	if len(args) > 0 && args[0] == "release" {
+		return runner.runGHRelease(args)
+	}
 	return runner.runGH(args)
 }
 
@@ -346,8 +372,16 @@ func (runner *fakeRunner) runGH(args []string) CommandResult {
 	case method == "GET" && strings.Contains(endpoint, "/git/tags/"):
 		value := map[string]any{"tag": runner.tag, "node_id": "fixture", "object": map[string]any{"type": "commit", "sha": runner.commit, "url": "https://api.invalid/commit"}, "verification": map[string]any{"verified": runner.verifiedTag, "reason": map[bool]string{true: "valid", false: "unsigned"}[runner.verifiedTag], "signature": "fixture-signature", "payload": "fixture-payload", "verified_at": "2026-07-18T12:00:00Z"}}
 		return jsonCommand(value)
-	case method == "GET" && strings.Contains(endpoint, "/releases/tags/"):
-		if runner.release == nil {
+	case method == "GET" && strings.Contains(endpoint, "/releases?per_page=100"):
+		page := []githubRelease{}
+		if runner.release != nil {
+			page = append(page, *runner.release)
+		}
+		return jsonCommand([][]githubRelease{page})
+	case method == "GET" && strings.Contains(endpoint, "/releases/"):
+		parts := strings.Split(endpoint, "/")
+		id, err := strconv.ParseInt(parts[len(parts)-1], 10, 64)
+		if err != nil || runner.release == nil || runner.release.ID != id {
 			return CommandResult{ExitCode: 1, Err: errors.New("exit status 1"), Stderr: []byte("HTTP 404: Not Found")}
 		}
 		return jsonCommand(runner.release)
@@ -361,25 +395,6 @@ func (runner *fakeRunner) runGH(args []string) CommandResult {
 		}
 		runner.release = &githubRelease{ID: 77, TagName: payload.TagName, Target: payload.TargetCommitish, Name: payload.Name, Body: payload.Body, Draft: true, Prerelease: false, HTMLURL: "https://github.com/fixture/releases/tag/" + runner.tag}
 		return jsonCommand(runner.release)
-	case method == "POST" && strings.Contains(endpoint, "/assets?name="):
-		nameValue, _ := url.QueryUnescape(strings.SplitN(endpoint, "?name=", 2)[1])
-		if nameValue == runner.failUpload {
-			return failedCommand("injected upload failure")
-		}
-		path := optionAfter(args, "--input")
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return failedCommand(err.Error())
-		}
-		record, ok := artifactRecord(runner.report.Artifacts, nameValue)
-		if !ok {
-			return failedCommand("undeclared upload")
-		}
-		runner.nextAssetID++
-		asset := githubAsset{ID: runner.nextAssetID, Name: nameValue, State: "uploaded", Size: int64(len(data)), Digest: "sha256:" + record.SHA256}
-		runner.uploaded[asset.ID] = append([]byte(nil), data...)
-		runner.release.Assets = append(runner.release.Assets, asset)
-		return jsonCommand(asset)
 	case method == "PATCH" && strings.Contains(endpoint, "/releases/"):
 		if runner.release == nil {
 			return failedCommand("release missing")
@@ -395,6 +410,38 @@ func (runner *fakeRunner) runGH(args []string) CommandResult {
 	default:
 		return failedCommand("unsupported gh api endpoint: " + endpoint)
 	}
+}
+
+func (runner *fakeRunner) runGHRelease(args []string) CommandResult {
+	if len(args) != 6 || args[0] != "release" || args[1] != "upload" || args[2] != runner.tag || args[4] != "--repo" || args[5] != runner.repository {
+		return failedCommand("unsupported gh release call")
+	}
+	if runner.release == nil || !runner.release.Draft {
+		return failedCommand("draft release missing")
+	}
+	path := args[3]
+	nameValue := filepath.Base(path)
+	if nameValue == runner.failUpload {
+		return failedCommand("injected upload failure")
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return failedCommand(err.Error())
+	}
+	record, ok := artifactRecord(runner.report.Artifacts, nameValue)
+	if !ok {
+		return failedCommand("undeclared upload")
+	}
+	for _, existing := range runner.release.Assets {
+		if existing.Name == nameValue {
+			return failedCommand("duplicate upload")
+		}
+	}
+	runner.nextAssetID++
+	asset := githubAsset{ID: runner.nextAssetID, Name: nameValue, State: "uploaded", Size: int64(len(data)), Digest: "sha256:" + record.SHA256}
+	runner.uploaded[asset.ID] = append([]byte(nil), data...)
+	runner.release.Assets = append(runner.release.Assets, asset)
+	return CommandResult{ExitCode: 0}
 }
 
 func fixedNow() time.Time {

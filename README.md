@@ -24,20 +24,27 @@ versioned, validated, accepted, and maintained.
 
 ## Current implementation profile
 
-This source boundary declares `0.1.3`. Before publication it is a release
-candidate; after publication only the exact signed `isras-v0.1.3` tag and its
+This source boundary declares `0.1.4`. Before publication it is a release
+candidate; after publication only the exact signed `isras-v0.1.4` tag and its
 verified six-asset GitHub Release can establish accepted release identity. A
 stable `VERSION` value, `dev`, or `main` alone is never adoption or publication
 authority.
 
-ISRAS `0.1.3` corrects the hosted-validation defects discovered by the first real
-consuming-project execution of `0.1.2`. It establishes release-bound SSH signer
-trust before repository validation, rejects missing or mismatched trust, retains
-both runtime evidence trees, and corrects GitHub Release asset upload transport.
+ISRAS `0.1.4` carries forward the hosted SSH trust and evidence-retention repairs
+prepared for `0.1.3` and corrects the publication defects discovered during the
+first real `0.1.3` publication attempt. Release discovery now includes drafts,
+asset upload uses the authenticated no-clobber GitHub CLI release uploader, and
+failed-draft cleanup is verified by exact release ID.
 
-The published `0.1.2` release remains immutable. This `0.1.3` source candidate is
-not consuming-project adoption authority until it passes the complete acceptance,
-release, artifact, tag, publication, and post-publication hosted-consumer gates.
+The published `0.1.2` release remains immutable. The signed `isras-v0.1.3` tag is
+also immutable, but it was not published after its uploader targeted the invalid
+derived host `api.uploads.github.com` and its cleanup path incorrectly reported
+success while an empty draft remained. That exact draft was independently
+verified and deleted. `0.1.3` is not published, accepted, or adoption authority.
+
+This `0.1.4` source candidate is not consuming-project adoption authority until it
+passes the complete acceptance, release, artifact, tag, publication, and
+post-publication hosted-consumer gates.
 
 This repository implements the **ISRAS Solo Developer Baseline** as a practical
 baseline for a single developer while retaining truthful engineering discipline
@@ -140,7 +147,7 @@ directory:
   project-pin validate
 ```
 
-After `isras-v0.1.3` is accepted and published, its linker-bound validator can
+After `isras-v0.1.4` is accepted and published, its linker-bound validator can
 initialize a clean Iron Signal Systems Go repository from the exact verified
 release without committing or pushing:
 
@@ -148,7 +155,7 @@ release without committing or pushing:
 isras-validator-linux-amd64 \
   --repo /src/example-project \
   project-pin initialize \
-  --release isras-v0.1.3 \
+  --release isras-v0.1.4 \
   --go-defaults
 ```
 
@@ -213,7 +220,7 @@ been pushed and the deterministic artifacts have been reviewed:
 
 ```bash
 ./tools/build-release-publication.sh
-./.local/bin/isras-release-publication check --version 0.1.3
+./.local/bin/isras-release-publication check --version 0.1.4
 ```
 
 Only an explicitly reviewed `publish --confirm` invocation may create the draft,

@@ -243,7 +243,7 @@ func (publisher Publisher) Run(ctx context.Context, options Options) (result Res
 		return result, err
 	}
 
-	release, exists, err = publisher.readRelease(ctx, boundary)
+	release, exists, err = publisher.readReleaseByID(ctx, boundary, result.ReleaseID)
 	if err != nil || !exists {
 		if err == nil {
 			err = errors.New("draft release disappeared after asset upload")
@@ -269,7 +269,7 @@ func (publisher Publisher) Run(ctx context.Context, options Options) (result Res
 	}
 
 	if err := publisher.publishDraft(ctx, boundary, release.ID); err != nil {
-		observed, observedExists, readErr := publisher.readRelease(ctx, boundary)
+		observed, observedExists, readErr := publisher.readReleaseByID(ctx, boundary, release.ID)
 		if readErr == nil && observedExists && verifyReleaseRecord(observed, boundary, false, true, boundary.BuildReport.Artifacts) == nil {
 			release = observed
 		} else {
@@ -279,7 +279,7 @@ func (publisher Publisher) Run(ctx context.Context, options Options) (result Res
 	published = true
 	result.Publication = StatusPass
 
-	release, exists, err = publisher.readRelease(ctx, boundary)
+	release, exists, err = publisher.readReleaseByID(ctx, boundary, result.ReleaseID)
 	if err != nil || !exists {
 		if err == nil {
 			err = errors.New("published release was not found during final verification")
@@ -545,18 +545,53 @@ func (publisher Publisher) ghJSON(ctx context.Context, boundary sourceBoundary, 
 }
 
 func (publisher Publisher) readRelease(ctx context.Context, boundary sourceBoundary) (githubRelease, bool, error) {
-	endpoint := "repos/" + boundary.GitHubRepository + "/releases/tags/" + boundary.Tag
+	endpoint := "repos/" + boundary.GitHubRepository + "/releases?per_page=100"
+	result := publisher.Runner.Run(ctx, boundary.Root, nil, "gh", "api", "--method", "GET", "--paginate", "--slurp", endpoint)
+	if result.Err != nil {
+		return githubRelease{}, false, commandFailure("list GitHub Releases including drafts", result)
+	}
+	var pages [][]githubRelease
+	if err := decodeGitHubJSON(result.Stdout, &pages); err != nil {
+		return githubRelease{}, false, errors.New("parse paginated GitHub Release records")
+	}
+	var matched *githubRelease
+	for _, page := range pages {
+		for _, release := range page {
+			if release.TagName != boundary.Tag {
+				continue
+			}
+			if matched != nil {
+				return githubRelease{}, false, errors.New("multiple GitHub Releases identify the selected tag")
+			}
+			copyValue := release
+			matched = &copyValue
+		}
+	}
+	if matched == nil {
+		return githubRelease{}, false, nil
+	}
+	return *matched, true, nil
+}
+
+func (publisher Publisher) readReleaseByID(ctx context.Context, boundary sourceBoundary, releaseID int64) (githubRelease, bool, error) {
+	if releaseID <= 0 {
+		return githubRelease{}, false, errors.New("release ID is invalid")
+	}
+	endpoint := "repos/" + boundary.GitHubRepository + "/releases/" + strconv.FormatInt(releaseID, 10)
 	result := publisher.Runner.Run(ctx, boundary.Root, nil, "gh", "api", "--method", "GET", endpoint)
 	if result.Err != nil {
 		text := string(result.Stderr)
 		if result.ExitCode == 1 && (strings.Contains(text, "HTTP 404") || strings.Contains(strings.ToLower(text), "not found")) {
 			return githubRelease{}, false, nil
 		}
-		return githubRelease{}, false, commandFailure("read GitHub Release", result)
+		return githubRelease{}, false, commandFailure("read GitHub Release by ID", result)
 	}
 	var release githubRelease
 	if err := decodeGitHubJSON(result.Stdout, &release); err != nil {
-		return githubRelease{}, false, errors.New("parse GitHub Release record")
+		return githubRelease{}, false, errors.New("parse GitHub Release record by ID")
+	}
+	if release.ID != releaseID {
+		return githubRelease{}, false, errors.New("GitHub Release ID response does not match the requested release")
 	}
 	return release, true, nil
 }
@@ -601,16 +636,40 @@ func (publisher Publisher) uploadAssets(ctx context.Context, boundary sourceBoun
 	sort.Slice(artifacts, func(i, j int) bool { return artifacts[i].Name < artifacts[j].Name })
 	for _, artifact := range artifacts {
 		path := filepath.Join(boundary.Artifacts, artifact.Name)
-		endpoint := "repos/" + boundary.GitHubRepository + "/releases/" + strconv.FormatInt(result.ReleaseID, 10) + "/assets?name=" + url.QueryEscape(artifact.Name)
-		command := publisher.Runner.Run(ctx, boundary.Root, nil, "gh", "api", "--hostname", "uploads.github.com", "--method", "POST", "-H", "Content-Type: application/octet-stream", "--input", path, endpoint)
-		if command.Err != nil {
-			return commandFailure("upload release asset "+artifact.Name, command)
+		command := publisher.Runner.Run(ctx, boundary.Root, nil,
+			"gh", "release", "upload", boundary.Tag, path,
+			"--repo", boundary.GitHubRepository,
+		)
+		observed, exists, readErr := publisher.readReleaseByID(ctx, boundary, result.ReleaseID)
+		if readErr != nil {
+			if command.Err != nil {
+				return errors.Join(commandFailure("upload release asset "+artifact.Name, command), readErr)
+			}
+			return readErr
 		}
-		var remote githubAsset
-		if err := decodeGitHubJSON(command.Stdout, &remote); err != nil {
-			return fmt.Errorf("parse upload response for %s", artifact.Name)
+		if !exists {
+			if command.Err != nil {
+				return commandFailure("upload release asset "+artifact.Name, command)
+			}
+			return errors.New("draft release disappeared after release asset upload")
+		}
+		if err := verifyCleanupDraft(observed, boundary, artifacts); err != nil {
+			if command.Err != nil {
+				return errors.Join(commandFailure("upload release asset "+artifact.Name, command), err)
+			}
+			return err
+		}
+		remote, ok := releaseAssetByName(observed.Assets, artifact.Name)
+		if !ok {
+			if command.Err != nil {
+				return commandFailure("upload release asset "+artifact.Name, command)
+			}
+			return fmt.Errorf("uploaded release asset %s is absent from the exact draft", artifact.Name)
 		}
 		if err := verifyRemoteAsset(remote, artifact); err != nil {
+			if command.Err != nil {
+				return errors.Join(commandFailure("upload release asset "+artifact.Name, command), err)
+			}
 			return err
 		}
 		updateArtifactResult(result, remote, StatusPass, "")
@@ -674,14 +733,14 @@ func (publisher Publisher) publishDraft(ctx context.Context, boundary sourceBoun
 }
 
 func (publisher Publisher) cleanupDraft(ctx context.Context, boundary sourceBoundary, releaseID int64) error {
-	observed, exists, err := publisher.readRelease(ctx, boundary)
+	observed, exists, err := publisher.readReleaseByID(ctx, boundary, releaseID)
 	if err != nil {
-		return fmt.Errorf("inspect incomplete draft before cleanup: %w", err)
+		return fmt.Errorf("inspect incomplete draft by ID before cleanup: %w", err)
 	}
 	if !exists {
 		return nil
 	}
-	if observed.ID != releaseID || verifyCleanupDraft(observed, boundary, boundary.BuildReport.Artifacts) != nil {
+	if verifyCleanupDraft(observed, boundary, boundary.BuildReport.Artifacts) != nil {
 		return errors.New("incomplete release is not the exact draft created by this run; automatic cleanup denied")
 	}
 	endpoint := "repos/" + boundary.GitHubRepository + "/releases/" + strconv.FormatInt(releaseID, 10)
@@ -689,12 +748,12 @@ func (publisher Publisher) cleanupDraft(ctx context.Context, boundary sourceBoun
 	if result.Err != nil {
 		return commandFailure("delete incomplete draft GitHub Release", result)
 	}
-	_, exists, err = publisher.readRelease(ctx, boundary)
+	_, exists, err = publisher.readReleaseByID(ctx, boundary, releaseID)
 	if err != nil {
 		return err
 	}
 	if exists {
-		return errors.New("incomplete draft still exists after cleanup")
+		return errors.New("incomplete draft still exists after ID-based cleanup")
 	}
 	return nil
 }
@@ -753,6 +812,15 @@ func verifyReleaseRecord(release githubRelease, boundary sourceBoundary, draft, 
 		}
 	}
 	return nil
+}
+
+func releaseAssetByName(assets []githubAsset, name string) (githubAsset, bool) {
+	for _, asset := range assets {
+		if asset.Name == name {
+			return asset, true
+		}
+	}
+	return githubAsset{}, false
 }
 
 func verifyRemoteAsset(asset githubAsset, artifact releaseartifactbuild.ArtifactRecord) error {

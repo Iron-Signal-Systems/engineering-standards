@@ -103,14 +103,14 @@ project, and shall not add itself to the project's application dependency graph.
 
 ## New project
 
-After publication, the accepted `0.1.3` release validator initializes one
-explicitly selected release with:
+After publication and post-publication acceptance, the accepted `0.1.4`
+release validator initializes one explicitly selected release with:
 
 ```bash
 isras-validator-linux-amd64 \
   --repo /src/example-project \
   project-pin initialize \
-  --release isras-v0.1.3 \
+  --release isras-v0.1.4 \
   --go-defaults
 ```
 
@@ -158,13 +158,18 @@ does not establish SSH signer trust on a clean runner and does not retain the
 validator's `.local/validation` failure logs. A failed required hosted run under
 that release is not formal project adoption.
 
-ISRAS `0.1.3` is the release candidate that corrects those defects. It binds
-hosted SSH trust to the exact called Engineering Standards commit, rejects
-missing, altered, wrong-key, and wrong-principal trust, retains both evidence
-trees, and corrects release-asset upload transport.
+The signed `isras-v0.1.3` tag is immutable but was not published. Its first
+publication attempt exposed an invalid upload-host invocation and a cleanup path
+that could not observe the empty draft it had created. The exact failed draft was
+independently verified and deleted. `0.1.3` is not adoption authority.
+
+ISRAS `0.1.4` is the repair candidate. It carries forward the hosted SSH trust and
+evidence-retention corrections, uses draft-aware release discovery, uploads
+through the authenticated no-clobber GitHub CLI release command, and verifies
+failed-draft cleanup by exact release ID.
 
 This source candidate is not adoption authority by itself. A consuming project
-may pin `isras-v0.1.3` only after the exact signed tag and verified six-asset
+may pin `isras-v0.1.4` only after the exact signed tag and verified six-asset
 release are published and its required hosted validation passes.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
