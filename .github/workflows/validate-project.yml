@@ -33,6 +33,14 @@ jobs:
           go-version-file: standard/go.mod
           cache: false
 
+      - name: Establish release-bound SSH signer trust
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          standard/tools/configure-hosted-ssh-signing-trust.sh \
+            --target "$GITHUB_WORKSPACE/target" \
+            --runtime-root "$RUNNER_TEMP/isras-ssh-trust"
+
       - name: Build exact-source bootstrap verifier
         shell: bash
         run: |
@@ -198,7 +206,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: isras-evidence-${{ github.run_id }}
-          path: target/.local/isras
+          path: |
+            target/.local/isras
+            target/.local/validation
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 30

@@ -156,6 +156,16 @@ Every project validation result shall identify:
 This separates the authority that produced the validator from the project being
 validated.
 
+## Hosted SSH signer trust
+
+A reusable hosted workflow validating an SSH-signed project commit shall establish
+trust from the exact pinned Engineering Standards source before invoking repository
+validation. The consuming commit cannot authorize its own signer. The workflow
+shall verify the tracked trust bytes and digest, create a private target-local
+`gpg.ssh.allowedSignersFile`, bind the reported principal and fingerprint to the
+commit committer identity, and retain both success evidence and failure logs. See
+[`HOSTED-SSH-SIGNER-TRUST.md`](HOSTED-SSH-SIGNER-TRUST.md).
+
 ## No silent inheritance
 
 Changes to `engineering-standards/dev`, `main`, a later tag, or a reusable

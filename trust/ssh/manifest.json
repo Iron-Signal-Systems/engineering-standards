@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "authority": "Iron Signal Systems Engineering Standards",
+  "file": "iron-signal-systems.allowed-signers",
+  "sha256": "79940be107bdf44b56ed3602bc91053c5e600466288f5f269d4d81245abceb8f",
+  "registry_source": "https://api.github.com/users/kb2vhn/ssh_signing_keys",
+  "signers": [
+    {
+      "principal": "kb2vhn@gmail.com",
+      "fingerprint": "SHA256:FiH+Jk7HHrNkvDEQTehI/aCfkmKpivtsqmkl5TmmMSE"
+    },
+    {
+      "principal": "kb2vhn@gmail.com",
+      "fingerprint": "SHA256:KXUS1cE5I1cPBa4O3aYoP5TY+pQMgcPUc78e5phvpqU"
+    },
+    {
+      "principal": "kb2vhn@gmail.com",
+      "fingerprint": "SHA256:VtlnLkG45k0HF39iY/vdV4IOR5r8lHbB5R81vH+2zcw"
+    },
+    {
+      "principal": "kb2vhn@gmail.com",
+      "fingerprint": "SHA256:afU3hUaaSh7f2vs1pPsJ76aSuhH3ivicmNlxxhJmd7o"
+    },
+    {
+      "principal": "kb2vhn@gmail.com",
+      "fingerprint": "SHA256:lCGPFFvNgV2sb/tLWTptypn9lihvc8Q6er5C/KgKkSU"
+    }
+  ]
+}

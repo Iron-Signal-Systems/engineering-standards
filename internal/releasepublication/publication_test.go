@@ -93,10 +93,20 @@ func TestPublishUploadsAndReverifiesExactAssets(t *testing.T) {
 			t.Fatalf("artifact was not fully verified: %#v", artifact)
 		}
 	}
+	uploadCalls := 0
 	for _, call := range fixture.runner.calls {
 		if strings.Contains(call, "git push") || strings.Contains(call, "git tag") || strings.Contains(call, "refs/heads/main") {
 			t.Fatalf("publisher crossed the ref-mutation boundary: %s", call)
 		}
+		if strings.Contains(call, "/assets?name=") {
+			uploadCalls++
+			if !strings.Contains(call, "gh api --hostname uploads.github.com --method POST") {
+				t.Fatalf("release asset upload did not use uploads.github.com: %s", call)
+			}
+		}
+	}
+	if uploadCalls != 6 {
+		t.Fatalf("upload call count = %d, want 6", uploadCalls)
 	}
 }
 
