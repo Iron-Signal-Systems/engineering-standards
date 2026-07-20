@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-No changes have been recorded after the `0.1.4` release boundary.
+- Preserve the active caller-selected Go toolchain directory inside the bounded
+  project-command `PATH` for Go-profile projects.
+- Enforce the consuming project's `go.mod` `go` directive as a minimum toolchain
+  version, accepting later compatible releases and valid custom toolchain suffixes.
+- Add regression coverage for newer custom toolchains and rejection of toolchains
+  below the declared minimum.
 
 ## 0.1.4 — 2026-07-19
 

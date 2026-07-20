@@ -337,6 +337,10 @@ func newFixture(t *testing.T, repositoryName, script string) *testFixture {
 	if err := os.WriteFile(filepath.Join(root, "README.md"), []byte("fixture\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	goMod := "module github.com/Iron-Signal-Systems/" + repositoryName + "\n\ngo 1.25.12\n"
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte(goMod), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.MkdirAll(filepath.Join(root, "tools"), 0o755); err != nil {
 		t.Fatal(err)
 	}

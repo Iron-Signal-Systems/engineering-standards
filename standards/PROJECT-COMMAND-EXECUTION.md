@@ -172,3 +172,17 @@ This step does not:
 - push, merge, deploy, or modify Iron Atlas;
 - claim sandbox or container isolation beyond the documented process, environment,
   timeout, output, evidence, and repository-state controls.
+
+## Go toolchain minimum and PATH preservation
+
+For a project declaring the `go` profile, ISRAS resolves the active `go`
+executable from the validator process before constructing the isolated project
+command environment. The exact selected toolchain directory is placed first in
+the bounded command `PATH`; unrelated caller `PATH` entries are not inherited.
+
+The consuming project's `go.mod` `go` directive is a minimum version, not an
+exact-version lock. ISRAS accepts the declared version and later valid Go
+versions, including valid custom suffixes such as `go1.26.5-X:nodwarf5`, and
+rejects versions below the declared minimum. `GOTOOLCHAIN=local` and `GOENV=off`
+are used for the version query so validation never silently downloads or switches
+toolchains while establishing this boundary.

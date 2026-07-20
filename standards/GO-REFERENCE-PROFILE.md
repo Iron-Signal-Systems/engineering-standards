@@ -116,3 +116,16 @@ Future Go profile releases may add guidance for:
 
 Such additions require an accepted ISRAS release and an explicit upgrade by each
 project.
+
+## Minimum-version toolchain contract
+
+The `go` directive in a consuming project's `go.mod` establishes the minimum Go
+toolchain accepted by the ISRAS Go profile. It does not require byte-for-byte or
+patch-exact equality with the declared version.
+
+A selected `go1.25.12` toolchain satisfies `go 1.25.12`; so do later compatible
+versions such as `go1.25.13`, `go1.26.0`, and valid custom-suffix builds such as
+`go1.26.5-X:nodwarf5`. A toolchain below the declared minimum is rejected before
+project command execution. Evidence and command output retain the exact selected
+version so acceptance remains truthful without unnecessarily blocking newer
+compatible toolchains.

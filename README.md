@@ -24,6 +24,12 @@ versioned, validated, accepted, and maintained.
 
 ## Current implementation profile
 
+Project-command execution for Go-profile consumers preserves the active selected
+Go toolchain directory while retaining an otherwise bounded `PATH`. The consuming
+project's `go.mod` `go` directive is enforced as a minimum: later compatible Go
+releases, including valid custom-suffix toolchains, are accepted and recorded by
+project command evidence output.
+
 This source boundary declares `0.1.4`. Before publication it is a release
 candidate; after publication only the exact signed `isras-v0.1.4` tag and its
 verified six-asset GitHub Release can establish accepted release identity. A

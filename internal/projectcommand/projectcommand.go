@@ -481,6 +481,15 @@ func isShell(base string) bool {
 }
 
 func commandEnvironment(runDirectory, resolvedExecutable string, request Request) ([]string, []string, error) {
+	var selectedGo goToolchainSelection
+	if projectUsesGoProfile(request) {
+		var err error
+		selectedGo, err = selectGoToolchain(request.Root)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	isolated := map[string]string{
 		"HOME":                          filepath.Join(runDirectory, "home"),
 		"TMPDIR":                        filepath.Join(runDirectory, "tmp"),
@@ -489,7 +498,7 @@ func commandEnvironment(runDirectory, resolvedExecutable string, request Request
 		"GOPATH":                        filepath.Join(runDirectory, "go"),
 		"LANG":                          "C",
 		"LC_ALL":                        "C",
-		"PATH":                          sanitizedCommandPath(resolvedExecutable),
+		"PATH":                          sanitizedCommandPath(resolvedExecutable, selectedGo.Directory),
 		"ISRAS_PROJECT_ROOT":            request.Root,
 		"ISRAS_PROJECT_COMMAND":         request.Name,
 		"ISRAS_VALIDATOR_SOURCE_COMMIT": request.Validator.SourceCommit,
@@ -522,8 +531,10 @@ func commandEnvironment(runDirectory, resolvedExecutable string, request Request
 	return environment, names, nil
 }
 
-func sanitizedCommandPath(resolvedExecutable string) string {
-	candidates := []string{filepath.Dir(resolvedExecutable), "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"}
+func sanitizedCommandPath(resolvedExecutable string, preferredDirectories ...string) string {
+	candidates := make([]string, 0, len(preferredDirectories)+7)
+	candidates = append(candidates, preferredDirectories...)
+	candidates = append(candidates, filepath.Dir(resolvedExecutable), "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin")
 	seen := make(map[string]bool)
 	out := make([]string, 0, len(candidates))
 	for _, candidate := range candidates {
