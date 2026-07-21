@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	goversion "go/version"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -108,14 +109,25 @@ func inspectSource(ctx context.Context, runner commandRunner, requestedRoot, exp
 		return sourceBoundary{}, errors.New("read Go toolchain version")
 	}
 	goVersion := strings.TrimSpace(goVersionOutput)
-	if goVersion != "go"+goDirective {
-		return sourceBoundary{}, fmt.Errorf("Go toolchain %s does not match go.mod directive %s", goVersion, goDirective)
+	minimumGoVersion := "go" + goDirective
+	if !goVersionAtLeast(goVersion, minimumGoVersion) {
+		return sourceBoundary{}, fmt.Errorf(
+			"Go toolchain %s is below go.mod minimum %s",
+			goVersion,
+			minimumGoVersion,
+		)
 	}
 
 	return sourceBoundary{
 		Root: canonicalRoot, Version: version, Tag: tag, Commit: commit,
 		GoVersion: goVersion, GoDirective: goDirective,
 	}, nil
+}
+
+func goVersionAtLeast(actual, minimum string) bool {
+	return goversion.IsValid(actual) &&
+		goversion.IsValid(minimum) &&
+		goversion.Compare(actual, minimum) >= 0
 }
 
 func parseGoDirective(goMod string) (string, error) {
