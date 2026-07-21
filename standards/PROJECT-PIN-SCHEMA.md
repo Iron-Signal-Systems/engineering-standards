@@ -282,7 +282,7 @@ values and must be replaced from an accepted release manifest:
     "build": ["go", "build", "./..."],
     "module_consistency": ["go", "mod", "tidy", "-diff"],
     "module_integrity": ["go", "mod", "verify"],
-    "known_vulnerabilities": ["go", "run", "golang.org/x/vuln/cmd/govulncheck@v1.6.0", "./..."]
+    "known_vulnerabilities": ["govulncheck", "./..."]
   },
   "evidence": {
     "directory": ".local/isras"
@@ -292,3 +292,12 @@ values and must be replaced from an accepted release manifest:
 
 A production pin also includes the required framework, contracts, provenance,
 and manifest artifacts described above.
+
+## Exact vulnerability-command declaration
+
+For the Go profile, `known_vulnerabilities` is not a project-selectable launcher.
+It must be declared exactly as `["govulncheck", "./..."]`. `go run`, versioned
+module arguments, wrappers, changed package scopes, and additional arguments are
+rejected. Acquisition is a separate explicit hosted or operator action governed
+by `validation/tool-versions.json`; project-command execution never installs or
+upgrades the scanner.

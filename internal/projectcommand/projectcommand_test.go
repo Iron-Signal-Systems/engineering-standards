@@ -434,7 +434,7 @@ func validPin(repositoryName string) projectpin.Pin {
 		"build":                 {"go", "version"},
 		"module_consistency":    {"go", "version"},
 		"module_integrity":      {"go", "version"},
-		"known_vulnerabilities": {"go", "version"},
+		"known_vulnerabilities": {projectpin.GovulncheckExecutable, projectpin.GovulncheckPackageScope},
 	}
 	return projectpin.Pin{
 		SchemaVersion: 1,

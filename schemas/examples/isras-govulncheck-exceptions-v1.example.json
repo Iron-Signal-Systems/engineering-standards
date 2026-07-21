@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "exceptions": [
+    {
+      "advisory_id": "GO-2026-9999",
+      "scope": {
+        "go_mod_path": "go.mod",
+        "module_path": "example.com/project",
+        "package_path": "example.com/project/internal/service",
+        "symbol": "(*Service).Handle"
+      },
+      "justification": "The vulnerable path is temporarily required for compatibility during the bounded migration.",
+      "compensating_controls": [
+        "Untrusted input is rejected before the affected symbol is called.",
+        "Runtime monitoring alerts on every invocation of the affected path."
+      ],
+      "owner": "security-owner@example.invalid",
+      "approval": {
+        "approved_by": "security-approver@example.invalid",
+        "approved_at": "2026-07-21T09:30:00Z",
+        "record": "SEC-2026-0042"
+      },
+      "expires_at": "2026-07-28T10:30:00Z",
+      "remediation": {
+        "owner": "engineering-owner@example.invalid",
+        "target_date": "2026-07-28",
+        "plan": "Upgrade the affected dependency and remove this exception after complete regression validation."
+      }
+    }
+  ]
+}

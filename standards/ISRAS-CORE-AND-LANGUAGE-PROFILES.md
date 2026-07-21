@@ -12,6 +12,20 @@ ISRAS tooling is implemented in Go first. Go is also the first supported project
 profile. That implementation choice does not convert Go-specific practice into a
 universal requirement for every adopting repository.
 
+## Core authority and additive profiles
+
+ISRAS is language-neutral at its governing core. Core requirements define the
+engineering outcome, decision rationale, validation method, retained evidence,
+release boundary, and lifecycle control that a repository must demonstrate.
+
+Language and platform profiles are additive implementation mappings. They may
+supply ecosystem-specific commands, tools, file conventions, scanners, or
+failure modes, but they do not redefine ISRAS, replace the core standard, or
+convert one implementation language into a universal company requirement.
+
+The Go implementation and Go reference profile are therefore the first supported
+tooling and profile boundary, not the identity or complete scope of ISRAS.
+
 ## Authority boundaries
 
 ISRAS has three distinct layers.

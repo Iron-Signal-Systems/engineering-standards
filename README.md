@@ -6,6 +6,19 @@
   <img src="docs/assets/isras-emblem.png" alt="ISRAS Engineering Standards emblem for Iron Signal Systems" width="720">
 </p>
 
+
+## Repository identity
+
+**ISRAS is the governing engineering authority for Iron Signal Systems repositories.** It establishes consistent requirements, decision rationale, validation methods, evidence expectations, release boundaries, and lifecycle controls across company projects. Public use is permitted, but external adoption is not its primary design objective.
+
+This repository is publicly visible to support transparency, review, and reuse
+where appropriate. Public visibility does not redefine ISRAS as a general-purpose
+public product.
+
+The authoritative scope is defined in
+[`standards/REPOSITORY-IDENTITY-AND-PUBLIC-USE.md`](standards/REPOSITORY-IDENTITY-AND-PUBLIC-USE.md)
+and [`standards/ISRAS-VISION.md`](standards/ISRAS-VISION.md).
+
 ## ISRAS vision
 
 **ISRAS** stands for the **Iron Signal Repository Assurance Standard**. It is
@@ -27,8 +40,13 @@ versioned, validated, accepted, and maintained.
 Project-command execution for Go-profile consumers preserves the active selected
 Go toolchain directory while retaining an otherwise bounded `PATH`. The consuming
 project's `go.mod` `go` directive is enforced as a minimum: later compatible Go
-releases, including valid custom-suffix toolchains, are accepted and recorded by
-project command evidence output.
+releases, including valid custom-suffix toolchains, are accepted. Governed
+project-command evidence schema version 2 records the exact selected Go identity,
+fixed local/off environment, project minimum, optional toolchain directive, and
+minimum-satisfaction result. Multi-module consumers receive a deterministic
+per-module source inventory, and the selected Go implementation must satisfy
+every discovered source module before command execution. Generated `.local/`
+runtime evidence is explicitly excluded from the module boundary.
 
 This source boundary declares `0.1.4`. Before publication it is a release
 candidate; after publication only the exact signed `isras-v0.1.4` tag and its
@@ -264,3 +282,30 @@ See:
 - [`standards/RELEASE-WORKFLOW-AUTOMATION.md`](standards/RELEASE-WORKFLOW-AUTOMATION.md)
 - [`standards/RELEASE-PUBLICATION.md`](standards/RELEASE-PUBLICATION.md)
 - [`docs/archive/README.md`](docs/archive/README.md)
+
+### Go vulnerability validation boundary
+
+For Go-profile repositories, `known_vulnerabilities` is a mandatory specialized operation. ISRAS verifies the exact pinned scanner, executes every governed module with the selected local Go toolchain, parses streaming evidence, and records typed JSON and text output. Reachable or unknown findings fail until the governed exception model is implemented and accepted.
+
+### Governed vulnerability exceptions
+
+A reachable Go vulnerability is not ignored or hidden. It may pass only through
+an exact, independently approved, time-bounded exception at
+`.isras/govulncheck-exceptions.json`. ISRAS retains the original finding and
+records whether each exception was used, unused, or mismatched. Unknown findings,
+unexcepted reachable findings, stale records, and unused exception declarations
+fail closed.
+
+### Documentation-impact gate
+
+ISRAS rejects implementation, schema, workflow, release, or adoption changes
+whose required standards, records, examples, and changelog updates are absent
+from the same reviewed commit range. Run:
+
+```text
+isras-validate documentation-impact --base COMMIT --head COMMIT
+```
+
+The command uses exact commit IDs, evaluates merge-base-to-head changes, and
+retains deterministic JSON and text evidence under
+`.local/validation/documentation-impact/`.

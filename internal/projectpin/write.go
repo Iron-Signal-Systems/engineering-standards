@@ -40,7 +40,7 @@ func DefaultGoCommands() map[string][]string {
 	return map[string][]string{
 		"build":                 {"go", "build", "./..."},
 		"format_check":          {DefaultGoFormatCheckPath},
-		"known_vulnerabilities": {"go", "run", "golang.org/x/vuln/cmd/govulncheck@v1.6.0", "./..."},
+		"known_vulnerabilities": {GovulncheckExecutable, GovulncheckPackageScope},
 		"module_consistency":    {"go", "mod", "tidy", "-diff"},
 		"module_integrity":      {"go", "mod", "verify"},
 		"static_analysis":       {"go", "vet", "./..."},

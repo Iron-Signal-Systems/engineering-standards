@@ -25,6 +25,7 @@ func TestSelectGoToolchainUsesActivePathAndMinimumSemantics(t *testing.T) {
 		t.Skip("fixture uses a POSIX shell script")
 	}
 	root := t.TempDir()
+	ensureModuleRepository(t, root)
 	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.test/toolchain\n\ngo 1.25.12\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -58,6 +59,7 @@ func TestSelectGoToolchainRejectsVersionBelowMinimum(t *testing.T) {
 		t.Skip("fixture uses a POSIX shell script")
 	}
 	root := t.TempDir()
+	ensureModuleRepository(t, root)
 	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.test/toolchain\n\ngo 1.25.12\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}

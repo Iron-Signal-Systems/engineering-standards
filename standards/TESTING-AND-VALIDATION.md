@@ -143,3 +143,130 @@ source must be corrected rather than excepted.
 - `WARN`: the condition needs review but does not independently invalidate the
   current mode.
 - `INFO`: supporting context or an available path/action.
+
+### Exact govulncheck acquisition boundary
+
+The approved command package and version are read from
+`validation/tool-versions.json`. Hosted validation installs that exact identity
+into `.local/tools/bin` in an explicit network-enabled acquisition step, verifies
+the resulting binary's embedded command path, module root, and version, and only
+then makes the directory available to project-command execution.
+
+The runtime command declaration remains exactly `govulncheck ./...`. Runtime
+validation shall fail when the binary is absent or its identity differs; it shall
+never fall back to `go run`, `go install`, `latest`, or an implicit upgrade.
+
+### Govulncheck protocol parser validation
+
+The vulnerability-scanner protocol parser is tested independently with synthetic
+concatenated JSON streams. Tests cover valid configuration, progress, SBOM, OSV,
+and finding messages; malformed JSON; scalar and null values; empty or multi-
+field messages; unknown fields; missing or duplicate configuration; missing
+advisory identities; and module, package, symbol, and unknown finding levels.
+
+These parser tests do not contact the vulnerability database or execute a scanner.
+Live tool identity, execution, evidence, and policy behavior are validated in
+separate controlled steps.
+
+### Govulncheck tool-identity validation
+
+The exact-tool boundary is tested with synthetic selected-Go probes and scanner
+files. Tests cover the approved declaration, unknown and trailing JSON,
+unsupported package and version declarations, symlinked configuration, missing
+tools, symlinked tools, wrong command package, wrong module, wrong version, and
+successful SHA-256 and build-Go-version capture.
+
+A missing scanner must fail before the selected Go probe runs, demonstrating that
+the identity verifier has no installer or acquisition behavior.
+
+### Govulncheck per-module runner validation
+
+The per-module runner uses fake scanners to prove deterministic coverage, exact
+`-json ./...` arguments, module-specific working directories, selected-Go PATH
+precedence, forced local/off settings, bounded output and timeout behavior,
+process termination, repository mutation detection, protocol parsing, and
+hostile inventory rejection.
+
+After synthetic tests pass, a guarded candidate test runs the exact approved
+local scanner against every discovered Engineering Standards module and records
+the resulting protocol summary in the validation log.
+
+### Govulncheck evidence-projection validation
+
+Synthetic tests prove deterministic module ordering, exact inventory coverage, identity matching, fixed package scope, scanner and protocol field projection, and defensive cloning of retained slice data. Coverage drift fails before project-command evidence integration.
+
+### Govulncheck evidence schema and renderer validation
+
+Tests marshal typed scanner evidence, inspect the governed v2 JSON shape, render the corresponding text evidence, and verify schema definitions and the dedicated pass example. Existing v1 and non-vulnerability v2 artifacts remain unchanged.
+
+### Govulncheck runtime-orchestrator validation
+
+Dependency-injected tests prove exact call order and path derivation, complete
+module/evidence propagation, boundary-error short-circuiting, absolute
+configuration requirements, module/package observation behavior, reachable
+finding failure, unknown-level failure, deterministic advisory ordering, and the
+absence of an acquisition path.
+
+### Complete govulncheck Execute validation
+
+Integration tests prove specialized dispatch, ordinary-command separation, configuration-path confinement, typed pass and reachable-finding failure evidence, and conditional schema requirements. A guarded live test invokes public `Execute` against a temporary governed project using the real pinned scanner and configuration.
+
+### Govulncheck exception-document validation
+
+Synthetic tests cover valid deterministic ordering and reject unsupported schema versions, duplicate exact scopes, wildcards, traversal, reserved evidence paths, missing symbols, weak governance text, absent or duplicate controls, self-approval, future or non-UTC approval, expiration, remediation after expiration, multiline data, unknown fields, multiple JSON values, relative or escaped files, symlinked paths, and nonregular files.
+
+### Exact exception reconciliation validation
+
+Tests prove receiver-qualified symbol normalization, exact finding retention, duplicate-trace aggregation, deterministic used/unused/unexcepted ordering, unknown-finding summaries, one-field scope mismatch behavior, and fail-closed rejection of duplicate modules, duplicate exception scopes, or symbol-count/detail drift.
+
+### Exception-aware policy and evidence validation
+
+Tests cover absent and present documents, digest retention, symlink rejection,
+governance-data projection, defensive cloning, exact-used success, unknown
+failure, unexcepted failure, unused-record failure, exception-aware runtime
+success and mismatch failure, JSON/text rendering, and schema/example
+synchronization. The guarded live public `Execute` test is rerun with no
+exception document to prove the zero-exception production path.
+
+## Documentation-impact validation
+
+The documentation-impact evaluator is tested with documentation-only changes,
+synchronized and unsynchronized implementation changes, schema/example
+coordination, workflow-specific standards, overlapping self-governance rules,
+deterministic ordering, unsafe changed paths, invalid pattern forms, duplicate
+identifiers, unknown fields, multiple JSON values, repository escape, and
+symlinked policy paths.
+
+### Documentation-impact Git, CLI, and hosted enforcement
+
+Validation covers exact commit IDs, repository-root identity, merge-base
+selection, rename-disabled changed-path collection, NUL parsing, bounded Git
+output, deterministic evidence, policy digests, passing and failing reports,
+failure-evidence retention, atomic private writes, symlinked evidence paths, CLI
+option parsing, workflow event-range resolution, always-retained artifacts, and a
+temporary full-candidate commit evaluated by the newly built validator.
+
+### Governed documentation-impact policy integration
+
+The test suite loads `validation/documentation-impact-policy.json` from the
+repository rather than validating only synthetic fixtures. It discovers current
+`internal/release*` and `cmd/isras-release*` directories, requires an exact
+trailing-slash trigger for each one, and evaluates a synchronized release change
+set through the actual policy.
+
+## Workstream A complete local acceptance
+
+The complete A1-A6 candidate is assembled and committed only in a disposable
+clone based on the exact PR base. The acceptance record is included before the
+commit so that no documentation is added after testing.
+
+The campaign runs complete tests, race tests, vet, build, validator commands,
+JSON and shell syntax validation, documentation and workflow contracts,
+documentation-impact enforcement, and live public govulncheck `Execute`
+validation with the already-acquired exact pinned scanner.
+
+A separate disposable commit changes implementation without the required
+changelog, standard, or record. Acceptance requires that the
+documentation-impact command reject that commit and retain structured JSON and
+text failure evidence. The actual working branch remains unstaged and
+uncommitted.

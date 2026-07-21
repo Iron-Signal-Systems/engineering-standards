@@ -186,3 +186,100 @@ versions, including valid custom suffixes such as `go1.26.5-X:nodwarf5`, and
 rejects versions below the declared minimum. `GOTOOLCHAIN=local` and `GOENV=off`
 are used for the version query so validation never silently downloads or switches
 toolchains while establishing this boundary.
+
+## Fixed Go-profile child environment
+
+For every project command in a project declaring the `go` profile, the child
+environment fixes `GOTOOLCHAIN=local` and `GOENV=off` after bounded inherited
+environment processing. Caller values such as `GOTOOLCHAIN=auto` or
+`GOENV=/caller/path` cannot override these controls.
+
+The exact selected Go executable directory remains first in the bounded child
+`PATH`. A project-owned command that invokes `go` therefore reaches the same
+selected local toolchain that ISRAS probed, without inheriting unrelated caller
+`PATH` components. Projects that do not declare the Go profile retain the existing
+bounded inherited-environment behavior.
+
+## Go module declaration boundary
+
+Before selecting Go, ISRAS parses the applicable repository-owned `go.mod`. It rejects missing, malformed, duplicate, oversized, unreadable, symbolic, non-regular, or path-escaped module files. The optional `toolchain` value is descriptive evidence only and cannot weaken the selected local toolchain boundary.
+
+## Project-command evidence schema v2
+
+Go-profile execution uses the governed
+`schemas/isras-project-command-execution-v2.schema.json` contract. Version 2
+preserves every version 1 command, timeout, output, repository-drift, validator,
+target, environment-name, redaction, and stream field while adding a typed
+`go_toolchain` object.
+
+The object records the selected executable and directory, exact reported Go
+version, project minimum, optional project `toolchain` directive, fixed effective
+`GOTOOLCHAIN` and `GOENV` values, and the minimum-satisfaction result. Successful
+Go-profile commands require complete selected-toolchain evidence and a true
+minimum result. Below-minimum rejection retains the discovered executable,
+reported version, declared minimum, fixed environment policy, and false result
+before the project command can execute.
+
+The version 1 schema remains immutable as a historical contract. Producers emit
+version 2 after this behavioral change; consumers select schema handling by the
+explicit `schema_version` field.
+
+## Multi-module execution boundary
+
+Before any Go-profile project command executes, ISRAS discovers and validates the
+complete repository-owned source module set. Discovery uses Git's tracked and
+nonignored-untracked inventory and excludes the reserved `.local/` runtime tree.
+The selected executable is checked against every source module's `go` minimum,
+not only the root module. One unsatisfied nested source module denies execution
+before the project command starts.
+
+Project-command evidence schema version 2 includes the sorted module inventory:
+repository-relative `go.mod` path, module directory, declared module path, Go
+minimum, optional toolchain directive, and per-module minimum result.
+
+## Bounded source-inventory tool resolution
+
+The source-module inventory resolves Git from governed absolute system
+directories before invocation. Caller `PATH` contents are not inherited for this
+operation. This keeps repository discovery available even when Go selection tests
+or controlled execution expose only the selected Go directory.
+
+## Govulncheck identity probe
+
+The pinned scanner identity probe is separate from scanner execution. It invokes
+the exact selected Go executable with `version -m` against the exact scanner
+path, using `GOTOOLCHAIN=local`, `GOENV=off`, deterministic locale, bounded
+system paths, bounded output, and a fixed timeout. The probe never consults the
+complete caller PATH and never installs or upgrades a tool.
+
+## Mandatory Go vulnerability-command specialization
+
+`known_vulnerabilities` is a specialized Go-profile operation rather than an
+ordinary single-directory project command. The implementation expands the one
+governed declaration into one exact pinned scanner invocation per discovered
+module. Every invocation retains the existing timeout, output, process-tree,
+redaction, and repository-state controls while adding module identity and
+streaming-protocol validation.
+
+## Govulncheck evidence output
+
+Project-command evidence v2 has an additive typed `govulncheck` section. The section is optional for non-vulnerability commands and records exact scanner identity plus one reconciled module result per governed `go.mod`. The runtime-dispatch step makes this section mandatory for `known_vulnerabilities`.
+
+## Govulncheck pre-exception result policy
+
+The specialized vulnerability operation evaluates parsed findings rather than
+trusting the scanner exit code. Module- and package-level findings remain
+recorded observations. Symbol-level findings are reachable and fail until an
+exact governed exception exists. Unknown-level findings fail closed.
+
+## Specialized `known_vulnerabilities` dispatch
+
+`Execute` preserves the ordinary command path for all other operations. For `known_vulnerabilities`, it derives the exact runtime configuration from the governed evidence boundary, invokes the selected-Go and pinned-scanner orchestrator, and finalizes v2 evidence from per-module results. Failure evidence remains available when reachable findings or other post-scan policy checks fail.
+
+## Govulncheck exception evidence
+
+A passing `known_vulnerabilities` result requires typed exception-evaluation
+evidence. The evidence records document presence, path, digest, schema version,
+evaluation time, exact used exceptions, unused records, unexcepted reachable
+findings, and unknown-finding summaries. Failure evidence retains the same
+reconciliation whenever scanner execution completed successfully.

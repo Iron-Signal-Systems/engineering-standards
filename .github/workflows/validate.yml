@@ -55,9 +55,15 @@ jobs:
           printf '%s\n' '────────────────────────────────────────'
 
           printf '\nInstalling pinned govulncheck\n'
-          GOBIN="$PWD/.local/tools/bin" \
-            go install \
-            golang.org/x/vuln/cmd/govulncheck@v1.6.0
+          govulncheck_module="$(
+            python3 -c 'import json; print(json.load(open("validation/tool-versions.json", encoding="utf-8"))["tools"]["govulncheck"]["module"])'
+          )"
+          govulncheck_version="$(
+            python3 -c 'import json; print(json.load(open("validation/tool-versions.json", encoding="utf-8"))["tools"]["govulncheck"]["version"])'
+          )"
+          test "$govulncheck_module" = "golang.org/x/vuln/cmd/govulncheck"
+          [[ "$govulncheck_version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          GOTOOLCHAIN=local             GOENV=off             GOBIN="$PWD/.local/tools/bin"             go install             "${govulncheck_module}@${govulncheck_version}"
 
           printf '\nBuilding repository validator\n'
           go build \
@@ -67,6 +73,41 @@ jobs:
 
           chmod 0755 .local/bin/isras-validate
 
+          printf '\nRunning documentation-impact validation\n'
+          event_name='${{ github.event_name }}'
+          case "$event_name" in
+            pull_request)
+              base_sha='${{ github.event.pull_request.base.sha }}'
+              head_sha='${{ github.event.pull_request.head.sha }}'
+              ;;
+            push)
+              base_sha='${{ github.event.before }}'
+              head_sha='${{ github.sha }}'
+              if [[ "$base_sha" =~ ^0+$ ]]; then
+                base_sha="$(git rev-parse "${head_sha}^")"
+              fi
+              ;;
+            schedule|workflow_dispatch)
+              head_sha='${{ github.sha }}'
+              base_sha="$(git rev-parse "${head_sha}^")"
+              ;;
+            *)
+              printf 'Unsupported documentation-impact event: %s\n' \
+                "$event_name" >&2
+              exit 1
+              ;;
+          esac
+
+          [[ "$base_sha" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$head_sha" =~ ^[0-9a-f]{40}$ ]]
+          git cat-file -e "${base_sha}^{commit}"
+          git cat-file -e "${head_sha}^{commit}"
+
+          ./.local/bin/isras-validate \
+            documentation-impact \
+            --base "$base_sha" \
+            --head "$head_sha"
+
           printf '\nRunning Go validation\n'
           ./.local/bin/isras-validate go
 
@@ -75,11 +116,14 @@ jobs:
 
           printf '\nCI VALIDATION PASSED\n'
 
-      - name: Retain validation failure logs
-        if: failure()
+      - name: Retain validation evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: isras-validation-logs-${{ github.run_id }}
-          path: .local/validation/logs/*.log
+          name: isras-validation-evidence-${{ github.run_id }}
+          path: |
+            .local/validation/logs/*.log
+            .local/validation/documentation-impact
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 30
