@@ -244,24 +244,7 @@ func repositoryGoModulePaths(root string) ([]string, error) {
 		return nil, err
 	}
 
-	command := exec.Command(
-		gitExecutable,
-		"ls-files",
-		"-z",
-		"--cached",
-		"--others",
-		"--exclude-standard",
-		"--",
-		"go.mod",
-		":(glob)**/go.mod",
-	)
-	command.Dir = root
-	command.Env = []string{
-		"HOME=" + root,
-		"LANG=C",
-		"LC_ALL=C",
-		"PATH=" + sanitizedCommandPath(gitExecutable),
-	}
+	command := repositoryGoModuleGitCommand(root, gitExecutable)
 
 	output, err := command.Output()
 	if err != nil {
@@ -314,6 +297,35 @@ func repositoryGoModulePaths(root string) ([]string, error) {
 
 	sort.Strings(paths)
 	return paths, nil
+}
+
+func repositoryGoModuleGitCommand(
+	root string,
+	gitExecutable string,
+) *exec.Cmd {
+	command := exec.Command(
+		gitExecutable,
+		"-c",
+		"safe.directory="+root,
+		"ls-files",
+		"-z",
+		"--cached",
+		"--others",
+		"--exclude-standard",
+		"--",
+		"go.mod",
+		":(glob)**/go.mod",
+	)
+	command.Dir = root
+	command.Env = []string{
+		"HOME=" + root,
+		"GIT_CONFIG_GLOBAL=" + os.DevNull,
+		"GIT_CONFIG_NOSYSTEM=1",
+		"LANG=C",
+		"LC_ALL=C",
+		"PATH=" + sanitizedCommandPath(gitExecutable),
+	}
+	return command
 }
 
 func localRuntimePath(relative string) bool {

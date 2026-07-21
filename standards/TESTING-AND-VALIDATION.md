@@ -270,3 +270,13 @@ changelog, standard, or record. Acceptance requires that the
 documentation-impact command reject that commit and retain structured JSON and
 text failure evidence. The actual working branch remains unstaged and
 uncommitted.
+
+### Container ownership and exact Git safe-directory validation
+
+Module-inventory tests force Git's different-owner protection while executing the
+same bounded command used in production. Acceptance requires exact-root
+`safe.directory`, disabled global and system Git configuration, stable
+NUL-delimited enumeration, and continued `.local` exclusion.
+
+The hosted acceptance boundary includes native Ubuntu and bind-mounted Arch
+Linux, Fedora 43, and Fedora 44 jobs. A native-only pass is insufficient.

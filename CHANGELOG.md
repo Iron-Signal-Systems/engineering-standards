@@ -85,6 +85,10 @@
   including committed-candidate validation, live exact-scanner execution,
   and a retained-evidence negative documentation-impact proof.
 
+- Correct bounded Go module inventory for bind-mounted container workspaces
+  by trusting only the exact repository root through command-scoped Git
+  configuration while disabling inherited global and system configuration.
+
 ## 0.1.4 — 2026-07-19
 
 - Repaired release-asset publication to use the authenticated GitHub CLI release

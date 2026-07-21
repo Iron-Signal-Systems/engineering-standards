@@ -297,6 +297,77 @@ func TestRepositoryModuleInventoryExcludesLocalRuntimeEvidence(
 	}
 }
 
+func TestRepositoryGoModuleGitCommandTrustsExactRepositoryRoot(
+	t *testing.T,
+) {
+	root := t.TempDir()
+	writeModuleFile(
+		t,
+		root,
+		"go.mod",
+		"github.com/Iron-Signal-Systems/safe-directory",
+		"1.25.12",
+		"",
+	)
+	runModuleGit(t, root, "add", "go.mod")
+
+	gitExecutable, err := boundedSystemExecutable("git")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	command := repositoryGoModuleGitCommand(root, gitExecutable)
+	command.Env = append(
+		command.Env,
+		"GIT_TEST_ASSUME_DIFFERENT_OWNER=1",
+	)
+	output, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf(
+			"enumerate with forced different-owner protection: %v\n%s",
+			err,
+			output,
+		)
+	}
+	if string(output) != "go.mod\x00" {
+		t.Fatalf("module inventory output = %q", output)
+	}
+
+	expectedSafeDirectory := "safe.directory=" + root
+	foundSafeDirectory := false
+	for _, argument := range command.Args {
+		if argument == expectedSafeDirectory {
+			foundSafeDirectory = true
+			break
+		}
+	}
+	if !foundSafeDirectory {
+		t.Fatalf(
+			"Git arguments do not trust the exact repository root: %#v",
+			command.Args,
+		)
+	}
+
+	requiredEnvironment := map[string]bool{
+		"GIT_CONFIG_GLOBAL=" + os.DevNull: false,
+		"GIT_CONFIG_NOSYSTEM=1":           false,
+	}
+	for _, entry := range command.Env {
+		if _, required := requiredEnvironment[entry]; required {
+			requiredEnvironment[entry] = true
+		}
+	}
+	for entry, found := range requiredEnvironment {
+		if !found {
+			t.Fatalf(
+				"bounded Git environment is missing %q: %#v",
+				entry,
+				command.Env,
+			)
+		}
+	}
+}
+
 func TestSelectGoToolchainUsesHighestModuleMinimum(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("fixture uses a POSIX fake Go executable")

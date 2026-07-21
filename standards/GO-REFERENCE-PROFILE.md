@@ -273,3 +273,16 @@ repositories.
 A non-Go or mixed-language repository remains eligible for governance when an
 accepted profile and project declaration provide equivalent, reviewable evidence
 for the applicable core requirements.
+
+## Bounded Git trust for module inventory
+
+Repository-owned Go module discovery invokes the bounded system Git executable
+with caller global and system configuration disabled. When Git ownership
+protection applies to a mounted validation workspace, the command may declare
+only the exact cleaned target repository root through command-scoped
+`safe.directory`.
+
+Wildcard trust, parent-directory trust, inherited caller trust configuration,
+and disabling Git ownership protection are prohibited. The trust declaration
+authorizes Git to inspect the exact repository; it does not broaden which module
+paths enter the governed inventory.
