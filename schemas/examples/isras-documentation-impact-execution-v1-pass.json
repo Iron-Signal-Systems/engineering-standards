@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "policy": {
+    "path": "validation/documentation-impact-policy.json",
+    "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "schema_version": 1
+  },
+  "comparison": {
+    "requested_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "requested_head": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "base_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "head_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "merge_base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "changed_paths": [
+      "CHANGELOG.md",
+      "docs/records/DOCUMENTATION-IMPACT-GATE.md",
+      "internal/docimpact/execution.go",
+      "standards/DOCUMENTATION-IMPACT.md"
+    ]
+  },
+  "report": {
+    "schema_version": 1,
+    "status": "PASS",
+    "policy_path": "validation/documentation-impact-policy.json",
+    "changed_paths": [
+      "CHANGELOG.md",
+      "docs/records/DOCUMENTATION-IMPACT-GATE.md",
+      "internal/docimpact/execution.go",
+      "standards/DOCUMENTATION-IMPACT.md"
+    ],
+    "triggered_rules": [
+      {
+        "id": "documentation-impact-policy",
+        "description": "The documentation-impact policy or its evaluator changes require synchronized self-governance documentation.",
+        "trigger_paths": [
+          "internal/docimpact/execution.go"
+        ],
+        "requirements": [
+          {
+            "id": "changelog",
+            "description": "The same change set updates the unreleased changelog.",
+            "matched_paths": [
+              "CHANGELOG.md"
+            ],
+            "status": "PASS"
+          },
+          {
+            "id": "record",
+            "description": "The same change set updates the documentation-impact implementation record.",
+            "matched_paths": [
+              "docs/records/DOCUMENTATION-IMPACT-GATE.md"
+            ],
+            "status": "PASS"
+          },
+          {
+            "id": "standard",
+            "description": "The same change set updates the documentation-impact standard.",
+            "matched_paths": [
+              "standards/DOCUMENTATION-IMPACT.md"
+            ],
+            "status": "PASS"
+          }
+        ],
+        "status": "PASS"
+      }
+    ]
+  }
+}

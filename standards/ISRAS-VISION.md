@@ -16,6 +16,19 @@ and remediation evidence, but those remain separate assurance artifacts. ISRAS
 governs how those artifacts and their related implementation and evidence are
 versioned, validated, accepted, and maintained.
 
+## Repository identity and audience
+
+**ISRAS is the governing engineering authority for Iron Signal Systems repositories.** It establishes consistent requirements, decision rationale, validation methods, evidence expectations, release boundaries, and lifecycle controls across company projects. Public use is permitted, but external adoption is not its primary design objective.
+
+Public visibility supports transparent engineering review, durable reference,
+and reuse where appropriate. It does not convert ISRAS into a general-purpose
+public product, create a universal compatibility promise, or make external
+adoption the standard's governing design priority.
+
+The primary audience is Iron Signal Systems repositories and the people
+responsible for their engineering, security, validation, release, deployment,
+recovery, and long-term maintenance.
+
 ## Long-term direction
 
 The complete ISRAS vision remains intentionally broader than the first active

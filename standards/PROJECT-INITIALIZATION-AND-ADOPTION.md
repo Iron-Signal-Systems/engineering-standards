@@ -21,6 +21,20 @@ isras-validator-linux-amd64 \
 Initialization changes no Git refs, creates no commit, performs no push, and
 never chooses a release implicitly.
 
+## Audience and external use
+
+The supported initialization and adoption contracts are designed first for Iron
+Signal Systems repositories. Public use and external reference are permitted,
+but external adoption is not the primary design objective and does not create an
+implied promise of general-purpose product support, compatibility, migration, or
+roadmap priority.
+
+An external repository may study or reuse published material where appropriate,
+but it does not become an Iron Signal Systems governed project merely because
+this repository is public. ISRAS adoption authority still requires the exact
+accepted release, declared profile, project pin, validation boundary, and
+evidence contract applicable to the adopting repository.
+
 ## Authority prerequisites
 
 Initialization requires all of the following before the target may be modified:

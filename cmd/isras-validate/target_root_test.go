@@ -107,6 +107,10 @@ func createPinnedTarget(t *testing.T, repositoryName string) string {
 	if err := os.MkdirAll(filepath.Join(root, ".isras"), 0o755); err != nil {
 		t.Fatal(err)
 	}
+	goMod := "module " + repositoryName + "\n\ngo 1.25.12\n"
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte(goMod), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	pin := projectpin.Pin{
 		SchemaVersion: projectpin.SchemaVersion,
 		Project:       projectpin.Project{Repository: repositoryName},
@@ -156,7 +160,7 @@ func createPinnedTarget(t *testing.T, repositoryName string) string {
 	runTargetGit(t, root, "init", "-q")
 	runTargetGit(t, root, "config", "user.name", "ISRAS Target Fixture")
 	runTargetGit(t, root, "config", "user.email", "isras-target@example.invalid")
-	runTargetGit(t, root, "add", ".isras/project.json")
+	runTargetGit(t, root, "add", ".isras/project.json", "go.mod")
 	runTargetGit(t, root, "-c", "commit.gpgsign=false", "commit", "-q", "-m", repositoryName)
 	return root
 }

@@ -1,0 +1,183 @@
+{
+  "schema_version": 2,
+  "run_id": "0123456789abcdef01234567",
+  "authorization": "GRANTED",
+  "status": "PASS",
+  "mode": "commit",
+  "command_name": "known_vulnerabilities",
+  "arguments": [
+    "govulncheck",
+    "./..."
+  ],
+  "resolved_executable": "/workspace/target/.local/tools/bin/govulncheck",
+  "working_directory": "/workspace/target",
+  "environment_names": [
+    "GOCACHE",
+    "GOENV",
+    "GOPATH",
+    "GOTOOLCHAIN",
+    "HOME",
+    "ISRAS_PROJECT_COMMAND",
+    "ISRAS_PROJECT_ROOT",
+    "ISRAS_VALIDATOR_SOURCE_COMMIT",
+    "LANG",
+    "LC_ALL",
+    "PATH",
+    "TMPDIR",
+    "XDG_CACHE_HOME"
+  ],
+  "timeout_seconds": 1200,
+  "output_limit_bytes_per_stream": 1048576,
+  "started": "2026-07-21T10:00:00Z",
+  "finished": "2026-07-21T10:00:01Z",
+  "duration_milliseconds": 1000,
+  "exit_code": 0,
+  "timed_out": false,
+  "output_limit_exceeded": false,
+  "repository_state_changed": false,
+  "validator": {
+    "profile": "ISRAS-SD",
+    "version": "0.1.5",
+    "release_tag": "isras-v0.1.5",
+    "source_repository": "github.com/Iron-Signal-Systems/engineering-standards",
+    "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "target": {
+    "repository": "github.com/Iron-Signal-Systems/example-project",
+    "root": "/workspace/target",
+    "commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "branch": "dev",
+    "origin": "git@github.com:Iron-Signal-Systems/example-project.git"
+  },
+  "go_toolchain": {
+    "selected_go_executable": "/opt/hostedtoolcache/go/1.26.0/x64/bin/go",
+    "selected_go_directory": "/opt/hostedtoolcache/go/1.26.0/x64/bin",
+    "selected_go_version": "go1.26.0",
+    "project_go_minimum": "go1.25.12",
+    "project_toolchain_directive": "default",
+    "GOTOOLCHAIN_effective": "local",
+    "GOENV_effective": "off",
+    "go_minimum_satisfied": true,
+    "modules": [
+      {
+        "go_mod_path": "go.mod",
+        "directory": ".",
+        "module_path": "github.com/Iron-Signal-Systems/example-project",
+        "go_minimum": "go1.25.12",
+        "toolchain_directive": "default",
+        "go_minimum_satisfied": true
+      }
+    ]
+  },
+  "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sha512": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e",
+    "sanitized_output": "",
+    "limit_exceeded": false,
+    "redaction_boundary": "credential-shaped values are redacted; raw output is not retained"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sha512": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e",
+    "sanitized_output": "",
+    "limit_exceeded": false,
+    "redaction_boundary": "credential-shaped values are redacted; raw output is not retained"
+  },
+  "govulncheck": {
+    "executable": "/workspace/target/.local/tools/bin/govulncheck",
+    "directory": "/workspace/target/.local/tools/bin",
+    "approved_command_package": "golang.org/x/vuln/cmd/govulncheck",
+    "embedded_module": "golang.org/x/vuln",
+    "version": "v1.6.0",
+    "build_go_version": "go1.26.5-X:nodwarf5",
+    "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "package_scope": "./...",
+    "GOTOOLCHAIN_effective": "local",
+    "GOENV_effective": "off",
+    "modules": [
+      {
+        "go_mod_path": "go.mod",
+        "directory": ".",
+        "module_path": "github.com/Iron-Signal-Systems/example-project",
+        "package_scope": "./...",
+        "environment_names": [
+          "GOCACHE",
+          "GOENV",
+          "GOPATH",
+          "GOTOOLCHAIN",
+          "HOME",
+          "PATH",
+          "TMPDIR",
+          "XDG_CACHE_HOME"
+        ],
+        "started": "2026-07-21T10:00:00Z",
+        "finished": "2026-07-21T10:00:01Z",
+        "duration_milliseconds": 1000,
+        "exit_code": 0,
+        "timed_out": false,
+        "output_limit_exceeded": false,
+        "repository_state_changed": false,
+        "protocol": {
+          "protocol_version": "1.0.0",
+          "scanner_name": "govulncheck",
+          "scanner_version": "v1.6.0",
+          "database": "https://vuln.go.dev",
+          "database_last_modified": "2026-07-21T09:00:00Z",
+          "go_version": "go1.26.5-X:nodwarf5",
+          "scan_level": "symbol",
+          "scan_mode": "source",
+          "message_count": 3,
+          "config_messages": 1,
+          "progress_messages": 1,
+          "sbom_messages": 1,
+          "osv_messages": 0,
+          "finding_messages": 0,
+          "sbom_roots": [
+            "github.com/Iron-Signal-Systems/example-project"
+          ],
+          "sbom_modules": [
+            {
+              "path": "github.com/Iron-Signal-Systems/example-project",
+              "version": ""
+            }
+          ],
+          "osv_advisory_ids": [],
+          "finding_advisory_ids": [],
+          "module_level_findings": 0,
+          "package_level_findings": 0,
+          "symbol_level_findings": 0,
+          "unknown_level_findings": 0
+        },
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "sha512": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e",
+          "sanitized_output": "",
+          "limit_exceeded": false,
+          "redaction_boundary": "credential-shaped values are redacted; raw output is not retained"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "sha512": "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e",
+          "sanitized_output": "",
+          "limit_exceeded": false,
+          "redaction_boundary": "credential-shaped values are redacted; raw output is not retained"
+        }
+      }
+    ],
+    "exceptions": {
+      "present": false,
+      "path": ".isras/govulncheck-exceptions.json",
+      "sha256": "",
+      "schema_version": 1,
+      "evaluated_at": "2026-07-21T10:00:01Z",
+      "used": [],
+      "unused": [],
+      "unexcepted": [],
+      "unknown": []
+    }
+  }
+}

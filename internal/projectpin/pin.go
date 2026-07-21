@@ -21,6 +21,8 @@ const (
 	SourceRepository         = "github.com/Iron-Signal-Systems/engineering-standards"
 	ReusableWorkflowPath     = ".github/workflows/validate-project.yml"
 	RuntimeEvidenceDirectory = ".local/isras"
+	GovulncheckExecutable    = "govulncheck"
+	GovulncheckPackageScope  = "./..."
 	MaxFileSize              = 256 * 1024
 	maxArtifacts             = 32
 	maxProfiles              = 8
@@ -433,6 +435,14 @@ func validateCommands(commands map[string][]string, profiles []string) error {
 			if _, ok := commands[required]; !ok {
 				return fmt.Errorf("Go profile requires command %q", required)
 			}
+		}
+		vulnerabilityCommand := commands["known_vulnerabilities"]
+		if len(vulnerabilityCommand) != 2 ||
+			vulnerabilityCommand[0] != GovulncheckExecutable ||
+			vulnerabilityCommand[1] != GovulncheckPackageScope {
+			return errors.New(
+				`Go profile command "known_vulnerabilities" must be exactly ["govulncheck", "./..."]`,
+			)
 		}
 	}
 	return nil

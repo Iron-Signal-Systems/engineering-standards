@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ironsignalsystems.com/schemas/isras-documentation-impact-execution-v1.schema.json",
+  "title": "ISRAS Documentation Impact Execution Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "policy",
+    "comparison",
+    "report"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL"
+      ]
+    },
+    "failure": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8192,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "policy": {
+      "$ref": "#/$defs/policy"
+    },
+    "comparison": {
+      "$ref": "#/$defs/comparison"
+    },
+    "report": {
+      "$ref": "#/$defs/report"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "FAIL"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "failure"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "PASS"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "policy": {
+            "properties": {
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "schema_version": {
+                "const": 1
+              }
+            }
+          },
+          "comparison": {
+            "properties": {
+              "base_commit": {
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "head_commit": {
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "merge_base": {
+                "pattern": "^[0-9a-f]{40}$"
+              }
+            }
+          },
+          "report": {
+            "properties": {
+              "status": {
+                "const": "PASS"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "path_array": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4096,
+        "pattern": "^[^\\u0000\\r\\n\\\\]+$"
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "schema_version"
+      ],
+      "properties": {
+        "path": {
+          "const": "validation/documentation-impact-policy.json"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^(?:|[0-9a-f]{64})$"
+        },
+        "schema_version": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_base",
+        "requested_head",
+        "base_commit",
+        "head_commit",
+        "merge_base",
+        "changed_paths"
+      ],
+      "properties": {
+        "requested_base": {
+          "type": "string",
+          "maxLength": 512,
+          "pattern": "^[^\\u0000\\r\\n]*$"
+        },
+        "requested_head": {
+          "type": "string",
+          "maxLength": 512,
+          "pattern": "^[^\\u0000\\r\\n]*$"
+        },
+        "base_commit": {
+          "type": "string",
+          "pattern": "^(?:|[0-9a-f]{40})$"
+        },
+        "head_commit": {
+          "type": "string",
+          "pattern": "^(?:|[0-9a-f]{40})$"
+        },
+        "merge_base": {
+          "type": "string",
+          "pattern": "^(?:|[0-9a-f]{40})$"
+        },
+        "changed_paths": {
+          "$ref": "#/$defs/path_array"
+        }
+      }
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "matched_paths",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 1024,
+          "pattern": "^[^\\u0000\\r\\n]+$"
+        },
+        "matched_paths": {
+          "$ref": "#/$defs/path_array"
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL"
+          ]
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "trigger_paths",
+        "requirements",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 1024,
+          "pattern": "^[^\\u0000\\r\\n]+$"
+        },
+        "trigger_paths": {
+          "$ref": "#/$defs/path_array"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/requirement"
+          }
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL"
+          ]
+        }
+      }
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "status",
+        "policy_path",
+        "changed_paths",
+        "triggered_rules"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL"
+          ]
+        },
+        "policy_path": {
+          "const": "validation/documentation-impact-policy.json"
+        },
+        "changed_paths": {
+          "$ref": "#/$defs/path_array"
+        },
+        "triggered_rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/rule"
+          }
+        }
+      }
+    }
+  }
+}

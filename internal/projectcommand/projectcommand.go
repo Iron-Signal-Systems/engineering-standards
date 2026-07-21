@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	EvidenceSchemaVersion = 1
+	EvidenceSchemaVersion = 2
 	ExecutionTimeout      = 20 * time.Minute
 	MaxOutputBytes        = 1024 * 1024
 	maxEvidenceNameBytes  = 96
@@ -91,6 +91,27 @@ type TargetEvidence struct {
 	Origin     string `json:"origin"`
 }
 
+type GoModuleEvidence struct {
+	GoModPath          string `json:"go_mod_path"`
+	Directory          string `json:"directory"`
+	ModulePath         string `json:"module_path"`
+	GoMinimum          string `json:"go_minimum"`
+	ToolchainDirective string `json:"toolchain_directive,omitempty"`
+	GoMinimumSatisfied bool   `json:"go_minimum_satisfied"`
+}
+
+type GoToolchainEvidence struct {
+	SelectedGoExecutable      string             `json:"selected_go_executable"`
+	SelectedGoDirectory       string             `json:"selected_go_directory"`
+	SelectedGoVersion         string             `json:"selected_go_version"`
+	ProjectGoMinimum          string             `json:"project_go_minimum"`
+	ProjectToolchainDirective string             `json:"project_toolchain_directive,omitempty"`
+	GOTOOLCHAINEffective      string             `json:"GOTOOLCHAIN_effective"`
+	GOENVEffective            string             `json:"GOENV_effective"`
+	GoMinimumSatisfied        bool               `json:"go_minimum_satisfied"`
+	Modules                   []GoModuleEvidence `json:"modules"`
+}
+
 type StreamEvidence struct {
 	Bytes          int64  `json:"bytes"`
 	SHA256         string `json:"sha256"`
@@ -101,32 +122,34 @@ type StreamEvidence struct {
 }
 
 type Result struct {
-	SchemaVersion          int              `json:"schema_version"`
-	RunID                  string           `json:"run_id"`
-	Authorization          string           `json:"authorization"`
-	Status                 string           `json:"status"`
-	Failure                string           `json:"failure,omitempty"`
-	Mode                   string           `json:"mode"`
-	CommandName            string           `json:"command_name"`
-	Arguments              []string         `json:"arguments"`
-	ResolvedExecutable     string           `json:"resolved_executable"`
-	WorkingDirectory       string           `json:"working_directory"`
-	EnvironmentNames       []string         `json:"environment_names"`
-	TimeoutSeconds         int64            `json:"timeout_seconds"`
-	OutputLimitBytes       int64            `json:"output_limit_bytes_per_stream"`
-	Started                time.Time        `json:"started"`
-	Finished               time.Time        `json:"finished"`
-	DurationMilliseconds   int64            `json:"duration_milliseconds"`
-	ExitCode               int              `json:"exit_code"`
-	TimedOut               bool             `json:"timed_out"`
-	OutputLimitExceeded    bool             `json:"output_limit_exceeded"`
-	RepositoryStateChanged bool             `json:"repository_state_changed"`
-	Validator              IdentityEvidence `json:"validator"`
-	Target                 TargetEvidence   `json:"target"`
-	Stdout                 StreamEvidence   `json:"stdout"`
-	Stderr                 StreamEvidence   `json:"stderr"`
-	EvidenceJSON           string           `json:"-"`
-	EvidenceText           string           `json:"-"`
+	SchemaVersion          int                  `json:"schema_version"`
+	RunID                  string               `json:"run_id"`
+	Authorization          string               `json:"authorization"`
+	Status                 string               `json:"status"`
+	Failure                string               `json:"failure,omitempty"`
+	Mode                   string               `json:"mode"`
+	CommandName            string               `json:"command_name"`
+	Arguments              []string             `json:"arguments"`
+	ResolvedExecutable     string               `json:"resolved_executable"`
+	WorkingDirectory       string               `json:"working_directory"`
+	EnvironmentNames       []string             `json:"environment_names"`
+	TimeoutSeconds         int64                `json:"timeout_seconds"`
+	OutputLimitBytes       int64                `json:"output_limit_bytes_per_stream"`
+	Started                time.Time            `json:"started"`
+	Finished               time.Time            `json:"finished"`
+	DurationMilliseconds   int64                `json:"duration_milliseconds"`
+	ExitCode               int                  `json:"exit_code"`
+	TimedOut               bool                 `json:"timed_out"`
+	OutputLimitExceeded    bool                 `json:"output_limit_exceeded"`
+	RepositoryStateChanged bool                 `json:"repository_state_changed"`
+	Validator              IdentityEvidence     `json:"validator"`
+	Target                 TargetEvidence       `json:"target"`
+	GoToolchain            *GoToolchainEvidence `json:"go_toolchain,omitempty"`
+	Govulncheck            *GovulncheckEvidence `json:"govulncheck,omitempty"`
+	Stdout                 StreamEvidence       `json:"stdout"`
+	Stderr                 StreamEvidence       `json:"stderr"`
+	EvidenceJSON           string               `json:"-"`
+	EvidenceText           string               `json:"-"`
 }
 
 type gitSnapshot struct {
@@ -135,6 +158,18 @@ type gitSnapshot struct {
 }
 
 func Execute(ctx context.Context, request Request) (Result, error) {
+	return executeProjectCommand(
+		ctx,
+		request,
+		executeGovulncheckRuntime,
+	)
+}
+
+func executeProjectCommand(
+	ctx context.Context,
+	request Request,
+	govulncheckExecutor govulncheckRuntimeExecutor,
+) (Result, error) {
 	result := newResult(request)
 	arguments, err := authorize(ctx, request)
 	if err != nil {
@@ -164,6 +199,16 @@ func Execute(ctx context.Context, request Request) (Result, error) {
 	}
 	result.EvidenceJSON = filepath.Join(runDirectory, "execution.json")
 	result.EvidenceText = filepath.Join(runDirectory, "execution.txt")
+
+	if request.Name == "known_vulnerabilities" {
+		return executeGovulncheckProjectCommand(
+			ctx,
+			request,
+			result,
+			pendingPath,
+			govulncheckExecutor,
+		)
+	}
 
 	resolved, err := resolveExecutable(ctx, request.Root, arguments[0])
 	if err != nil {
@@ -204,7 +249,14 @@ func Execute(ctx context.Context, request Request) (Result, error) {
 	}
 	defer os.RemoveAll(environmentRoot)
 
-	environment, environmentNames, err := commandEnvironment(environmentRoot, resolved, request)
+	environment, environmentNames, selectedGo, err := commandEnvironmentWithGoSelection(
+		environmentRoot,
+		resolved,
+		request,
+	)
+	if projectUsesGoProfile(request) {
+		result.GoToolchain = newGoToolchainEvidence(selectedGo)
+	}
 	if err != nil {
 		result.Status = "FAIL"
 		result.Failure = err.Error()
@@ -481,6 +533,28 @@ func isShell(base string) bool {
 }
 
 func commandEnvironment(runDirectory, resolvedExecutable string, request Request) ([]string, []string, error) {
+	environment, names, _, err := commandEnvironmentWithGoSelection(
+		runDirectory,
+		resolvedExecutable,
+		request,
+	)
+	return environment, names, err
+}
+
+func commandEnvironmentWithGoSelection(
+	runDirectory string,
+	resolvedExecutable string,
+	request Request,
+) ([]string, []string, goToolchainSelection, error) {
+	var selectedGo goToolchainSelection
+	if projectUsesGoProfile(request) {
+		var err error
+		selectedGo, err = selectGoToolchain(request.Root)
+		if err != nil {
+			return nil, nil, selectedGo, err
+		}
+	}
+
 	isolated := map[string]string{
 		"HOME":                          filepath.Join(runDirectory, "home"),
 		"TMPDIR":                        filepath.Join(runDirectory, "tmp"),
@@ -489,26 +563,30 @@ func commandEnvironment(runDirectory, resolvedExecutable string, request Request
 		"GOPATH":                        filepath.Join(runDirectory, "go"),
 		"LANG":                          "C",
 		"LC_ALL":                        "C",
-		"PATH":                          sanitizedCommandPath(resolvedExecutable),
+		"PATH":                          sanitizedCommandPath(resolvedExecutable, selectedGo.Directory),
 		"ISRAS_PROJECT_ROOT":            request.Root,
 		"ISRAS_PROJECT_COMMAND":         request.Name,
 		"ISRAS_VALIDATOR_SOURCE_COMMIT": request.Validator.SourceCommit,
 	}
 	for _, path := range []string{isolated["HOME"], isolated["TMPDIR"], isolated["XDG_CACHE_HOME"], isolated["GOCACHE"], isolated["GOPATH"]} {
 		if err := os.MkdirAll(path, 0o700); err != nil {
-			return nil, nil, errors.New("create isolated project command environment")
+			return nil, nil, selectedGo, errors.New("create isolated project command environment")
 		}
 	}
 	for _, name := range inheritedEnvironmentNames {
 		if value, ok := os.LookupEnv(name); ok && value != "" {
 			if strings.ContainsAny(value, "\x00\r\n") {
-				return nil, nil, fmt.Errorf("environment variable %s contains a prohibited control character", name)
+				return nil, nil, selectedGo, fmt.Errorf("environment variable %s contains a prohibited control character", name)
 			}
 			isolated[name] = value
 		}
 	}
+	if projectUsesGoProfile(request) {
+		isolated["GOTOOLCHAIN"] = "local"
+		isolated["GOENV"] = "off"
+	}
 	if err := validatePath(isolated["PATH"]); err != nil {
-		return nil, nil, err
+		return nil, nil, selectedGo, err
 	}
 	names := make([]string, 0, len(isolated))
 	for name := range isolated {
@@ -519,11 +597,44 @@ func commandEnvironment(runDirectory, resolvedExecutable string, request Request
 	for _, name := range names {
 		environment = append(environment, name+"="+isolated[name])
 	}
-	return environment, names, nil
+	return environment, names, selectedGo, nil
 }
 
-func sanitizedCommandPath(resolvedExecutable string) string {
-	candidates := []string{filepath.Dir(resolvedExecutable), "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"}
+func newGoToolchainEvidence(
+	selection goToolchainSelection,
+) *GoToolchainEvidence {
+	modules := make(
+		[]GoModuleEvidence,
+		len(selection.Modules),
+	)
+	for index, module := range selection.Modules {
+		modules[index] = GoModuleEvidence{
+			GoModPath:          module.GoModPath,
+			Directory:          module.Directory,
+			ModulePath:         module.ModulePath,
+			GoMinimum:          module.Minimum,
+			ToolchainDirective: module.Toolchain,
+			GoMinimumSatisfied: module.MinimumSatisfied,
+		}
+	}
+
+	return &GoToolchainEvidence{
+		SelectedGoExecutable:      selection.Executable,
+		SelectedGoDirectory:       selection.Directory,
+		SelectedGoVersion:         selection.Actual,
+		ProjectGoMinimum:          selection.Minimum,
+		ProjectToolchainDirective: selection.Toolchain,
+		GOTOOLCHAINEffective:      "local",
+		GOENVEffective:            "off",
+		GoMinimumSatisfied:        selection.MinimumSatisfied,
+		Modules:                   modules,
+	}
+}
+
+func sanitizedCommandPath(resolvedExecutable string, preferredDirectories ...string) string {
+	candidates := make([]string, 0, len(preferredDirectories)+7)
+	candidates = append(candidates, preferredDirectories...)
+	candidates = append(candidates, filepath.Dir(resolvedExecutable), "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin")
 	seen := make(map[string]bool)
 	out := make([]string, 0, len(candidates))
 	for _, candidate := range candidates {
@@ -757,6 +868,102 @@ func renderText(result Result) []byte {
 	fmt.Fprintf(&builder, "Output limit exceeded: %t\n", result.OutputLimitExceeded)
 	fmt.Fprintf(&builder, "Repository state changed: %t\n", result.RepositoryStateChanged)
 	fmt.Fprintf(&builder, "Environment names: %s\n", strings.Join(result.EnvironmentNames, ", "))
+	if result.GoToolchain != nil {
+		fmt.Fprintf(&builder, "Selected Go executable: %s\n", result.GoToolchain.SelectedGoExecutable)
+		fmt.Fprintf(&builder, "Selected Go directory: %s\n", result.GoToolchain.SelectedGoDirectory)
+		fmt.Fprintf(&builder, "Selected Go version: %s\n", result.GoToolchain.SelectedGoVersion)
+		fmt.Fprintf(&builder, "Project Go minimum: %s\n", result.GoToolchain.ProjectGoMinimum)
+		if result.GoToolchain.ProjectToolchainDirective != "" {
+			fmt.Fprintf(&builder, "Project toolchain directive: %s\n", result.GoToolchain.ProjectToolchainDirective)
+		}
+		fmt.Fprintf(&builder, "GOTOOLCHAIN effective: %s\n", result.GoToolchain.GOTOOLCHAINEffective)
+		fmt.Fprintf(&builder, "GOENV effective: %s\n", result.GoToolchain.GOENVEffective)
+		fmt.Fprintf(&builder, "Go minimum satisfied: %t\n", result.GoToolchain.GoMinimumSatisfied)
+		fmt.Fprintf(&builder, "Go module count: %d\n", len(result.GoToolchain.Modules))
+		for index, module := range result.GoToolchain.Modules {
+			fmt.Fprintf(&builder, "Go module %d go.mod: %s\n", index+1, module.GoModPath)
+			fmt.Fprintf(&builder, "Go module %d directory: %s\n", index+1, module.Directory)
+			fmt.Fprintf(&builder, "Go module %d path: %s\n", index+1, module.ModulePath)
+			fmt.Fprintf(&builder, "Go module %d minimum: %s\n", index+1, module.GoMinimum)
+			if module.ToolchainDirective != "" {
+				fmt.Fprintf(&builder, "Go module %d toolchain directive: %s\n", index+1, module.ToolchainDirective)
+			}
+			fmt.Fprintf(&builder, "Go module %d minimum satisfied: %t\n", index+1, module.GoMinimumSatisfied)
+		}
+	}
+	if result.Govulncheck != nil {
+		scanner := result.Govulncheck
+		fmt.Fprintf(&builder, "Govulncheck executable: %s\n", scanner.Executable)
+		fmt.Fprintf(&builder, "Govulncheck directory: %s\n", scanner.Directory)
+		fmt.Fprintf(&builder, "Govulncheck approved command package: %s\n", scanner.ApprovedCommandPackage)
+		fmt.Fprintf(&builder, "Govulncheck embedded module: %s\n", scanner.EmbeddedModule)
+		fmt.Fprintf(&builder, "Govulncheck version: %s\n", scanner.Version)
+		fmt.Fprintf(&builder, "Govulncheck build Go version: %s\n", scanner.BuildGoVersion)
+		fmt.Fprintf(&builder, "Govulncheck SHA-256: %s\n", scanner.SHA256)
+		fmt.Fprintf(&builder, "Govulncheck package scope: %s\n", scanner.PackageScope)
+		fmt.Fprintf(&builder, "Govulncheck GOTOOLCHAIN effective: %s\n", scanner.GOTOOLCHAINEffective)
+		fmt.Fprintf(&builder, "Govulncheck GOENV effective: %s\n", scanner.GOENVEffective)
+		renderGovulncheckExceptionEvidence(&builder, scanner.Exceptions)
+		fmt.Fprintf(&builder, "Govulncheck module count: %d\n", len(scanner.Modules))
+		for index, module := range scanner.Modules {
+			number := index + 1
+			fmt.Fprintf(&builder, "Govulncheck module %d go.mod: %s\n", number, module.GoModPath)
+			fmt.Fprintf(&builder, "Govulncheck module %d directory: %s\n", number, module.Directory)
+			fmt.Fprintf(&builder, "Govulncheck module %d module path: %s\n", number, module.ModulePath)
+			fmt.Fprintf(&builder, "Govulncheck module %d package scope: %s\n", number, module.PackageScope)
+			fmt.Fprintf(&builder, "Govulncheck module %d environment names: %s\n", number, strings.Join(module.EnvironmentNames, ", "))
+			fmt.Fprintf(&builder, "Govulncheck module %d started: %s\n", number, module.Started)
+			fmt.Fprintf(&builder, "Govulncheck module %d finished: %s\n", number, module.Finished)
+			fmt.Fprintf(&builder, "Govulncheck module %d duration milliseconds: %d\n", number, module.DurationMilliseconds)
+			fmt.Fprintf(&builder, "Govulncheck module %d exit code: %d\n", number, module.ExitCode)
+			fmt.Fprintf(&builder, "Govulncheck module %d timed out: %t\n", number, module.TimedOut)
+			fmt.Fprintf(&builder, "Govulncheck module %d output limit exceeded: %t\n", number, module.OutputLimitExceeded)
+			fmt.Fprintf(&builder, "Govulncheck module %d repository state changed: %t\n", number, module.RepositoryStateChanged)
+			fmt.Fprintf(&builder, "Govulncheck module %d protocol version: %s\n", number, module.Protocol.ProtocolVersion)
+			fmt.Fprintf(&builder, "Govulncheck module %d scanner name: %s\n", number, module.Protocol.ScannerName)
+			fmt.Fprintf(&builder, "Govulncheck module %d scanner version: %s\n", number, module.Protocol.ScannerVersion)
+			fmt.Fprintf(&builder, "Govulncheck module %d database: %s\n", number, module.Protocol.Database)
+			fmt.Fprintf(&builder, "Govulncheck module %d database last modified: %s\n", number, module.Protocol.DatabaseLastModified)
+			fmt.Fprintf(&builder, "Govulncheck module %d Go version: %s\n", number, module.Protocol.GoVersion)
+			fmt.Fprintf(&builder, "Govulncheck module %d scan level: %s\n", number, module.Protocol.ScanLevel)
+			fmt.Fprintf(&builder, "Govulncheck module %d scan mode: %s\n", number, module.Protocol.ScanMode)
+			fmt.Fprintf(&builder, "Govulncheck module %d message count: %d\n", number, module.Protocol.MessageCount)
+			fmt.Fprintf(&builder, "Govulncheck module %d config messages: %d\n", number, module.Protocol.ConfigMessages)
+			fmt.Fprintf(&builder, "Govulncheck module %d progress messages: %d\n", number, module.Protocol.ProgressMessages)
+			fmt.Fprintf(&builder, "Govulncheck module %d SBOM messages: %d\n", number, module.Protocol.SBOMMessages)
+			fmt.Fprintf(&builder, "Govulncheck module %d OSV messages: %d\n", number, module.Protocol.OSVMessages)
+			fmt.Fprintf(&builder, "Govulncheck module %d finding messages: %d\n", number, module.Protocol.FindingMessages)
+			fmt.Fprintf(&builder, "Govulncheck module %d SBOM roots: %s\n", number, strings.Join(module.Protocol.SBOMRoots, ", "))
+			protocolModules := make([]string, len(module.Protocol.SBOMModules))
+			for moduleIndex, protocolModule := range module.Protocol.SBOMModules {
+				protocolModules[moduleIndex] = protocolModule.Path
+				if protocolModule.Version != "" {
+					protocolModules[moduleIndex] += "@" + protocolModule.Version
+				}
+			}
+			fmt.Fprintf(&builder, "Govulncheck module %d SBOM modules: %s\n", number, strings.Join(protocolModules, ", "))
+			fmt.Fprintf(&builder, "Govulncheck module %d OSV advisory IDs: %s\n", number, strings.Join(module.Protocol.OSVAdvisoryIDs, ", "))
+			fmt.Fprintf(&builder, "Govulncheck module %d finding advisory IDs: %s\n", number, strings.Join(module.Protocol.FindingAdvisoryIDs, ", "))
+			fmt.Fprintf(&builder, "Govulncheck module %d module-level findings: %d\n", number, module.Protocol.ModuleLevelFindings)
+			fmt.Fprintf(&builder, "Govulncheck module %d package-level findings: %d\n", number, module.Protocol.PackageLevelFindings)
+			fmt.Fprintf(&builder, "Govulncheck module %d symbol-level findings: %d\n", number, module.Protocol.SymbolLevelFindings)
+			fmt.Fprintf(&builder, "Govulncheck module %d unknown-level findings: %d\n", number, module.Protocol.UnknownLevelFindings)
+			fmt.Fprintf(&builder, "Govulncheck module %d stdout bytes: %d\n", number, module.Stdout.Bytes)
+			fmt.Fprintf(&builder, "Govulncheck module %d stdout SHA-256: %s\n", number, module.Stdout.SHA256)
+			fmt.Fprintf(&builder, "Govulncheck module %d stdout SHA-512: %s\n", number, module.Stdout.SHA512)
+			fmt.Fprintf(&builder, "Govulncheck module %d stderr bytes: %d\n", number, module.Stderr.Bytes)
+			fmt.Fprintf(&builder, "Govulncheck module %d stderr SHA-256: %s\n", number, module.Stderr.SHA256)
+			fmt.Fprintf(&builder, "Govulncheck module %d stderr SHA-512: %s\n", number, module.Stderr.SHA512)
+			fmt.Fprintf(&builder, "\nGOVULNCHECK MODULE %d SANITIZED STDOUT\n--------------------------------------\n%s", number, module.Stdout.Sanitized)
+			if !strings.HasSuffix(module.Stdout.Sanitized, "\n") {
+				builder.WriteByte('\n')
+			}
+			fmt.Fprintf(&builder, "\nGOVULNCHECK MODULE %d SANITIZED STDERR\n--------------------------------------\n%s", number, module.Stderr.Sanitized)
+			if !strings.HasSuffix(module.Stderr.Sanitized, "\n") {
+				builder.WriteByte('\n')
+			}
+		}
+	}
 	fmt.Fprintf(&builder, "Stdout bytes: %d\n", result.Stdout.Bytes)
 	fmt.Fprintf(&builder, "Stdout SHA-256: %s\n", result.Stdout.SHA256)
 	fmt.Fprintf(&builder, "Stdout SHA-512: %s\n", result.Stdout.SHA512)

@@ -179,6 +179,101 @@ jobs:
             --mode commit \
             project-pin verify-artifacts
 
+      - name: Install exact pinned govulncheck
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          govulncheck_module="$(
+            python3 -c 'import json; print(json.load(open("standard/validation/tool-versions.json", encoding="utf-8"))["tools"]["govulncheck"]["module"])'
+          )"
+          govulncheck_version="$(
+            python3 -c 'import json; print(json.load(open("standard/validation/tool-versions.json", encoding="utf-8"))["tools"]["govulncheck"]["version"])'
+          )"
+          test "$govulncheck_module" = "golang.org/x/vuln/cmd/govulncheck"
+          [[ "$govulncheck_version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+
+          for candidate in \
+            target/.local \
+            target/.local/tools \
+            target/.local/tools/bin \
+            target/.local/isras \
+            target/.local/isras/runtime
+          do
+            test ! -L "$candidate"
+          done
+
+          mkdir -p \
+            target/.local/tools/bin \
+            target/.local/isras/runtime
+
+          test -d target/.local/tools/bin
+          test -d target/.local/isras/runtime
+
+          install -m 0600 \
+            standard/validation/tool-versions.json \
+            target/.local/isras/runtime/tool-versions.json
+
+          cmp -s \
+            standard/validation/tool-versions.json \
+            target/.local/isras/runtime/tool-versions.json
+          (
+            cd target
+            GOTOOLCHAIN=local \
+              GOENV=off \
+              GOBIN="$PWD/.local/tools/bin" \
+              go install \
+              "${govulncheck_module}@${govulncheck_version}"
+          )
+
+          selected_go="$(command -v go)"
+          test -n "$selected_go"
+          tool_path="$GITHUB_WORKSPACE/target/.local/tools/bin/govulncheck"
+          test -x "$tool_path"
+
+          build_info="$RUNNER_TEMP/isras-govulncheck-build-info.txt"
+          GOTOOLCHAIN=local \
+            GOENV=off \
+            "$selected_go" version -m "$tool_path" |
+            tee "$build_info"
+
+          python3 - \
+            "$govulncheck_module" \
+            "$govulncheck_version" \
+            "$build_info" <<'PY'
+          import sys
+          from pathlib import Path
+
+          command_path, expected_version, info_path = sys.argv[1:]
+          module_root = command_path.split("/cmd/", 1)[0]
+          observed_path = ""
+          observed_module = ""
+          observed_version = ""
+
+          for raw in Path(info_path).read_text(encoding="utf-8").splitlines():
+              fields = raw.lstrip().split("\t")
+              if len(fields) >= 2 and fields[0] == "path":
+                  observed_path = fields[1]
+              if len(fields) >= 3 and fields[0] == "mod":
+                  observed_module = fields[1]
+                  observed_version = fields[2]
+
+          if observed_path != command_path:
+              raise SystemExit(
+                  f"unexpected govulncheck command path: {observed_path!r}"
+              )
+          if observed_module != module_root:
+              raise SystemExit(
+                  f"unexpected govulncheck module: {observed_module!r}"
+              )
+          if observed_version != expected_version:
+              raise SystemExit(
+                  f"unexpected govulncheck version: {observed_version!r}"
+              )
+          PY
+
+          printf '%s\n' "$GITHUB_WORKSPACE/target/.local/tools/bin" \
+            >> "$GITHUB_PATH"
+
       - name: Run every committed project command
         shell: bash
         run: |

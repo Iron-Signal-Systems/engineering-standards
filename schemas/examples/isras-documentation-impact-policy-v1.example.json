@@ -1,0 +1,285 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "implementation",
+      "description": "Repository implementation, validator, test, module, or executable source changes require synchronized governance documentation.",
+      "triggers": [
+        {
+          "prefix": "internal/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "cmd/",
+          "suffix": ".go"
+        },
+        {
+          "path": "go.mod"
+        },
+        {
+          "path": "go.sum"
+        }
+      ],
+      "requirements": [
+        {
+          "id": "changelog",
+          "description": "The same change set updates the unreleased changelog.",
+          "all": [
+            {
+              "path": "CHANGELOG.md"
+            }
+          ]
+        },
+        {
+          "id": "standard",
+          "description": "The same change set updates at least one governing standard.",
+          "any": [
+            {
+              "prefix": "standards/",
+              "suffix": ".md"
+            }
+          ]
+        },
+        {
+          "id": "record",
+          "description": "The same change set updates at least one implementation or acceptance record.",
+          "any": [
+            {
+              "prefix": "docs/records/",
+              "suffix": ".md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "documentation-impact-policy",
+      "description": "The documentation-impact policy or its evaluator changes require synchronized self-governance documentation.",
+      "triggers": [
+        {
+          "path": "validation/documentation-impact-policy.json"
+        },
+        {
+          "prefix": "internal/docimpact/",
+          "suffix": ".go"
+        }
+      ],
+      "requirements": [
+        {
+          "id": "changelog",
+          "description": "The same change set updates the unreleased changelog.",
+          "all": [
+            {
+              "path": "CHANGELOG.md"
+            }
+          ]
+        },
+        {
+          "id": "standard",
+          "description": "The same change set updates the documentation-impact standard.",
+          "all": [
+            {
+              "path": "standards/DOCUMENTATION-IMPACT.md"
+            }
+          ]
+        },
+        {
+          "id": "record",
+          "description": "The same change set updates the documentation-impact implementation record.",
+          "all": [
+            {
+              "path": "docs/records/DOCUMENTATION-IMPACT-GATE.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "schema",
+      "description": "Schema changes require synchronized governed examples and documentation.",
+      "triggers": [
+        {
+          "prefix": "schemas/",
+          "suffix": ".schema.json"
+        }
+      ],
+      "requirements": [
+        {
+          "id": "changelog",
+          "description": "The same change set updates the unreleased changelog.",
+          "all": [
+            {
+              "path": "CHANGELOG.md"
+            }
+          ]
+        },
+        {
+          "id": "standard",
+          "description": "The same change set updates at least one governing standard.",
+          "any": [
+            {
+              "prefix": "standards/",
+              "suffix": ".md"
+            }
+          ]
+        },
+        {
+          "id": "record",
+          "description": "The same change set updates at least one implementation or acceptance record.",
+          "any": [
+            {
+              "prefix": "docs/records/",
+              "suffix": ".md"
+            }
+          ]
+        },
+        {
+          "id": "example",
+          "description": "The same change set updates at least one governed schema example.",
+          "any": [
+            {
+              "prefix": "schemas/examples/",
+              "suffix": ".json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hosted-workflow",
+      "description": "Hosted validation workflow changes require synchronized testing and execution governance.",
+      "triggers": [
+        {
+          "prefix": ".github/workflows/",
+          "suffix": ".yml"
+        },
+        {
+          "prefix": ".github/workflows/",
+          "suffix": ".yaml"
+        }
+      ],
+      "requirements": [
+        {
+          "id": "changelog",
+          "description": "The same change set updates the unreleased changelog.",
+          "all": [
+            {
+              "path": "CHANGELOG.md"
+            }
+          ]
+        },
+        {
+          "id": "testing-standard",
+          "description": "The same change set updates the testing or project-command execution standard.",
+          "any": [
+            {
+              "path": "standards/TESTING-AND-VALIDATION.md"
+            },
+            {
+              "path": "standards/PROJECT-COMMAND-EXECUTION.md"
+            }
+          ]
+        },
+        {
+          "id": "record",
+          "description": "The same change set updates at least one implementation or acceptance record.",
+          "any": [
+            {
+              "prefix": "docs/records/",
+              "suffix": ".md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "release-and-adoption",
+      "description": "Release, project-pin, adoption, provenance, or publication implementation changes require synchronized lifecycle governance.",
+      "triggers": [
+        {
+          "prefix": "internal/projectpin/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "internal/exportvalidator/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "internal/releaseartifact/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "internal/releaseartifactbuild/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "internal/releasepublication/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "internal/releasevalidation/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "internal/releaseworkflow/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "cmd/isras-release/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "cmd/isras-release-artifacts/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "cmd/isras-release-publication/",
+          "suffix": ".go"
+        },
+        {
+          "prefix": "cmd/isras-release-validate/",
+          "suffix": ".go"
+        }
+      ],
+      "requirements": [
+        {
+          "id": "changelog",
+          "description": "The same change set updates the unreleased changelog.",
+          "all": [
+            {
+              "path": "CHANGELOG.md"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle-standard",
+          "description": "The same change set updates an adoption, release, pin, provenance, or acceptance standard.",
+          "any": [
+            {
+              "path": "standards/PROJECT-INITIALIZATION-AND-ADOPTION.md"
+            },
+            {
+              "path": "standards/PROJECT-PIN-SCHEMA.md"
+            },
+            {
+              "path": "standards/RELEASE-PROCESS.md"
+            },
+            {
+              "path": "standards/TESTING-AND-VALIDATION.md"
+            }
+          ]
+        },
+        {
+          "id": "record",
+          "description": "The same change set updates at least one implementation or acceptance record.",
+          "any": [
+            {
+              "prefix": "docs/records/",
+              "suffix": ".md"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -128,6 +128,34 @@ func TestParseRejectsMissingGoCommand(t *testing.T) {
 	requirePinError(t, pin, `Go profile requires command "known_vulnerabilities"`)
 }
 
+func TestParseRejectsImplicitGovulncheckAcquisition(t *testing.T) {
+	pin := validPin()
+	pin.Commands["known_vulnerabilities"] = []string{
+		"go",
+		"run",
+		"golang.org/x/vuln/cmd/govulncheck@v1.6.0",
+		"./...",
+	}
+	requirePinError(
+		t,
+		pin,
+		`must be exactly ["govulncheck", "./..."]`,
+	)
+}
+
+func TestParseRejectsChangedGovulncheckScope(t *testing.T) {
+	pin := validPin()
+	pin.Commands["known_vulnerabilities"] = []string{
+		"govulncheck",
+		"./cmd/...",
+	}
+	requirePinError(
+		t,
+		pin,
+		`must be exactly ["govulncheck", "./..."]`,
+	)
+}
+
 func TestParseRejectsOpaqueExecutableString(t *testing.T) {
 	pin := validPin()
 	pin.Commands["test"] = []string{"go test ./..."}

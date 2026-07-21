@@ -82,6 +82,8 @@ func runTargetAware(rawArgs []string) int {
 		return render(validatorIdentity.Header(), model.Summary{Checks: runner.System(ctx)})
 	case "repo", "repository":
 		return render(validatorIdentity.Header(), model.Summary{Checks: runner.Repository(ctx)})
+	case "documentation-impact":
+		return runDocumentationImpact(ctx, runner, args[1:])
 	case "project-pin":
 		return runProjectPin(ctx, runner, args[1:])
 	case "project-command":
@@ -156,7 +158,7 @@ func parseGlobalOptions(args []string) ([]string, globalOptions, error) {
 
 func knownTargetCommand(command string) bool {
 	switch command {
-	case "all", "system", "repo", "repository", "project-pin", "project-command", "go", "secrets", "fix":
+	case "all", "system", "repo", "repository", "documentation-impact", "project-pin", "project-command", "go", "secrets", "fix":
 		return true
 	default:
 		return false

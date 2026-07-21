@@ -2,7 +2,92 @@
 
 ## Unreleased
 
-No changes have been recorded after the `0.1.4` release boundary.
+- Preserve the active caller-selected Go toolchain directory inside the bounded
+  project-command `PATH` for Go-profile projects and force child commands to use
+  `GOTOOLCHAIN=local` and `GOENV=off` regardless of caller-provided values.
+- Enforce the consuming project's `go.mod` `go` directive as a minimum toolchain
+  version, accepting later compatible releases and valid custom toolchain suffixes.
+- Add regression coverage for newer custom toolchains and rejection of toolchains
+  below the declared minimum.
+- Replace first-match `go.mod` scanning with bounded governed parsing and
+  explicit optional `toolchain` handling.
+- Advance project-command evidence to governed schema version 2 while preserving
+  version 1 and recording selected-Go identity and minimum comparison evidence.
+- Discover every repository-owned Go module, enforce the selected toolchain
+  against the highest and each per-module minimum, and retain a sorted module
+  inventory in evidence schema version 2.
+- Restrict module discovery to Git-tracked and nonignored-untracked source paths,
+  excluding generated `.local/` validation, command, release, and tooling evidence.
+- Resolve repository-inventory Git from bounded absolute system directories so
+  caller `PATH` changes cannot break or redirect module discovery.
+
+- Require the Go-profile vulnerability command to be exactly `govulncheck ./...`,
+  move acquisition into explicit pinned workflow steps, and verify exact binary
+  command-path, module, and version identity before project-command execution.
+
+- Add a fail-closed parser for concatenated govulncheck streaming JSON,
+  including exact message boundaries and module/package/symbol/unknown
+  finding classification with synthetic hostile-protocol tests.
+
+- Add strict governed govulncheck declaration loading and exact binary
+  identity verification through the selected Go executable, including
+  command-package, module, version, build-Go, and SHA-256 evidence.
+
+- Add deterministic exact govulncheck execution for every repository-owned
+  Go module with isolated selected-Go environments, bounded process/output
+  controls, protocol validation, and repository-mutation detection.
+
+- Add deterministic typed govulncheck evidence projection with exact governed
+  module coverage reconciliation, scanner identity, protocol summaries,
+  bounded streams, and defensive data cloning.
+
+- Extend project-command evidence v2 with typed per-module govulncheck JSON
+  and text output, synchronized schema definitions, and a governed pass
+  example while preserving evidence v1 and non-vulnerability v2 artifacts.
+
+- Add internal govulncheck runtime orchestration joining exact selected-Go
+  and scanner identity, complete module execution, typed evidence, and
+  fail-closed reachable/unknown finding policy without tool acquisition.
+
+- Route Go-profile `known_vulnerabilities` through the complete exact pinned
+  per-module runtime, require typed v2 evidence for passing scans, retain
+  reachable-finding failure evidence, and stage exact hosted runtime inputs.
+
+- Define the fail-closed governed govulncheck exception document with exact
+  advisory/module/package/symbol scope, independent approval, expiration,
+  compensating controls, remediation, schema, example, and hostile tests.
+
+- Preserve exact symbol-level govulncheck finding identities and reconcile
+  them deterministically against exact advisory/go.mod/module/package/symbol
+  exception scopes, retaining used, unused, and unexcepted result sets.
+
+- Integrate exact govulncheck exception reconciliation into runtime policy
+  and evidence v2, retaining document digests, complete governance records,
+  used/unused/unexcepted outcomes, and fail-closed unknown findings.
+
+- Clarify ISRAS as the governing engineering authority for Iron Signal
+  Systems repositories, distinguish public visibility from a general-purpose
+  public product, and affirm a language-neutral core with additive profiles.
+
+- Add the versioned language-neutral documentation-impact policy, strict
+  parser, deterministic evaluator, typed rule evidence, schema, governed
+  example, and hostile validation campaign.
+
+- Enforce documentation impact through exact merge-base Git comparison,
+  validator CLI execution, deterministic JSON/text evidence, failure-path
+  retention, and Ubuntu, Arch Linux, and Fedora hosted validation jobs.
+
+- Correct documentation-impact release triggers to exact directory
+  prefixes, synchronize the governed policy example, and load the actual
+  repository policy in tests to prevent synthetic-fixture drift.
+
+- Add the complete disposable Workstream A A1-A6 local acceptance campaign,
+  including committed-candidate validation, live exact-scanner execution,
+  and a retained-evidence negative documentation-impact proof.
+
+- Correct bounded Go module inventory for bind-mounted container workspaces
+  by trusting only the exact repository root through command-scoped Git
+  configuration while disabling inherited global and system configuration.
 
 ## 0.1.4 — 2026-07-19
 
