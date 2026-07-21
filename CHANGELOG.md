@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes have been recorded after the `0.1.5` release boundary.
+
+## 0.1.5 — 2026-07-21
+
 - Preserve the active caller-selected Go toolchain directory inside the bounded
   project-command `PATH` for Go-profile projects and force child commands to use
   `GOTOOLCHAIN=local` and `GOENV=off` regardless of caller-provided values.
