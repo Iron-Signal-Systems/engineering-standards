@@ -48,27 +48,27 @@ per-module source inventory, and the selected Go implementation must satisfy
 every discovered source module before command execution. Generated `.local/`
 runtime evidence is explicitly excluded from the module boundary.
 
-This source boundary declares `0.1.6`. Before publication it is a corrective
-release candidate; after publication only the exact signed `isras-v0.1.6` tag
+This source boundary declares `0.1.7`. Before publication it is a corrective
+release candidate; after publication only the exact signed `isras-v0.1.7` tag
 and its verified six-asset GitHub Release can establish accepted release
 identity. A stable `VERSION` value, `dev`, or `main` alone is never adoption or
 publication authority.
 
-ISRAS `0.1.6` preserves the complete Workstream A implementation from 0.1.5 and
-corrects release-artifact production to apply the same minimum-Go semantics
-already enforced for project-command execution. Later compatible releases and
-valid custom-suffix toolchains are accepted, while versions below the declared
-minimum fail closed.
+ISRAS `0.1.7` preserves the complete Workstream A implementation and the
+minimum-Go release-artifact correction from 0.1.6. It additionally corrects the
+reusable hosted adapter so validator-owned `govulncheck` tooling remains outside
+the consuming repository while exact scanner identity and fail-closed
+clean-repository enforcement remain intact.
 
-The published `0.1.4` release remains immutable and remains the current accepted
-release until 0.1.6 completes its signed-source, clean-clone, tag, artifact,
-publication, remote-byte, and post-publication gates. The signed
-`isras-v0.1.5` tag remains immutable but unpublished and is not adoption
-authority because its release-artifact producer incorrectly required exact
-compiler equality. The signed `isras-v0.1.3` tag also remains immutable but
-unpublished and non-adoptable.
+The published `isras-v0.1.6` release remains immutable but is not adoption
+authority because its reusable hosted adapter creates validator-owned tooling
+inside the consuming repository before commit-mode project commands. The
+published `0.1.4` release remains the current accepted baseline until 0.1.7
+completes its signed-source, clean-clone, tag, artifact, publication,
+remote-byte, and post-publication gates. The signed `isras-v0.1.5` and
+`isras-v0.1.3` tags remain immutable, unpublished, and non-adoptable.
 
-This `0.1.6` source candidate is not consuming-project adoption authority until
+This `0.1.7` source candidate is not consuming-project adoption authority until
 it passes the complete acceptance, release, artifact, tag, publication, and
 post-publication validation gates.
 
@@ -173,7 +173,7 @@ directory:
   project-pin validate
 ```
 
-After `isras-v0.1.6` is accepted and published, its linker-bound validator can
+After `isras-v0.1.7` is accepted and published, its linker-bound validator can
 initialize a clean Iron Signal Systems Go repository from the exact verified
 release without committing or pushing:
 
@@ -181,7 +181,7 @@ release without committing or pushing:
 isras-validator-linux-amd64 \
   --repo /src/example-project \
   project-pin initialize \
-  --release isras-v0.1.6 \
+  --release isras-v0.1.7 \
   --go-defaults
 ```
 
@@ -246,7 +246,7 @@ been pushed and the deterministic artifacts have been reviewed:
 
 ```bash
 ./tools/build-release-publication.sh
-./.local/bin/isras-release-publication check --version 0.1.6
+./.local/bin/isras-release-publication check --version 0.1.7
 ```
 
 Only an explicitly reviewed `publish --confirm` invocation may create the draft,
@@ -312,15 +312,14 @@ The command uses exact commit IDs, evaluates merge-base-to-head changes, and
 retains deterministic JSON and text evidence under
 `.local/validation/documentation-impact/`.
 
-## ISRAS 0.1.6 hosted consumer correction
+## Hosted validator-owned tool correction
 
-A real IFI adoption run exposed a fail-closed 0.1.6 hosted-adapter defect:
-the exact governed `govulncheck` binary was installed into the consuming
-repository before commit-mode project commands executed. The source correction
+Validation of a consuming repository exposed a fail-closed 0.1.6 hosted-adapter
+defect: the exact governed `govulncheck` binary was installed inside the target
+repository before commit-mode project commands executed. The 0.1.7 correction
 moves that binary to runner-owned temporary storage and preserves exact tool
 identity verification.
 
-The published 0.1.6 release remains immutable. This correction requires a new
-reviewed, validated, signed, and published release before any consuming project
-may rely on it. See
-[`docs/records/ISRAS-0.1.6-HOSTED-GOVULNCHECK-RUNTIME-CORRECTION.md`](docs/records/ISRAS-0.1.6-HOSTED-GOVULNCHECK-RUNTIME-CORRECTION.md).
+The published 0.1.6 release remains immutable and is superseded rather than
+modified. See
+[`docs/records/ISRAS-HOSTED-GOVULNCHECK-RUNTIME-CORRECTION.md`](docs/records/ISRAS-HOSTED-GOVULNCHECK-RUNTIME-CORRECTION.md).

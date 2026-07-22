@@ -6,10 +6,10 @@ An Iron Signal Systems project adopts one accepted ISRAS release and remains
 governed by that exact release until a deliberate, reviewed upgrade changes the
 pin.
 
-A project created while `isras-v0.1.5` is the accepted baseline references that
-release and builds its repository framework, documentation, tests, validation,
-release process, and evidence around the obligations defined by `0.1.5`.
-Publication of `0.1.6` does not silently alter the project.
+A project created under an accepted ISRAS release references that exact release
+and builds its repository framework, documentation, tests, validation, release
+process, and evidence around the obligations defined by that immutable version.
+Publication of `0.1.7` does not silently alter an existing project pin.
 
 ## The project pin
 
