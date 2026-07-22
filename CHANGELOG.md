@@ -2,17 +2,24 @@
 
 ## Unreleased
 
-- Correct the published 0.1.6 hosted adapter so exact governed `govulncheck`
-  is installed in runner-owned temporary storage rather than the consuming
-  repository.
-- Add fail-closed validation for the external hosted `govulncheck` path:
-  absolute, clean, outside the target repository, regular, executable, and
-  non-symlink.
-- Add regression coverage binding the reusable workflow and runtime path
-  boundary to the IFI-hosted failure evidence.
+No changes have been recorded after the `0.1.7` release boundary.
 
+## 0.1.7 — 2026-07-22
 
-No changes have been recorded after the `0.1.6` release boundary.
+- Correct the published 0.1.6 reusable hosted adapter so validator-owned
+  `govulncheck` tooling is installed in runner-owned temporary storage rather
+  than inside a consuming repository.
+- Add fail-closed validation for the externally supplied governed
+  `govulncheck` path: clean absolute path, outside the target repository,
+  regular executable file, and not a symbolic link.
+- Preserve exact governed module and scanner-version verification while keeping
+  the consuming repository clean before the first project command.
+- Add focused runtime and reusable-workflow regression coverage for the hosted
+  validator-owned tool boundary.
+- Remove consuming-project names, commits, workflow-run identifiers, and
+  artifact identifiers from reusable Engineering Standards source records.
+- Preserve the immutable published `isras-v0.1.6` release while superseding it
+  with the corrected `isras-v0.1.7` release boundary.
 
 ## 0.1.6 — 2026-07-21
 

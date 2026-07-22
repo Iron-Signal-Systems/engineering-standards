@@ -13,10 +13,11 @@ available release automatically.
 ## Adoption model
 
 After publication and post-publication acceptance, a project created while
-`isras-v0.1.6` is the accepted baseline shall pin `isras-v0.1.6`, its exact
+`isras-v0.1.7` is the accepted baseline shall pin `isras-v0.1.7`, its exact
 release commit, and the required artifact digests. It remains on that release
 until an explicit upgrade is planned, reviewed, validated, committed, and
-accepted. The immutable `isras-v0.1.5` tag is unpublished and non-adoptable.
+accepted. The immutable `isras-v0.1.6` release remains published but is
+superseded and is not adoption authority.
 
 The project commits its pin and project-specific declarations. It executes the
 validator released by Engineering Standards rather than copying the validator
@@ -104,14 +105,14 @@ project, and shall not add itself to the project's application dependency graph.
 
 ## New project
 
-After publication and post-publication acceptance, the accepted `0.1.6`
+After publication and post-publication acceptance, the accepted `0.1.7`
 release validator initializes one explicitly selected release with:
 
 ```bash
 isras-validator-linux-amd64 \
   --repo /src/example-project \
   project-pin initialize \
-  --release isras-v0.1.6 \
+  --release isras-v0.1.7 \
   --go-defaults
 ```
 
@@ -165,7 +166,7 @@ that could not observe the empty draft it had created. The exact failed draft wa
 independently verified and deleted. `0.1.3` is not adoption authority.
 
 ISRAS `0.1.4` remains an immutable published release and the current adoption
-authority until the corrective 0.1.6 release completes publication and
+authority until the corrective 0.1.7 release completes publication and
 post-publication acceptance.
 
 The signed `isras-v0.1.5` tag is immutable but unpublished and non-adoptable. Its
@@ -173,11 +174,16 @@ release-artifact producer incorrectly required exact Go compiler equality even
 though the accepted standard defines the `go.mod` `go` directive as a minimum.
 No canonical 0.1.5 asset set or GitHub Release exists.
 
-ISRAS `0.1.6` is the corrective release candidate. It preserves Workstream A and
-corrects release-artifact production to accept later compatible releases and
-valid custom-suffix toolchains while rejecting toolchains below the minimum.
+ISRAS `0.1.6` is an immutable published release, but its reusable hosted adapter
+installs validator-owned `govulncheck` tooling inside a consuming repository
+before commit-mode project commands. It is superseded and is not adoption
+authority.
 
-A consuming project may pin `isras-v0.1.6` only after the exact signed tag and
+ISRAS `0.1.7` is the corrective release candidate. It preserves Workstream A and
+the minimum-Go artifact correction while moving hosted validator-owned tooling
+to runner-owned temporary storage with fail-closed external-path validation.
+
+A consuming project may pin `isras-v0.1.7` only after the exact signed tag and
 verified six-asset release are published and that repository's required
 adoption or upgrade validation passes.
 
