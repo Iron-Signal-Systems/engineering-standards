@@ -286,3 +286,14 @@ Wildcard trust, parent-directory trust, inherited caller trust configuration,
 and disabling Git ownership protection are prohibited. The trust declaration
 authorizes Git to inspect the exact repository; it does not broaden which module
 paths enter the governed inventory.
+
+## Hosted govulncheck executable ownership
+
+The Go profile's hosted `govulncheck` binary is validator-owned runtime tooling.
+It shall be installed outside the consuming repository, verified against the
+exact governed module and version, and supplied to the release validator through
+the bounded hosted-tool interface.
+
+The consuming repository remains clean before the first project command.
+Projects are not required to ignore validator tool directories, and the standard
+must not use `.gitignore` changes to hide validator-created files.

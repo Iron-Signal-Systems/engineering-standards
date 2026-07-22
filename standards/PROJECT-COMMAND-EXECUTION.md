@@ -283,3 +283,19 @@ evidence. The evidence records document presence, path, digest, schema version,
 evaluation time, exact used exceptions, unused records, unexcepted reachable
 findings, and unknown-finding summaries. Failure evidence retains the same
 reconciliation whenever scanner execution completed successfully.
+
+## Validator-owned hosted tool boundary
+
+A hosted adapter shall not install validator-owned executables into the
+consuming repository outside the fixed runtime-evidence boundary. The exact
+governed `govulncheck` executable is installed in runner-owned temporary storage.
+
+The reusable workflow passes its absolute path through
+`ISRAS_GOVULNCHECK_EXECUTABLE`. The release validator accepts that path only
+when it is clean, absolute, outside the target repository, a regular executable,
+and not a symbolic link. Exact module and version verification remains
+mandatory before execution.
+
+This environment value is a validator-host integration boundary. It is not a
+consumer-controlled project command, application dependency, mutable pin, or
+permission to weaken clean-tree enforcement.

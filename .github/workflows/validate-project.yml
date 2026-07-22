@@ -192,10 +192,11 @@ jobs:
           test "$govulncheck_module" = "golang.org/x/vuln/cmd/govulncheck"
           [[ "$govulncheck_version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
 
+          tool_root="$RUNNER_TEMP/isras-tools"
           for candidate in \
+            "$tool_root" \
+            "$tool_root/bin" \
             target/.local \
-            target/.local/tools \
-            target/.local/tools/bin \
             target/.local/isras \
             target/.local/isras/runtime
           do
@@ -203,10 +204,10 @@ jobs:
           done
 
           mkdir -p \
-            target/.local/tools/bin \
+            "$tool_root/bin" \
             target/.local/isras/runtime
 
-          test -d target/.local/tools/bin
+          test -d "$tool_root/bin"
           test -d target/.local/isras/runtime
 
           install -m 0600 \
@@ -220,14 +221,14 @@ jobs:
             cd target
             GOTOOLCHAIN=local \
               GOENV=off \
-              GOBIN="$PWD/.local/tools/bin" \
+              GOBIN="$tool_root/bin" \
               go install \
               "${govulncheck_module}@${govulncheck_version}"
           )
 
           selected_go="$(command -v go)"
           test -n "$selected_go"
-          tool_path="$GITHUB_WORKSPACE/target/.local/tools/bin/govulncheck"
+          tool_path="$tool_root/bin/govulncheck"
           test -x "$tool_path"
 
           build_info="$RUNNER_TEMP/isras-govulncheck-build-info.txt"
@@ -271,8 +272,10 @@ jobs:
               )
           PY
 
-          printf '%s\n' "$GITHUB_WORKSPACE/target/.local/tools/bin" \
+          printf '%s\n' "$tool_root/bin" \
             >> "$GITHUB_PATH"
+          printf 'ISRAS_GOVULNCHECK_EXECUTABLE=%s\n' "$tool_path" \
+            >> "$GITHUB_ENV"
 
       - name: Run every committed project command
         shell: bash

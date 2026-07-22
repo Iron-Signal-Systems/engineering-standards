@@ -4,13 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 )
 
-const govulncheckRuntimeExecutable = ".local/tools/bin/govulncheck"
+const (
+	govulncheckRuntimeExecutable         = ".local/tools/bin/govulncheck"
+	govulncheckExecutableEnvironmentName = "ISRAS_GOVULNCHECK_EXECUTABLE"
+)
 
 type govulncheckRuntimeResult struct {
 	SelectedGo goToolchainSelection
@@ -93,10 +97,10 @@ func executeGovulncheckRuntimeWithDependencies(
 		return result, errors.New("govulncheck runtime selected no governed Go modules")
 	}
 
-	toolExecutable := filepath.Join(
-		absoluteRoot,
-		filepath.FromSlash(govulncheckRuntimeExecutable),
-	)
+	toolExecutable, err := governedGovulncheckExecutable(absoluteRoot)
+	if err != nil {
+		return result, err
+	}
 	tool, err := dependencies.verifyTool(
 		ctx,
 		selectedGo.Executable,
@@ -192,6 +196,47 @@ func executeGovulncheckRuntimeWithDependencies(
 		return result, err
 	}
 	return result, nil
+}
+
+func governedGovulncheckExecutable(root string) (string, error) {
+	configured := strings.TrimSpace(
+		os.Getenv(govulncheckExecutableEnvironmentName),
+	)
+	if configured == "" {
+		return filepath.Join(
+			root,
+			filepath.FromSlash(govulncheckRuntimeExecutable),
+		), nil
+	}
+	if strings.ContainsAny(configured, "\x00\r\n") {
+		return "", errors.New(
+			"configured governed govulncheck executable contains a prohibited control character",
+		)
+	}
+	if !filepath.IsAbs(configured) ||
+		filepath.Clean(configured) != configured {
+		return "", errors.New(
+			"configured governed govulncheck executable must be a clean absolute path",
+		)
+	}
+	if pathWithin(root, configured) {
+		return "", errors.New(
+			"configured governed govulncheck executable must be outside the target repository",
+		)
+	}
+	info, err := os.Lstat(configured)
+	if err != nil {
+		return "", errors.New(
+			"inspect configured governed govulncheck executable",
+		)
+	}
+	if !info.Mode().IsRegular() ||
+		info.Mode().Perm()&0o111 == 0 {
+		return "", errors.New(
+			"configured governed govulncheck executable is not a regular executable file",
+		)
+	}
+	return configured, nil
 }
 
 func evaluateGovulncheckFindings(run govulncheckModuleRun) error {
