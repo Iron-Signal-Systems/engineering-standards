@@ -280,3 +280,26 @@ NUL-delimited enumeration, and continued `.local` exclusion.
 
 The hosted acceptance boundary includes native Ubuntu and bind-mounted Arch
 Linux, Fedora 43, and Fedora 44 jobs. A native-only pass is insufficient.
+
+### Release artifact Go minimum-version validation
+
+Release-artifact production shall interpret each governed `go.mod` `go`
+directive as the minimum supported Go toolchain version rather than an exact
+compiler pin. The committed release-artifact test set shall prove:
+
+- acceptance of the exact declared minimum;
+- acceptance of later compatible patch and minor releases;
+- acceptance of valid later custom-suffix identities such as
+  `go1.26.5-X:nodwarf5`;
+- rejection of malformed or unsupported Go version identities; and
+- rejection of every selected toolchain below the declared minimum.
+
+Artifact provenance shall record the actual selected Go toolchain identity.
+Byte-for-byte reproducibility claims apply only when the exact source commit,
+signed tag, release file lists, producer implementation, explicit provenance
+inputs, and selected Go toolchain identity are identical.
+
+A release-artifact implementation change shall satisfy the documentation-impact
+`release-and-adoption` lifecycle boundary in the same reviewed commit range.
+Hosted validation across every required Linux job is mandatory before merge,
+tagging, asset production, or publication.

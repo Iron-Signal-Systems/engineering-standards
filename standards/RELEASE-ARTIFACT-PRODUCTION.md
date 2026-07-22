@@ -44,8 +44,9 @@ Production requires all of the following:
 - an annotated signed `isras-vMAJOR.MINOR.PATCH` tag;
 - the tag resolving directly to `HEAD`;
 - canonical Engineering Standards `origin` identity;
-- an exact patch-level Go directive in `go.mod`;
-- the running Go toolchain matching that directive exactly.
+- an exact patch-level minimum Go directive in `go.mod`;
+- a valid selected Go toolchain satisfying that declared minimum, including
+  later compatible releases and valid custom toolchain suffixes.
 
 The complete source boundary is checked before and after production. A changed
 commit, tag, toolchain, or working tree invalidates the candidate.
@@ -161,8 +162,9 @@ The producer removes the Go build identifier, disables VCS auto-embedding, uses
 `-trimpath`, disables CGO, and fixes the validator target to `linux/amd64`.
 
 A byte-for-byte reproducibility claim is valid only when the exact source commit,
-signed tag, file lists, Go patch release, builder implementation, and explicit
-provenance inputs are identical. The producer records those inputs; it does not
+signed tag, file lists, selected Go toolchain identity, builder implementation,
+and explicit provenance inputs are identical. The producer records those inputs;
+it does not
 claim reproducibility across a different toolchain or platform without evidence.
 
 ## Acceptance boundary
@@ -172,7 +174,9 @@ This implementation is accepted only when tests prove:
 - development versions cannot produce release artifacts;
 - unsigned commits, lightweight tags, invalid tags, and tag drift fail closed;
 - dirty repositories and noncanonical origins fail closed;
-- toolchain drift fails closed;
+- toolchains below the declared minimum fail closed while later compatible
+  releases and valid custom suffixes are accepted;
+- selected-toolchain identity drift during production fails closed;
 - archive file lists reject unsafe, missing, duplicate, and unsorted paths;
 - repeated archive production from identical inputs is byte-identical;
 - validator identity is embedded and checked;

@@ -2,7 +2,23 @@
 
 ## Unreleased
 
-No changes have been recorded after the `0.1.5` release boundary.
+No changes have been recorded after the `0.1.6` release boundary.
+
+## 0.1.6 — 2026-07-21
+
+- Correct release-artifact production to enforce the repository `go.mod` `go`
+  directive as a minimum rather than an exact compiler identity.
+- Accept later compatible Go releases and valid custom-suffix toolchains,
+  including `go1.26.5-X:nodwarf5`, while rejecting toolchains below the declared
+  minimum.
+- Record the actual selected Go toolchain in provenance and preserve
+  byte-for-byte reproducibility only across builds using that same selected
+  toolchain and identical explicit provenance inputs.
+- Preserve the immutable signed `isras-v0.1.5` tag as unpublished and
+  non-adoptable after its artifact producer contradicted the minimum-toolchain
+  contract.
+- Advance release identity and release-facing guidance to the corrective
+  `isras-v0.1.6` publication boundary.
 
 ## 0.1.5 — 2026-07-21
 

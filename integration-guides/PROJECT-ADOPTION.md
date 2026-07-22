@@ -12,10 +12,11 @@ available release automatically.
 
 ## Adoption model
 
-A project created while `isras-v0.1.5` is the accepted baseline shall pin
-`isras-v0.1.5`, its exact release commit, and the required artifact digests. It
-remains on that release until an explicit upgrade is planned, reviewed,
-validated, committed, and accepted.
+After publication and post-publication acceptance, a project created while
+`isras-v0.1.6` is the accepted baseline shall pin `isras-v0.1.6`, its exact
+release commit, and the required artifact digests. It remains on that release
+until an explicit upgrade is planned, reviewed, validated, committed, and
+accepted. The immutable `isras-v0.1.5` tag is unpublished and non-adoptable.
 
 The project commits its pin and project-specific declarations. It executes the
 validator released by Engineering Standards rather than copying the validator
@@ -103,14 +104,14 @@ project, and shall not add itself to the project's application dependency graph.
 
 ## New project
 
-After publication and post-publication acceptance, the accepted `0.1.5`
+After publication and post-publication acceptance, the accepted `0.1.6`
 release validator initializes one explicitly selected release with:
 
 ```bash
 isras-validator-linux-amd64 \
   --repo /src/example-project \
   project-pin initialize \
-  --release isras-v0.1.5 \
+  --release isras-v0.1.6 \
   --go-defaults
 ```
 
@@ -163,18 +164,22 @@ publication attempt exposed an invalid upload-host invocation and a cleanup path
 that could not observe the empty draft it had created. The exact failed draft was
 independently verified and deleted. `0.1.3` is not adoption authority.
 
-ISRAS `0.1.4` is the current immutable published release and adoption authority
-subject to each consuming repository's own required validation.
+ISRAS `0.1.4` remains an immutable published release and the current adoption
+authority until the corrective 0.1.6 release completes publication and
+post-publication acceptance.
 
-ISRAS `0.1.5` is the Workstream A release candidate. It adds bounded selected-Go
-and multi-module enforcement, exact govulncheck execution and exception
-governance, repository-identity clarification, and fail-closed
-documentation-impact enforcement.
+The signed `isras-v0.1.5` tag is immutable but unpublished and non-adoptable. Its
+release-artifact producer incorrectly required exact Go compiler equality even
+though the accepted standard defines the `go.mod` `go` directive as a minimum.
+No canonical 0.1.5 asset set or GitHub Release exists.
 
-This source candidate is not adoption authority by itself. A consuming project
-may pin `isras-v0.1.5` only after the exact signed tag and verified six-asset
-release are published and that repository's required adoption or upgrade
-validation passes.
+ISRAS `0.1.6` is the corrective release candidate. It preserves Workstream A and
+corrects release-artifact production to accept later compatible releases and
+valid custom-suffix toolchains while rejecting toolchains below the minimum.
+
+A consuming project may pin `isras-v0.1.6` only after the exact signed tag and
+verified six-asset release are published and that repository's required
+adoption or upgrade validation passes.
 
 The existing `tools/export-project-validator.sh` source-copy model remains
 deprecated and must not be used for new adoption.

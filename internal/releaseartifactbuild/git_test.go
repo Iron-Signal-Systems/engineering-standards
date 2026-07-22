@@ -37,3 +37,66 @@ func TestCanonicalOrigin(t *testing.T) {
 		}
 	}
 }
+
+func TestGoVersionAtLeastUsesMinimumSemantics(t *testing.T) {
+	tests := []struct {
+		name    string
+		actual  string
+		minimum string
+		want    bool
+	}{
+		{
+			name:    "exact minimum",
+			actual:  "go1.25.12",
+			minimum: "go1.25.12",
+			want:    true,
+		},
+		{
+			name:    "later patch",
+			actual:  "go1.25.13",
+			minimum: "go1.25.12",
+			want:    true,
+		},
+		{
+			name:    "later custom toolchain",
+			actual:  "go1.26.5-X:nodwarf5",
+			minimum: "go1.25.12",
+			want:    true,
+		},
+		{
+			name:    "below minimum",
+			actual:  "go1.25.11",
+			minimum: "go1.25.12",
+			want:    false,
+		},
+		{
+			name:    "invalid actual",
+			actual:  "1.26.5",
+			minimum: "go1.25.12",
+			want:    false,
+		},
+		{
+			name:    "invalid minimum",
+			actual:  "go1.26.5",
+			minimum: "1.25.12",
+			want:    false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := goVersionAtLeast(
+				test.actual,
+				test.minimum,
+			); got != test.want {
+				t.Fatalf(
+					"goVersionAtLeast(%q, %q) = %v, want %v",
+					test.actual,
+					test.minimum,
+					got,
+					test.want,
+				)
+			}
+		})
+	}
+}
