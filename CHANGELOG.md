@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Correct the published 0.1.6 hosted adapter so exact governed `govulncheck`
+  is installed in runner-owned temporary storage rather than the consuming
+  repository.
+- Add fail-closed validation for the external hosted `govulncheck` path:
+  absolute, clean, outside the target repository, regular, executable, and
+  non-symlink.
+- Add regression coverage binding the reusable workflow and runtime path
+  boundary to the IFI-hosted failure evidence.
+
+
 No changes have been recorded after the `0.1.6` release boundary.
 
 ## 0.1.6 — 2026-07-21

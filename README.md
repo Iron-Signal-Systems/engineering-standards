@@ -311,3 +311,16 @@ isras-validate documentation-impact --base COMMIT --head COMMIT
 The command uses exact commit IDs, evaluates merge-base-to-head changes, and
 retains deterministic JSON and text evidence under
 `.local/validation/documentation-impact/`.
+
+## ISRAS 0.1.6 hosted consumer correction
+
+A real IFI adoption run exposed a fail-closed 0.1.6 hosted-adapter defect:
+the exact governed `govulncheck` binary was installed into the consuming
+repository before commit-mode project commands executed. The source correction
+moves that binary to runner-owned temporary storage and preserves exact tool
+identity verification.
+
+The published 0.1.6 release remains immutable. This correction requires a new
+reviewed, validated, signed, and published release before any consuming project
+may rely on it. See
+[`docs/records/ISRAS-0.1.6-HOSTED-GOVULNCHECK-RUNTIME-CORRECTION.md`](docs/records/ISRAS-0.1.6-HOSTED-GOVULNCHECK-RUNTIME-CORRECTION.md).
