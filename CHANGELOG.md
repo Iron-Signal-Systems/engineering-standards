@@ -2,7 +2,17 @@
 
 ## Unreleased
 
-No changes have been recorded after the `0.1.7` release boundary.
+No changes have been recorded after the `0.1.8` release boundary.
+
+## 0.1.8 — 2026-07-22
+
+- Add the Arch development host SSH signing key to the governed hosted signer
+  inventory for `kb2vhn@gmail.com`.
+- Preserve exact principal, fingerprint, allowed-signers byte, and checksum
+  binding across local and hosted commit verification.
+- Record the signer addition as an explicit trust rotation requiring a new
+  immutable release and consuming-project upgrade.
+- Add the repository contributor and coding-agent guide as governed source.
 
 ## 0.1.7 — 2026-07-22
 

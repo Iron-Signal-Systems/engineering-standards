@@ -9,7 +9,7 @@ pin.
 A project created under an accepted ISRAS release references that exact release
 and builds its repository framework, documentation, tests, validation, release
 process, and evidence around the obligations defined by that immutable version.
-Publication of `0.1.7` does not silently alter an existing project pin.
+Publication of `0.1.8` does not silently alter an existing project pin.
 
 ## The project pin
 

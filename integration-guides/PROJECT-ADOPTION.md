@@ -13,7 +13,7 @@ available release automatically.
 ## Adoption model
 
 After publication and post-publication acceptance, a project created while
-`isras-v0.1.7` is the accepted baseline shall pin `isras-v0.1.7`, its exact
+`isras-v0.1.8` is the accepted baseline shall pin `isras-v0.1.8`, its exact
 release commit, and the required artifact digests. It remains on that release
 until an explicit upgrade is planned, reviewed, validated, committed, and
 accepted. The immutable `isras-v0.1.6` release remains published but is
@@ -105,14 +105,14 @@ project, and shall not add itself to the project's application dependency graph.
 
 ## New project
 
-After publication and post-publication acceptance, the accepted `0.1.7`
+After publication and post-publication acceptance, the accepted `0.1.8`
 release validator initializes one explicitly selected release with:
 
 ```bash
 isras-validator-linux-amd64 \
   --repo /src/example-project \
   project-pin initialize \
-  --release isras-v0.1.7 \
+  --release isras-v0.1.8 \
   --go-defaults
 ```
 
@@ -165,8 +165,8 @@ publication attempt exposed an invalid upload-host invocation and a cleanup path
 that could not observe the empty draft it had created. The exact failed draft was
 independently verified and deleted. `0.1.3` is not adoption authority.
 
-ISRAS `0.1.4` remains an immutable published release and the current adoption
-authority until the corrective 0.1.7 release completes publication and
+ISRAS `0.1.7` remains an immutable published release and the current adoption
+authority until the signer-rotation 0.1.8 release completes publication and
 post-publication acceptance.
 
 The signed `isras-v0.1.5` tag is immutable but unpublished and non-adoptable. Its
@@ -179,11 +179,11 @@ installs validator-owned `govulncheck` tooling inside a consuming repository
 before commit-mode project commands. It is superseded and is not adoption
 authority.
 
-ISRAS `0.1.7` is the corrective release candidate. It preserves Workstream A and
-the minimum-Go artifact correction while moving hosted validator-owned tooling
-to runner-owned temporary storage with fail-closed external-path validation.
+ISRAS `0.1.8` is the signer-rotation release candidate. It preserves Workstream
+A, the minimum-Go artifact correction, and the hosted tool boundary while adding
+the Arch development host key to the governed signer inventory.
 
-A consuming project may pin `isras-v0.1.7` only after the exact signed tag and
+A consuming project may pin `isras-v0.1.8` only after the exact signed tag and
 verified six-asset release are published and that repository's required
 adoption or upgrade validation passes.
 
