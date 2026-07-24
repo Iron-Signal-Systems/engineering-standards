@@ -48,27 +48,26 @@ per-module source inventory, and the selected Go implementation must satisfy
 every discovered source module before command execution. Generated `.local/`
 runtime evidence is explicitly excluded from the module boundary.
 
-This source boundary declares `0.1.7`. Before publication it is a corrective
-release candidate; after publication only the exact signed `isras-v0.1.7` tag
+This source boundary declares `0.1.8`. Before publication it is a signer-rotation
+release candidate; after publication only the exact signed `isras-v0.1.8` tag
 and its verified six-asset GitHub Release can establish accepted release
 identity. A stable `VERSION` value, `dev`, or `main` alone is never adoption or
 publication authority.
 
-ISRAS `0.1.7` preserves the complete Workstream A implementation and the
-minimum-Go release-artifact correction from 0.1.6. It additionally corrects the
-reusable hosted adapter so validator-owned `govulncheck` tooling remains outside
-the consuming repository while exact scanner identity and fail-closed
-clean-repository enforcement remain intact.
+ISRAS `0.1.8` preserves the complete 0.1.7 implementation and adds the Arch
+development host SSH signing key to the governed hosted signer inventory. Exact
+principal, fingerprint, allowed-signers byte, and checksum binding remain
+mandatory.
 
 The published `isras-v0.1.6` release remains immutable but is not adoption
 authority because its reusable hosted adapter creates validator-owned tooling
 inside the consuming repository before commit-mode project commands. The
-published `0.1.4` release remains the current accepted baseline until 0.1.7
-completes its signed-source, clean-clone, tag, artifact, publication,
-remote-byte, and post-publication gates. The signed `isras-v0.1.5` and
-`isras-v0.1.3` tags remain immutable, unpublished, and non-adoptable.
+published `0.1.7` release remains the accepted baseline until 0.1.8 completes
+its signed-source, clean-clone, tag, artifact, publication, remote-byte, and
+post-publication gates. The signed `isras-v0.1.5` and `isras-v0.1.3` tags remain
+immutable, unpublished, and non-adoptable.
 
-This `0.1.7` source candidate is not consuming-project adoption authority until
+This `0.1.8` source candidate is not consuming-project adoption authority until
 it passes the complete acceptance, release, artifact, tag, publication, and
 post-publication validation gates.
 
@@ -173,7 +172,7 @@ directory:
   project-pin validate
 ```
 
-After `isras-v0.1.7` is accepted and published, its linker-bound validator can
+After `isras-v0.1.8` is accepted and published, its linker-bound validator can
 initialize a clean Iron Signal Systems Go repository from the exact verified
 release without committing or pushing:
 
@@ -181,7 +180,7 @@ release without committing or pushing:
 isras-validator-linux-amd64 \
   --repo /src/example-project \
   project-pin initialize \
-  --release isras-v0.1.7 \
+  --release isras-v0.1.8 \
   --go-defaults
 ```
 
@@ -246,7 +245,7 @@ been pushed and the deterministic artifacts have been reviewed:
 
 ```bash
 ./tools/build-release-publication.sh
-./.local/bin/isras-release-publication check --version 0.1.7
+./.local/bin/isras-release-publication check --version 0.1.8
 ```
 
 Only an explicitly reviewed `publish --confirm` invocation may create the draft,
