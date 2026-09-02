@@ -146,15 +146,9 @@ Testing on one operating-system version does not automatically establish compati
 
 Testing one deployment model does not establish all deployment models.
 
-Projects must clearly distinguish between:
+Projects must clearly distinguish what has been implemented, tested, validated, supported, partially validated, remains unverified, or is unsupported.
 
-- implemented;
-- tested;
-- validated;
-- supported;
-- partially validated;
-- unverified;
-- unsupported.
+The terminology used to represent those conditions may be appropriate to the individual project. These distinctions do not define a mandatory ISS status schema.
 
 ISS must not claim a level of compatibility, security, reliability, or validation that has not been demonstrated.
 
@@ -175,6 +169,8 @@ Where applicable, systems should distinguish between conditions such as:
 - invalid;
 - failed;
 - not applicable.
+
+These examples describe meaningful distinctions and do not require a universal status vocabulary across ISS projects.
 
 Users and operators should be able to determine when the system did not do what was expected.
 
@@ -399,12 +395,22 @@ Not from a vendor asking the customer to simply believe that the system works.
 
 The detailed ISS engineering requirements are maintained in:
 
-- `DESIGN.md` — system design, architecture, boundaries, data flow, authority, failure, and recovery;
-- `ENGINEERING.md` — implementation practices and day-to-day software engineering;
-- `TESTING.md` — testing, validation, regression testing, platform testing, and user-verifiable validation;
-- `SECURITY.md` — security engineering, trust, privilege, hardening, and security validation;
-- `AGENTS.md` — requirements for AI agents and automated contributors working on ISS projects.
+- [`DESIGN.md`](DESIGN.md) — system design, architecture, boundaries, data flow, authority, failure, and recovery;
+- [`ENGINEERING.md`](ENGINEERING.md) — implementation practices and day-to-day software engineering;
+- [`TESTING.md`](TESTING.md) — testing, validation, regression testing, platform testing, and user-verifiable validation;
+- [`SECURITY.md`](SECURITY.md) — security engineering, trust, privilege, hardening, and security validation;
+- [`AGENTS.md`](AGENTS.md) — requirements for AI agents and automated contributors working on ISS projects.
 
 Additional language-specific or platform-specific guidance should be added only when there is enough real engineering need to justify it.
 
 The standards should remain understandable, practical, and directly connected to building better systems.
+
+---
+
+## License
+
+This repository and its example and reference code are licensed under the [BSD 3-Clause License](LICENSE) unless otherwise stated.
+
+Adoption of the Iron Signal Systems Engineering Standards does not require an adopting project to use the BSD 3-Clause License.
+
+Each project retains its own licensing decisions.
