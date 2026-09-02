@@ -36,7 +36,7 @@ They do not define one universal ISS implementation.
 A project may satisfy the same engineering requirement differently depending on:
 
 - purpose;
--- language;
+- language;
 - operating system;
 - runtime;
 - architecture;
