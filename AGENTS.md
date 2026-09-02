@@ -182,13 +182,9 @@ The engineering-standards repository does not.
 
 An agent must not restructure a project merely to make it conform visually or structurally to another ISS repository.
 
-FI does not define Atlas architecture.
+No ISS project defines the architecture of another ISS project.
 
-Atlas does not define Guidon architecture.
-
-Guidon does not define Sentinel architecture.
-
-Engineering lessons may transfer.
+Engineering lessons may transfer between projects.
 
 Implementation does not automatically transfer.
 
