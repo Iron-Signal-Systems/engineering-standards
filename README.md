@@ -50,6 +50,51 @@ Consistency does not require identical code.
 
 ---
 
+## Versioning and Project Adoption
+
+Released editions of the Iron Signal Systems Engineering Standards use calendar versioning.
+
+The normal version format is:
+
+```text
+YYYY.MM
+```
+
+For example:
+
+```text
+2026.09
+```
+
+The version identifies when that edition of the standards came into effect.
+
+If more than one distinct standards release is required within the same month, a day component may be added:
+
+```text
+YYYY.MM.DD
+```
+
+The day component should be used only when needed to distinguish released editions within the same month.
+
+The current standards version is recorded in [`VERSION`](VERSION).
+
+An ISS project adopts a specific released standards version deliberately. Where practical, the project should record both:
+
+- the adopted calendar version;
+- the exact engineering-standards repository commit corresponding to that adoption.
+
+The calendar version provides a human-readable reference to when the standard came into effect. The commit identifies the exact text that was adopted.
+
+Changes to this repository do not retroactively alter the engineering requirements of a project that references an earlier released version.
+
+A project adopts a newer standards version only after the changes applicable to that project have been reviewed and the project's standards reference has been deliberately updated.
+
+One ISS project adopting a newer standards version does not cause another project to adopt it.
+
+Referencing a standards version identifies the engineering standard against which the project was designed and evaluated. It is not, by itself, a certification or proof that the project satisfies every applicable requirement.
+
+---
+
 ## Understandable Before Clever
 
 ISS software should be understandable by the engineers and administrators responsible for operating and maintaining it.
